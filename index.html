@@ -10,657 +10,744 @@
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./icon-192.png">
 <title>RxTracker</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
 <style>
-:root{
-  --bg:#080c12;--surf:#0f1621;--surf2:#16202e;--bord:#1d2c40;
-  --acc:#3be8b0;--acc2:#1a9e78;--warn:#f0a500;--dang:#e05050;
-  --text:#d8eaf7;--mute:#4a6a8a;
-  --mono:'DM Mono',monospace;--sans:'Syne',sans-serif;
-  --safe-top:env(safe-area-inset-top,44px);
-  --safe-bot:env(safe-area-inset-bottom,34px);
-}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-html,body{height:100%;overflow:hidden;background:var(--bg);}
-body{font-family:var(--sans);color:var(--text);display:flex;flex-direction:column;}
+:root{
+  --bg:#080c12;--s1:#0f1621;--s2:#16202e;--br:#1d2c40;
+  --ac:#3be8b0;--a2:#1a9e78;--wn:#f0a500;--dn:#e05050;
+  --tx:#d8eaf7;--mu:#4a6a8a;
+  --mono:'DM Mono',monospace;--head:'Syne',sans-serif;
+  --safe-t:env(safe-area-inset-top,44px);
+  --safe-b:env(safe-area-inset-bottom,20px);
+}
+html{height:100%;background:var(--bg);}
+body{
+  height:100%;background:var(--bg);color:var(--tx);
+  font-family:var(--mono);display:flex;flex-direction:column;
+  overflow:hidden;
+}
 
-/* ── SHELL ── */
-.shell{display:flex;flex-direction:column;height:100%;max-width:430px;margin:0 auto;position:relative;overflow:hidden;}
-.status-bar{height:var(--safe-top);background:var(--bg);flex-shrink:0;}
-.content{flex:1;overflow:hidden;position:relative;}
-.screen{position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;display:none;flex-direction:column;}
-.screen.active{display:flex;}
-.tab-bar{flex-shrink:0;background:var(--surf);border-top:1px solid var(--bord);display:grid;grid-template-columns:repeat(5,1fr);padding-bottom:var(--safe-bot);}
-.tab{display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 0 6px;cursor:pointer;transition:color .15s;color:var(--mute);}
-.tab.active{color:var(--acc);}
-.tab-ico{font-size:20px;line-height:1;}
-.tab-lbl{font-family:var(--mono);font-size:9px;letter-spacing:.03em;}
-.tab-badge{position:absolute;top:-4px;right:-4px;background:var(--dang);color:#fff;font-family:var(--mono);font-size:8px;padding:1px 4px;border-radius:6px;font-weight:700;}
+/* Shell */
+.app{display:flex;flex-direction:column;height:100%;max-width:480px;margin:0 auto;width:100%;}
+.status-pad{height:var(--safe-t);background:var(--bg);flex-shrink:0;}
+.screens{flex:1;position:relative;overflow:hidden;}
+.screen{position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;background:var(--bg);display:none;flex-direction:column;}
+.screen.on{display:flex;}
 
-/* ── NAV HEADER ── */
-.nav-hdr{padding:16px 18px 10px;background:var(--bg);flex-shrink:0;}
-.nav-hdr h1{font-size:28px;font-weight:800;letter-spacing:-.01em;}
-.nav-hdr p{font-family:var(--mono);font-size:11px;color:var(--mute);margin-top:2px;}
-.nav-hdr-row{display:flex;justify-content:space-between;align-items:flex-end;}
+/* Tab bar */
+.tabs{flex-shrink:0;display:grid;grid-template-columns:repeat(5,1fr);background:var(--s1);border-top:1px solid var(--br);padding-bottom:var(--safe-b);}
+.tab{display:flex;flex-direction:column;align-items:center;padding:10px 0 6px;cursor:pointer;color:var(--mu);position:relative;min-height:56px;justify-content:center;gap:3px;}
+.tab.on{color:var(--ac);}
+.tab-ic{font-size:22px;line-height:1;}
+.tab-lb{font-size:9px;letter-spacing:.03em;font-family:var(--mono);}
+.tab-badge{position:absolute;top:6px;right:calc(50% - 18px);background:var(--dn);color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:8px;min-width:16px;text-align:center;}
 
-/* ── SCROLL BODY ── */
-.scroll-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px 16px 20px;}
+/* Page header */
+.ph{padding:16px 16px 10px;background:var(--bg);flex-shrink:0;}
+.ph-row{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.ph h1{font-family:var(--head);font-size:26px;font-weight:800;letter-spacing:-.01em;color:var(--tx);}
+.ph p{font-size:11px;color:var(--mu);margin-top:2px;}
+.wordmark{font-family:var(--mono);font-size:10px;color:var(--ac);letter-spacing:.15em;margin-bottom:2px;}
 
-/* ── CARDS ── */
-.card{background:var(--surf);border:1px solid var(--bord);border-radius:10px;padding:14px;margin-bottom:10px;}
-.card-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
+/* Scroll body */
+.sb{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px 14px 24px;}
 
-/* ── STATS ── */
-.stat{background:var(--surf);border:1px solid var(--bord);border-radius:10px;padding:12px;}
-.stat-l{font-family:var(--mono);font-size:9px;color:var(--mute);text-transform:uppercase;letter-spacing:.08em;}
-.stat-v{font-family:var(--mono);font-size:26px;color:var(--acc);font-weight:500;margin-top:2px;line-height:1;}
-.stat-s{font-family:var(--mono);font-size:10px;color:var(--mute);margin-top:2px;}
+/* Section label */
+.sl{font-size:10px;color:var(--mu);letter-spacing:.1em;text-transform:uppercase;padding-bottom:8px;border-bottom:1px solid var(--br);margin-bottom:10px;margin-top:18px;}
+.sl:first-child{margin-top:0;}
 
-/* ── SECTION TITLE ── */
-.st{font-family:var(--mono);font-size:10px;color:var(--mute);text-transform:uppercase;letter-spacing:.1em;padding-bottom:6px;border-bottom:1px solid var(--bord);margin-bottom:10px;margin-top:16px;}
-.st:first-child{margin-top:0;}
+/* Card base */
+.card{background:var(--s1);border:1px solid var(--br);border-radius:12px;padding:14px;margin-bottom:10px;}
 
-/* ── BADGES ── */
-.badge{font-family:var(--mono);font-size:9px;padding:2px 6px;border-radius:3px;background:var(--surf2);border:1px solid var(--bord);white-space:nowrap;display:inline-block;}
-.b-on{color:var(--acc);border-color:var(--acc2);background:rgba(59,232,176,.07);}
-.b-warn{color:var(--warn);border-color:var(--warn);background:rgba(240,165,0,.07);}
-.b-dang,.b-stopped{color:var(--dang);border-color:var(--dang);background:rgba(224,80,80,.07);}
-.b-mute,.b-completed{color:var(--mute);}
+/* Stats grid — always 2 col */
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px;}
+.stat{background:var(--s1);border:1px solid var(--br);border-radius:10px;padding:12px 14px;}
+.stat-l{font-size:9px;color:var(--mu);text-transform:uppercase;letter-spacing:.08em;}
+.stat-v{font-size:28px;color:var(--ac);font-weight:500;margin-top:2px;line-height:1;}
+.stat-s{font-size:10px;color:var(--mu);margin-top:2px;}
 
-/* ── MED CARD ── */
-.mc{background:var(--surf);border:1px solid var(--bord);border-radius:10px;overflow:hidden;margin-bottom:10px;}
-.mc-bar{height:2px;background:var(--acc);}
-.mc-bar.warn{background:var(--warn);}
-.mc-bar.dang{background:var(--dang);}
-.mc-bar.mute{background:var(--mute);}
-.mc-body{padding:13px;}
-.mc-hdr{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
-.mc-name{font-weight:700;font-size:16px;}
-.mc-src{font-family:var(--mono);font-size:10px;color:var(--mute);margin-top:1px;}
-.mc-meta{font-family:var(--mono);font-size:11px;color:var(--mute);margin-top:4px;}
-.mc-badges{display:flex;gap:4px;flex-wrap:wrap;margin-top:7px;}
-.unit-tbl{width:100%;font-family:var(--mono);font-size:11px;border-collapse:collapse;margin-top:8px;}
-.unit-tbl td{padding:3px 0;border-bottom:1px solid rgba(29,44,64,.5);}
-.unit-tbl tr:last-child td{border:none;}
-.unit-tbl .uh{color:var(--acc);text-align:right;}
-.note-box{background:rgba(240,165,0,.05);border:1px solid rgba(240,165,0,.15);border-radius:5px;padding:9px;font-family:var(--mono);font-size:11px;color:var(--warn);margin-top:8px;line-height:1.5;}
-.note-box.accent{background:rgba(59,232,176,.04);border-color:rgba(59,232,176,.15);color:var(--acc);}
+/* Today row */
+.tr{background:var(--s1);border:1px solid var(--br);border-radius:12px;padding:14px;margin-bottom:8px;}
+.tr-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:10px;}
+.tr-name{font-family:var(--head);font-size:15px;font-weight:700;color:var(--tx);}
+.tr-src{font-size:10px;color:var(--mu);margin-top:2px;}
+.tr-meta{font-size:11px;color:var(--mu);margin-top:3px;}
+.tr-btns{display:flex;gap:6px;align-items:center;flex-shrink:0;}
 
-/* ── FORECAST ── */
-.fc{background:var(--bg);border:1px solid var(--bord);border-radius:7px;padding:11px;margin-top:10px;}
-.fc-hdr{display:flex;justify-content:space-between;margin-bottom:8px;}
-.fc-title{font-family:var(--mono);font-size:9px;color:var(--mute);text-transform:uppercase;letter-spacing:.08em;}
-.fc-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;}
-.fc-cell{background:var(--surf);border-radius:5px;padding:7px 8px;}
-.fc-cell-l{font-family:var(--mono);font-size:8px;color:var(--mute);text-transform:uppercase;letter-spacing:.05em;}
-.fc-cell-v{font-family:var(--mono);font-size:17px;font-weight:500;margin-top:1px;}
-.fc-cell-v.a{color:var(--acc);}
-.fc-cell-v.w{color:var(--warn);}
-.fc-cell-v.d{color:var(--dang);}
-.vol-lbl{display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;color:var(--mute);margin-bottom:3px;}
-.vol-track{background:var(--surf2);border-radius:3px;height:5px;overflow:hidden;}
-.vol-fill{height:100%;border-radius:3px;background:var(--acc);}
-.vol-fill.w{background:var(--warn);}
-.vol-fill.d{background:var(--dang);}
-.ov-row{display:flex;align-items:center;gap:7px;margin-top:8px;}
-.ov-lbl{font-family:var(--mono);font-size:10px;color:var(--mute);}
-.ov-inp{width:70px;padding:4px 7px;font-family:var(--mono);font-size:12px;background:var(--bg);border:1px solid var(--bord);border-radius:4px;color:var(--text);}
-.ov-inp:focus{outline:none;border-color:var(--acc);}
-.reorder-banner{background:rgba(224,80,80,.08);border:1px solid rgba(224,80,80,.3);border-radius:5px;padding:7px 9px;margin-top:8px;font-family:var(--mono);font-size:11px;color:var(--dang);display:flex;align-items:center;gap:6px;}
-.reorder-banner.w{background:rgba(240,165,0,.07);border-color:rgba(240,165,0,.3);color:var(--warn);}
+/* Buttons */
+.btn{border:none;border-radius:8px;cursor:pointer;font-family:var(--mono);font-weight:500;font-size:12px;padding:10px 16px;transition:opacity .15s;display:inline-flex;align-items:center;gap:5px;white-space:nowrap;}
+.btn:active{opacity:.75;}
+.btn-p{background:var(--ac);color:#080c12;}
+.btn-g{background:var(--s2);border:1px solid var(--br);color:var(--mu);}
+.btn-d{background:rgba(224,80,80,.1);border:1px solid var(--dn);color:var(--dn);}
+.btn-w{background:var(--wn);color:#080c12;}
+.btn-sm{padding:8px 12px;font-size:11px;}
+.btn-xs{padding:6px 10px;font-size:10px;}
+.btn-full{width:100%;justify-content:center;}
 
-/* ── BUTTONS ── */
-.btn{border:none;border-radius:6px;cursor:pointer;font-family:var(--sans);font-weight:700;font-size:12px;letter-spacing:.04em;padding:8px 14px;transition:all .15s;text-transform:uppercase;}
-.btn-p{background:var(--acc);color:#080c12;}
-.btn-g{background:transparent;border:1px solid var(--bord);color:var(--mute);}
-.btn-d{background:transparent;border:1px solid var(--dang);color:var(--dang);}
-.btn-sm{padding:5px 10px;font-size:11px;}
-.btn-xs{padding:3px 7px;font-size:10px;}
-.mc-actions{display:flex;gap:6px;margin-top:11px;flex-wrap:wrap;}
+/* Badge */
+.badge{font-size:9px;padding:3px 7px;border-radius:4px;background:var(--s2);border:1px solid var(--br);white-space:nowrap;display:inline-block;letter-spacing:.03em;}
+.b-on{color:var(--ac);border-color:var(--a2);background:rgba(59,232,176,.07);}
+.b-dn{color:var(--dn);border-color:var(--dn);background:rgba(224,80,80,.07);}
+.b-wn{color:var(--wn);border-color:var(--wn);background:rgba(240,165,0,.07);}
+.b-mu{color:var(--mu);}
 
-/* ── TODAY ROW ── */
-.today-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 13px;background:var(--surf);border:1px solid var(--bord);border-radius:9px;margin-bottom:8px;}
-.tr-left .tr-name{font-weight:700;font-size:14px;}
-.tr-left .tr-meta{font-family:var(--mono);font-size:10px;color:var(--mute);margin-top:2px;}
-.tr-right{display:flex;align-items:center;gap:6px;flex-shrink:0;}
+/* Med card */
+.mc{background:var(--s1);border:1px solid var(--br);border-radius:12px;overflow:hidden;margin-bottom:10px;}
+.mc-bar{height:3px;}
+.mc-body{padding:14px;}
+.mc-hdr{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:6px;}
+.mc-name{font-family:var(--head);font-size:16px;font-weight:700;color:var(--tx);}
+.mc-src{font-size:10px;color:var(--mu);margin-top:1px;}
+.mc-meta{font-size:11px;color:var(--mu);margin-bottom:8px;}
+.mc-badges{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;}
 
-/* ── LOG TABLE ── */
-.log-wrap{overflow-x:auto;}
-.lt{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11px;}
-.lt th{text-align:left;padding:8px 10px;color:var(--mute);font-size:9px;text-transform:uppercase;letter-spacing:.07em;border-bottom:1px solid var(--bord);}
-.lt td{padding:8px 10px;border-bottom:1px solid rgba(29,44,64,.4);vertical-align:top;}
-.sdot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:4px;flex-shrink:0;}
-.sdot.taken{background:var(--acc);}
-.sdot.skipped{background:var(--dang);}
-.sdot.delayed{background:var(--warn);}
+/* Unit table */
+.ut{width:100%;border-collapse:collapse;margin-top:8px;margin-bottom:4px;}
+.ut td{padding:4px 0;border-bottom:1px solid rgba(29,44,64,.5);font-size:12px;}
+.ut tr:last-child td{border:none;}
+.ut .uv{color:var(--ac);text-align:right;}
 
-/* ── RECON CARD ── */
-.rc-card{background:linear-gradient(135deg,rgba(59,232,176,.03),rgba(26,158,120,.01));border:1px solid var(--acc2);border-radius:9px;padding:13px;margin-bottom:10px;}
-.rc-row{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--bord);font-family:var(--mono);font-size:11px;}
-.rc-row:last-child{border:none;color:var(--acc);}
-.rc-row span:first-child{color:var(--mute);}
+/* Note box */
+.nb{background:rgba(240,165,0,.05);border:1px solid rgba(240,165,0,.2);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--wn);margin-top:8px;line-height:1.6;}
+.nb.accent{background:rgba(59,232,176,.04);border-color:rgba(59,232,176,.2);color:var(--ac);}
 
-/* ── LIBRARY ── */
+/* Forecast block */
+.fc{background:var(--bg);border:1px solid var(--br);border-radius:8px;padding:12px;margin-top:10px;}
+.fc-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.fc-label{font-size:9px;color:var(--mu);text-transform:uppercase;letter-spacing:.08em;}
+.fc-conc{font-size:9px;color:var(--mu);}
+.fc-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;}
+.fc-cell{background:var(--s1);border-radius:6px;padding:8px 10px;}
+.fc-cl{font-size:9px;color:var(--mu);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px;}
+.fc-cv{font-size:20px;font-weight:500;}
+.fc-cv.a{color:var(--ac);}
+.fc-cv.w{color:var(--wn);}
+.fc-cv.d{color:var(--dn);}
+.vol-hdr{display:flex;justify-content:space-between;font-size:10px;color:var(--mu);margin-bottom:4px;}
+.vol-track{background:var(--s2);border-radius:3px;height:6px;overflow:hidden;margin-bottom:10px;}
+.vol-fill{height:100%;border-radius:3px;background:var(--ac);}
+.vol-fill.w{background:var(--wn);}
+.vol-fill.d{background:var(--dn);}
+.ov-row{display:flex;align-items:center;gap:8px;}
+.ov-lbl{font-size:11px;color:var(--mu);flex-shrink:0;}
+.ov-inp{width:80px;padding:6px 8px;font-family:var(--mono);font-size:12px;background:var(--bg);border:1px solid var(--br);border-radius:6px;color:var(--tx);}
+.ov-inp:focus{outline:none;border-color:var(--ac);}
+.reorder-ban{background:rgba(224,80,80,.08);border:1px solid rgba(224,80,80,.3);border-radius:6px;padding:8px 10px;margin-top:8px;font-size:11px;color:var(--dn);display:flex;align-items:center;gap:6px;}
+.reorder-ban.w{background:rgba(240,165,0,.07);border-color:rgba(240,165,0,.3);color:var(--wn);}
+.mc-acts{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px;}
+
+/* Horizontal mini cards */
+.hscroll{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px;margin-bottom:4px;}
+.hscroll::-webkit-scrollbar{display:none;}
+.mini{background:var(--s1);border:1px solid var(--br);border-radius:10px;padding:12px;flex-shrink:0;width:160px;overflow:hidden;position:relative;}
+.mini-bar{height:2px;position:absolute;top:0;left:0;right:0;}
+.mini-name{font-family:var(--head);font-size:13px;font-weight:700;color:var(--tx);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.mini-src{font-size:9px;color:var(--mu);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.mini-dose{font-size:10px;color:var(--mu);margin-top:4px;}
+.mini-nums{display:flex;justify-content:space-between;margin-top:6px;font-size:10px;}
+
+/* Log table — scrollable wrapper */
+.lt-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.lt{width:100%;border-collapse:collapse;font-size:12px;min-width:420px;}
+.lt th{text-align:left;padding:8px 10px;font-size:9px;color:var(--mu);text-transform:uppercase;letter-spacing:.07em;border-bottom:1px solid var(--br);}
+.lt td{padding:10px;border-bottom:1px solid rgba(29,44,64,.4);vertical-align:top;}
+.sdot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:4px;}
+.sdot.taken{background:var(--ac);}
+.sdot.skipped{background:var(--dn);}
+.sdot.delayed{background:var(--wn);}
+
+/* Recon card */
+.rc{background:rgba(26,158,120,.05);border:1px solid var(--a2);border-radius:12px;padding:14px;margin-bottom:10px;}
+.rc-row{display:flex;justify-content:space-between;align-items:baseline;padding:5px 0;border-bottom:1px solid var(--br);font-size:12px;gap:8px;}
+.rc-row:last-child{border:none;}
+.rc-lbl{color:var(--mu);flex-shrink:0;}
+.rc-val{color:var(--tx);text-align:right;}
+
+/* Library */
 .lib-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
-.lib-card{background:var(--surf);border:1px solid var(--bord);border-radius:9px;padding:12px;cursor:pointer;transition:border-color .15s;}
-.lib-card:active{border-color:var(--acc);background:var(--surf2);}
-.lib-card.inuse{border-color:var(--acc2);background:rgba(59,232,176,.03);}
-.lib-name{font-weight:700;font-size:13px;line-height:1.2;}
-.lib-aka{font-family:var(--mono);font-size:9px;color:var(--mute);margin-top:2px;line-height:1.3;}
-.lib-preview{font-family:var(--mono);font-size:10px;color:var(--mute);margin-top:6px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
-.cat-tag{font-family:var(--mono);font-size:8px;padding:2px 5px;border-radius:3px;display:inline-block;margin-top:5px;}
+.lc{background:var(--s1);border:1px solid var(--br);border-radius:10px;padding:12px;cursor:pointer;-webkit-tap-highlight-color:rgba(59,232,176,.1);}
+.lc:active{background:var(--s2);}
+.lc.used{border-color:var(--a2);background:rgba(59,232,176,.03);}
+.lc-name{font-family:var(--head);font-size:13px;font-weight:700;color:var(--tx);margin-bottom:2px;}
+.lc-aka{font-size:9px;color:var(--mu);line-height:1.3;margin-bottom:5px;}
+.lc-cat{display:inline-block;font-size:8px;padding:2px 6px;border-radius:3px;margin-bottom:5px;}
+.lc-pre{font-size:10px;color:var(--mu);line-height:1.4;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
 
-/* ── TITRATION ── */
-.tit-step{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid var(--bord);}
+/* Search / filter */
+.search-wrap{padding:10px 14px 0;background:var(--bg);flex-shrink:0;}
+.search-inp{width:100%;background:var(--s1);border:1px solid var(--br);border-radius:10px;color:var(--tx);font-family:var(--mono);font-size:14px;padding:11px 14px;}
+.search-inp:focus{outline:none;border-color:var(--ac);}
+.filter-wrap{padding:8px 14px 0;background:var(--bg);flex-shrink:0;}
+.filters{display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:6px;}
+.filters::-webkit-scrollbar{display:none;}
+.fb{font-family:var(--mono);font-size:10px;padding:6px 12px;border-radius:6px;border:1px solid var(--br);background:var(--bg);color:var(--mu);cursor:pointer;white-space:nowrap;flex-shrink:0;}
+.fb.on{background:var(--ac);border-color:var(--ac);color:#080c12;font-weight:500;}
+
+/* Form elements */
+.fg{margin-bottom:14px;}
+.fg label{display:block;font-size:10px;color:var(--mu);text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px;}
+.fg input,.fg select,.fg textarea{width:100%;background:var(--bg);border:1px solid var(--br);border-radius:8px;color:var(--tx);font-family:var(--mono);font-size:14px;padding:11px 12px;}
+.fg input:focus,.fg select:focus,.fg textarea:focus{outline:none;border-color:var(--ac);}
+.fg select option{background:var(--s1);}
+.fg-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.days-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;}
+.dt{width:38px;height:38px;border-radius:50%;border:1px solid var(--br);background:var(--bg);color:var(--mu);font-family:var(--mono);font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.dt.on{background:var(--ac);border-color:var(--ac);color:#080c12;font-weight:700;}
+
+/* Sheet (bottom drawer) */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:50;display:none;align-items:flex-end;}
+.overlay.on{display:flex;}
+.sheet{background:var(--s1);border-radius:20px 20px 0 0;width:100%;max-height:90vh;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:calc(var(--safe-b) + 16px);}
+.sheet-handle{width:36px;height:4px;background:var(--br);border-radius:2px;margin:10px auto 0;}
+.sheet-hdr{display:flex;justify-content:space-between;align-items:center;padding:14px 16px 10px;}
+.sheet-hdr h2{font-family:var(--head);font-size:18px;font-weight:700;color:var(--tx);}
+.sheet-close{background:var(--s2);border:none;border-radius:50%;width:30px;height:30px;color:var(--mu);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.sheet-body{padding:0 16px;}
+.sheet-footer{padding:12px 16px 0;display:flex;gap:8px;}
+
+/* Titration */
+.tit-step{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--br);}
 .tit-step:last-child{border:none;}
-.step-num{width:22px;height:22px;border-radius:50%;border:1px solid var(--bord);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:9px;flex-shrink:0;color:var(--mute);background:var(--surf2);}
-.step-num.cur{background:var(--acc);color:#080c12;border-color:var(--acc);font-weight:700;}
-.step-num.dn{background:var(--acc2);color:#fff;border-color:var(--acc2);}
-.step-dose{font-weight:700;font-size:14px;}
-.step-period{font-family:var(--mono);font-size:10px;color:var(--mute);margin-top:1px;}
+.step-n{width:24px;height:24px;border-radius:50%;border:1px solid var(--br);background:var(--s2);display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0;color:var(--mu);}
+.step-n.cur{background:var(--ac);border-color:var(--ac);color:#080c12;font-weight:700;}
+.step-n.dn{background:var(--a2);border-color:var(--a2);color:#fff;}
+.step-dose{font-family:var(--head);font-size:14px;font-weight:700;color:var(--tx);}
+.step-info{font-size:11px;color:var(--mu);margin-top:2px;}
 
-/* ── MODAL / SHEET ── */
-.sheet-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;display:none;align-items:flex-end;}
-.sheet-overlay.open{display:flex;}
-.sheet{background:var(--surf);border-radius:18px 18px 0 0;width:100%;max-height:90vh;overflow-y:auto;padding:0 0 calc(var(--safe-bot) + 16px);}
-.sheet-handle{width:36px;height:4px;background:var(--bord);border-radius:2px;margin:10px auto 0;}
-.sheet-hdr{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;}
-.sheet-hdr h3{font-weight:800;font-size:17px;}
-.sheet-close{background:var(--surf2);border:none;color:var(--mute);width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;}
-.sheet-body{padding:0 18px;}
-.sheet-footer{padding:14px 18px 0;display:flex;justify-content:flex-end;gap:8px;}
+/* AI scraper */
+.ai-btn{display:inline-flex;align-items:center;gap:5px;background:rgba(59,232,176,.1);border:1px solid rgba(59,232,176,.3);border-radius:8px;color:var(--ac);font-family:var(--mono);font-size:11px;padding:8px 12px;cursor:pointer;}
+.scraped{background:var(--s2);border:1px solid var(--br);border-radius:10px;padding:12px;margin-bottom:8px;}
+.conf-bar{height:3px;border-radius:2px;background:var(--ac);margin-top:6px;}
 
-/* ── FORM ── */
-.fg{display:flex;flex-direction:column;gap:5px;margin-bottom:12px;}
-.fg label{font-family:var(--mono);font-size:10px;color:var(--mute);text-transform:uppercase;letter-spacing:.07em;}
-.fg input,.fg select,.fg textarea{background:var(--bg);border:1px solid var(--bord);border-radius:6px;color:var(--text);font-family:var(--mono);font-size:13px;padding:9px 11px;width:100%;}
-.fg input:focus,.fg select:focus,.fg textarea:focus{outline:none;border-color:var(--acc);}
-.fg select option{background:var(--surf);}
-.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-.full{grid-column:1/-1;}
-.day-t{width:34px;height:34px;border-radius:50%;border:1px solid var(--bord);background:var(--bg);color:var(--mute);font-family:var(--mono);font-size:10px;cursor:pointer;}
-.day-t.sel{background:var(--acc);border-color:var(--acc);color:#080c12;font-weight:700;}
-
-/* ── SEARCH / FILTER ── */
-.search-row{display:flex;gap:8px;margin-bottom:10px;}
-.search-inp{flex:1;background:var(--surf);border:1px solid var(--bord);border-radius:7px;color:var(--text);font-family:var(--mono);font-size:13px;padding:9px 12px;}
-.search-inp:focus{outline:none;border-color:var(--acc);}
-.filter-row{display:flex;gap:5px;overflow-x:auto;padding-bottom:2px;margin-bottom:12px;}
-.f-btn{font-family:var(--mono);font-size:10px;padding:5px 10px;border-radius:4px;border:1px solid var(--bord);background:var(--bg);color:var(--mute);cursor:pointer;white-space:nowrap;flex-shrink:0;}
-.f-btn.active{background:var(--acc);border-color:var(--acc);color:#080c12;font-weight:700;}
-
-/* ── CALC ── */
-.calc-result{background:var(--bg);border-radius:7px;padding:12px;margin-top:12px;font-family:var(--mono);font-size:12px;}
-
-/* ── EMPTY ── */
-.empty{text-align:center;padding:48px 20px;color:var(--mute);font-family:var(--mono);font-size:13px;}
-
-/* ── HORIZONTAL SCROLL CARDS ── */
-.h-scroll{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px;}
-.h-scroll::-webkit-scrollbar{display:none;}
-.mini-card{background:var(--surf);border:1px solid var(--bord);border-radius:9px;padding:11px;flex-shrink:0;width:170px;position:relative;overflow:hidden;}
-.mini-card-bar{height:2px;background:var(--acc);margin:-11px -11px 8px;}
-
-/* ── SCRAPER ── */
-.ai-btn{display:flex;align-items:center;gap:5px;background:rgba(59,232,176,.1);border:1px solid rgba(59,232,176,.3);border-radius:6px;color:var(--acc);font-family:var(--sans);font-weight:700;font-size:11px;padding:7px 11px;cursor:pointer;}
-.scraped-card{border:1px solid var(--bord);border-radius:8px;padding:12px;margin-bottom:8px;background:var(--surf2);}
-.conf-bar{height:3px;border-radius:2px;background:var(--acc);margin-top:6px;}
+/* Calc */
+.calc-out{background:var(--bg);border:1px solid var(--br);border-radius:8px;padding:12px;margin-top:12px;}
 
 ::-webkit-scrollbar{width:0;height:0;}
 </style>
 </head>
 <body>
-<div class="shell">
-  <div class="status-bar"></div>
-  <div class="content">
+<div class="app">
+  <div class="status-pad"></div>
+  <div class="screens">
 
-    <!-- ════ DASHBOARD ════ -->
-    <div class="screen active" id="s-dashboard">
-      <div class="nav-hdr">
-        <div class="nav-hdr-row">
+    <!-- DASHBOARD -->
+    <div class="screen on" id="sc-dashboard">
+      <div class="ph">
+        <div class="wordmark">RXTRACKER</div>
+        <div class="ph-row">
           <div>
-            <div style="font-family:var(--mono);font-size:10px;color:var(--acc);letter-spacing:.15em;text-transform:uppercase">RxTracker</div>
-            <h1 id="dash-date-str"></h1>
+            <h1 id="dash-date"></h1>
           </div>
         </div>
       </div>
-      <div class="scroll-body">
-        <div class="card-grid" id="dash-stats"></div>
-        <div class="st">TODAY'S SCHEDULE</div>
+      <div class="sb">
+        <div class="stats" id="dash-stats"></div>
+        <div class="sl">Today's schedule</div>
         <div id="dash-today"></div>
-        <div class="st">ACTIVE PROTOCOLS</div>
-        <div class="h-scroll" id="dash-active"></div>
+        <div class="sl">Active protocols</div>
+        <div class="hscroll" id="dash-mini"></div>
       </div>
     </div>
 
-    <!-- ════ MEDICATIONS ════ -->
-    <div class="screen" id="s-medications">
-      <div class="nav-hdr">
-        <div class="nav-hdr-row">
+    <!-- MEDICATIONS -->
+    <div class="screen" id="sc-meds">
+      <div class="ph">
+        <div class="ph-row">
           <h1>Medications</h1>
           <button class="btn btn-p btn-sm" onclick="openAddMed()">+ Add</button>
         </div>
       </div>
-      <div class="scroll-body">
-        <div class="search-row">
-          <input class="search-inp" id="med-search" placeholder="Search..." oninput="renderMeds()">
-        </div>
-        <div class="filter-row">
-          <button class="f-btn active" data-filter="all" onclick="setMedFilter(this)">All</button>
-          <button class="f-btn" data-filter="active" onclick="setMedFilter(this)">Active</button>
-          <button class="f-btn" data-filter="completed" onclick="setMedFilter(this)">Completed</button>
-          <button class="f-btn" data-filter="stopped" onclick="setMedFilter(this)">Stopped</button>
-        </div>
-        <div id="med-list"></div>
+      <div class="search-wrap">
+        <input class="search-inp" id="med-search" placeholder="Search..." oninput="renderMeds()">
       </div>
+      <div class="filter-wrap">
+        <div class="filters">
+          <button class="fb on" data-f="all" onclick="setF(this,'med')">All</button>
+          <button class="fb" data-f="active" onclick="setF(this,'med')">Active</button>
+          <button class="fb" data-f="completed" onclick="setF(this,'med')">Completed</button>
+          <button class="fb" data-f="stopped" onclick="setF(this,'med')">Stopped</button>
+        </div>
+      </div>
+      <div class="sb" id="med-list"></div>
     </div>
 
-    <!-- ════ LOG ════ -->
-    <div class="screen" id="s-log">
-      <div class="nav-hdr">
-        <div class="nav-hdr-row">
+    <!-- LOG -->
+    <div class="screen" id="sc-log">
+      <div class="ph">
+        <div class="ph-row">
           <h1>Dose Log</h1>
           <button class="btn btn-p btn-sm" onclick="openLogDose()">+ Log</button>
         </div>
       </div>
-      <div class="scroll-body">
-        <div class="log-wrap"><table class="lt">
-          <thead><tr><th>Date</th><th>Medication</th><th>Dose</th><th>Status</th><th>Notes</th><th></th></tr></thead>
-          <tbody id="log-body"></tbody>
-        </table></div>
-        <div id="log-empty" class="empty" style="display:none">No doses logged yet.</div>
+      <div class="sb">
+        <div class="lt-wrap">
+          <table class="lt">
+            <thead><tr><th>Date</th><th>Medication</th><th>Dose</th><th>Status</th><th></th></tr></thead>
+            <tbody id="log-body"></tbody>
+          </table>
+        </div>
+        <div id="log-empty" style="display:none;text-align:center;padding:40px 0;font-size:13px;color:var(--mu)">No doses logged yet.</div>
       </div>
     </div>
 
-    <!-- ════ RECONSTITUTION ════ -->
-    <div class="screen" id="s-recon">
-      <div class="nav-hdr">
-        <div class="nav-hdr-row">
+    <!-- VIALS -->
+    <div class="screen" id="sc-vials">
+      <div class="ph">
+        <div class="ph-row">
           <h1>Vials</h1>
           <button class="btn btn-p btn-sm" onclick="openAddVial()">+ Vial</button>
         </div>
       </div>
-      <div class="scroll-body">
-        <div class="st">ACTIVE VIALS</div>
-        <div id="recon-list"></div>
-        <div class="st">DOSE CALCULATOR</div>
+      <div class="sb">
+        <div class="sl">Active vials</div>
+        <div id="vial-list"></div>
+        <div class="sl">Dose calculator</div>
         <div class="card">
-          <div class="fgrid">
-            <div class="fg"><label>Vial (mg)</label><input type="number" id="rc-vial" placeholder="10" oninput="calcRecon()"></div>
-            <div class="fg"><label>BAC Water (mL)</label><input type="number" id="rc-bac" placeholder="2" oninput="calcRecon()"></div>
-            <div class="fg"><label>Dose (mcg)</label><input type="number" id="rc-mcg" placeholder="250" oninput="calcRecon()"></div>
-            <div class="fg"><label>Or Dose (mg)</label><input type="number" id="rc-mg" placeholder="1" oninput="calcRecon()"></div>
+          <div class="fg-row">
+            <div class="fg"><label>Vial (mg)</label><input type="number" id="rc-vial" placeholder="10" oninput="calcR()"></div>
+            <div class="fg"><label>BAC water (mL)</label><input type="number" id="rc-bac" placeholder="2" oninput="calcR()"></div>
           </div>
-          <div id="calc-result" style="display:none"></div>
+          <div class="fg-row">
+            <div class="fg"><label>Dose (mcg)</label><input type="number" id="rc-mcg" placeholder="250" oninput="calcR()"></div>
+            <div class="fg"><label>Or dose (mg)</label><input type="number" id="rc-mgd" placeholder="1" oninput="calcR()"></div>
+          </div>
+          <div id="calc-out" style="display:none"></div>
         </div>
       </div>
     </div>
 
-    <!-- ════ LIBRARY ════ -->
-    <div class="screen" id="s-library">
-      <div class="nav-hdr">
-        <div class="nav-hdr-row">
+    <!-- LIBRARY -->
+    <div class="screen" id="sc-lib">
+      <div class="ph">
+        <div class="ph-row">
           <h1>Library</h1>
-          <button class="ai-btn" onclick="openScraper()">✦ AI Scan</button>
+          <button class="ai-btn" onclick="openSheet('sh-scraper')">&#10022; AI Scan</button>
         </div>
       </div>
-      <div class="scroll-body">
-        <div class="search-row">
-          <input class="search-inp" id="lib-search" placeholder="Search compounds..." oninput="renderLibrary()">
+      <div class="search-wrap">
+        <input class="search-inp" id="lib-search" placeholder="Search compounds..." oninput="renderLib()">
+      </div>
+      <div class="filter-wrap">
+        <div class="filters">
+          <button class="fb on" data-f="all" onclick="setF(this,'lib')">All</button>
+          <button class="fb" data-f="GH Secretagogue" onclick="setF(this,'lib')">GH / Recovery</button>
+          <button class="fb" data-f="Healing" onclick="setF(this,'lib')">Healing</button>
+          <button class="fb" data-f="Metabolic" onclick="setF(this,'lib')">Metabolic</button>
+          <button class="fb" data-f="Mitochondrial" onclick="setF(this,'lib')">Mitochondrial</button>
         </div>
-        <div class="filter-row" id="lib-filters">
-          <button class="f-btn active" data-filter="all" onclick="setLibFilter(this)">All</button>
-          <button class="f-btn" data-filter="GH Secretagogue" onclick="setLibFilter(this)">GH / Recovery</button>
-          <button class="f-btn" data-filter="Healing" onclick="setLibFilter(this)">Healing</button>
-          <button class="f-btn" data-filter="Metabolic" onclick="setLibFilter(this)">Metabolic</button>
-          <button class="f-btn" data-filter="Mitochondrial" onclick="setLibFilter(this)">Mitochondrial</button>
-        </div>
+      </div>
+      <div class="sb">
         <div class="lib-grid" id="lib-grid"></div>
       </div>
     </div>
 
-  </div><!-- /content -->
+  </div>
 
   <!-- TAB BAR -->
-  <div class="tab-bar" id="tab-bar">
-    <div class="tab active" data-tab="dashboard" onclick="switchTab(this)">
-      <div class="tab-ico">⌂</div><div class="tab-lbl">Dashboard</div>
+  <div class="tabs" id="tabs">
+    <div class="tab on" data-sc="dashboard" onclick="switchTab(this)">
+      <div class="tab-ic">&#8962;</div>
+      <div class="tab-lb">Home</div>
     </div>
-    <div class="tab" data-tab="medications" onclick="switchTab(this)" style="position:relative">
-      <div class="tab-ico">✚</div><div class="tab-lbl">Protocols</div>
-      <div class="tab-badge" id="reorder-badge" style="display:none"></div>
+    <div class="tab" data-sc="meds" onclick="switchTab(this)" style="position:relative">
+      <div class="tab-ic">&#10010;</div>
+      <div class="tab-lb">Protocols</div>
+      <div class="tab-badge" id="ro-badge" style="display:none">0</div>
     </div>
-    <div class="tab" data-tab="log" onclick="switchTab(this)">
-      <div class="tab-ico">≡</div><div class="tab-lbl">Log</div>
+    <div class="tab" data-sc="log" onclick="switchTab(this)">
+      <div class="tab-ic">&#9776;</div>
+      <div class="tab-lb">Log</div>
     </div>
-    <div class="tab" data-tab="recon" onclick="switchTab(this)">
-      <div class="tab-ico">⊕</div><div class="tab-lbl">Vials</div>
+    <div class="tab" data-sc="vials" onclick="switchTab(this)">
+      <div class="tab-ic">&#8853;</div>
+      <div class="tab-lb">Vials</div>
     </div>
-    <div class="tab" data-tab="library" onclick="switchTab(this)">
-      <div class="tab-ico">⬚</div><div class="tab-lbl">Library</div>
+    <div class="tab" data-sc="lib" onclick="switchTab(this)">
+      <div class="tab-ic">&#9634;</div>
+      <div class="tab-lb">Library</div>
     </div>
   </div>
 </div>
 
-<!-- ════ SHEETS ════ -->
+<!-- SHEETS -->
 
-<!-- Add Medication -->
-<div class="sheet-overlay" id="sheet-med">
+<!-- Add/Edit Medication -->
+<div class="overlay" id="sh-med">
   <div class="sheet">
     <div class="sheet-handle"></div>
-    <div class="sheet-hdr"><h3 id="med-sheet-title">Add Medication</h3><button class="sheet-close" onclick="closeSheet('sheet-med')">✕</button></div>
+    <div class="sheet-hdr">
+      <h2 id="med-sh-title">Add medication</h2>
+      <button class="sheet-close" onclick="closeSheet('sh-med')">&#10005;</button>
+    </div>
     <div class="sheet-body">
-      <div class="fgrid">
-        <div class="fg full"><label>Name</label><input id="m-name" placeholder="e.g. BPC-157"></div>
-        <div class="fg"><label>Source</label><input id="m-source"></div>
-        <div class="fg"><label>Status</label><select id="m-status"><option value="active">Active</option><option value="off">Cycle OFF</option><option value="completed">Completed</option><option value="stopped">Stopped</option></select></div>
-        <div class="fg"><label>Dose</label><input id="m-dose" type="number" step="0.001"></div>
-        <div class="fg"><label>Unit</label><select id="m-unit"><option>mcg</option><option>mg</option><option>IU</option><option>mL</option><option>units</option></select></div>
-        <div class="fg"><label>Frequency</label><select id="m-freq" onchange="toggleDays()"><option value="daily">Daily</option><option value="5on2off">5 on / 2 off</option><option value="weekly">Weekly</option><option value="eod">Every Other Day</option><option value="twice_weekly">2-3x/Week</option><option value="monthly">Monthly</option></select></div>
-        <div class="fg"><label>Time</label><input id="m-time" type="time" value="20:00"></div>
-        <div class="fg full" id="days-row" style="display:none">
-          <label>Injection Days</label>
-          <div style="display:flex;gap:5px;margin-top:6px">
-            <button class="day-t" data-day="Sun" onclick="toggleDay(this)">Su</button>
-            <button class="day-t" data-day="Mon" onclick="toggleDay(this)">Mo</button>
-            <button class="day-t" data-day="Tue" onclick="toggleDay(this)">Tu</button>
-            <button class="day-t" data-day="Wed" onclick="toggleDay(this)">We</button>
-            <button class="day-t" data-day="Thu" onclick="toggleDay(this)">Th</button>
-            <button class="day-t" data-day="Fri" onclick="toggleDay(this)">Fr</button>
-            <button class="day-t" data-day="Sat" onclick="toggleDay(this)">Sa</button>
-          </div>
+      <div class="fg"><label>Name</label><input id="m-name" placeholder="e.g. BPC-157"></div>
+      <div class="fg-row">
+        <div class="fg"><label>Source / supplier</label><input id="m-src"></div>
+        <div class="fg"><label>Status</label>
+          <select id="m-status">
+            <option value="active">Active</option>
+            <option value="off">Cycle OFF</option>
+            <option value="completed">Completed</option>
+            <option value="stopped">Stopped</option>
+          </select>
         </div>
-        <div class="fg"><label>Cycle ON (wks)</label><input id="m-cycle-on" type="number" value="0"></div>
-        <div class="fg"><label>Cycle OFF (wks)</label><input id="m-cycle-off" type="number" value="0"></div>
-        <div class="fg"><label>Start Date</label><input id="m-start" type="date"></div>
-        <div class="fg"><label>Vial Size (mg)</label><input id="m-vial" type="number" step="0.1"></div>
-        <div class="fg"><label>Reorder Lead (days)</label><input id="m-reorder" type="number" value="7"></div>
-        <div class="fg full"><label>Unit → Dose Table</label><textarea id="m-unit-tbl" rows="4" placeholder="5 units = 250mcg&#10;10 units = 500mcg"></textarea></div>
-        <div class="fg full"><label>Notes</label><textarea id="m-notes" rows="2"></textarea></div>
       </div>
+      <div class="fg-row">
+        <div class="fg"><label>Dose</label><input id="m-dose" type="number" step="0.001"></div>
+        <div class="fg"><label>Unit</label>
+          <select id="m-unit">
+            <option>mcg</option><option>mg</option><option>IU</option><option>mL</option><option>units</option>
+          </select>
+        </div>
+      </div>
+      <div class="fg-row">
+        <div class="fg"><label>Frequency</label>
+          <select id="m-freq" onchange="toggleDays()">
+            <option value="daily">Daily</option>
+            <option value="5on2off">5 on / 2 off</option>
+            <option value="weekly">Weekly</option>
+            <option value="eod">Every other day</option>
+            <option value="twice_weekly">2-3x per week</option>
+            <option value="monthly">Monthly</option>
+          </select>
+        </div>
+        <div class="fg"><label>Time</label><input id="m-time" type="time" value="20:00"></div>
+      </div>
+      <div class="fg" id="days-pick" style="display:none">
+        <label>Days</label>
+        <div class="days-row">
+          <button class="dt" data-day="Sun" onclick="toggleDay(this)">Su</button>
+          <button class="dt" data-day="Mon" onclick="toggleDay(this)">Mo</button>
+          <button class="dt" data-day="Tue" onclick="toggleDay(this)">Tu</button>
+          <button class="dt" data-day="Wed" onclick="toggleDay(this)">We</button>
+          <button class="dt" data-day="Thu" onclick="toggleDay(this)">Th</button>
+          <button class="dt" data-day="Fri" onclick="toggleDay(this)">Fr</button>
+          <button class="dt" data-day="Sat" onclick="toggleDay(this)">Sa</button>
+        </div>
+      </div>
+      <div class="fg-row">
+        <div class="fg"><label>Cycle ON (weeks)</label><input id="m-con" type="number" value="0"></div>
+        <div class="fg"><label>Cycle OFF (weeks)</label><input id="m-coff" type="number" value="0"></div>
+      </div>
+      <div class="fg-row">
+        <div class="fg"><label>Start date</label><input id="m-start" type="date"></div>
+        <div class="fg"><label>Vial size (mg)</label><input id="m-vial" type="number" step="0.1"></div>
+      </div>
+      <div class="fg"><label>Reorder lead (days)</label><input id="m-reorder" type="number" value="7"></div>
+      <div class="fg"><label>Unit → dose table (one per line)</label>
+        <textarea id="m-utbl" rows="4" placeholder="5 units = 250mcg&#10;10 units = 500mcg"></textarea>
+      </div>
+      <div class="fg"><label>Notes</label><textarea id="m-notes" rows="2"></textarea></div>
     </div>
     <div class="sheet-footer">
-      <button class="btn btn-g" onclick="closeSheet('sheet-med')">Cancel</button>
-      <button class="btn btn-p" onclick="saveMed()">Save</button>
+      <button class="btn btn-g" style="flex:1" onclick="closeSheet('sh-med')">Cancel</button>
+      <button class="btn btn-p" style="flex:2" onclick="saveMed()">Save medication</button>
     </div>
   </div>
 </div>
 
 <!-- Log Dose -->
-<div class="sheet-overlay" id="sheet-log">
+<div class="overlay" id="sh-log">
   <div class="sheet">
     <div class="sheet-handle"></div>
-    <div class="sheet-hdr"><h3>Log Dose</h3><button class="sheet-close" onclick="closeSheet('sheet-log')">✕</button></div>
+    <div class="sheet-hdr">
+      <h2>Log dose</h2>
+      <button class="sheet-close" onclick="closeSheet('sh-log')">&#10005;</button>
+    </div>
     <div class="sheet-body">
-      <div class="fgrid">
-        <div class="fg full"><label>Medication</label><select id="l-med" onchange="prefillDose()"></select></div>
+      <div class="fg"><label>Medication</label><select id="l-med" onchange="prefill()"></select></div>
+      <div class="fg-row">
         <div class="fg"><label>Date</label><input id="l-date" type="date"></div>
         <div class="fg"><label>Time</label><input id="l-time" type="time"></div>
+      </div>
+      <div class="fg-row">
         <div class="fg"><label>Dose</label><input id="l-dose" type="number" step="0.001"></div>
         <div class="fg"><label>Unit</label><input id="l-unit"></div>
-        <div class="fg"><label>Syringe Units</label><input id="l-syr" type="number"></div>
-        <div class="fg"><label>Vol Drawn (mL)</label><input id="l-vol" type="number" step="0.001"></div>
-        <div class="fg"><label>Status</label><select id="l-status"><option value="taken">Taken</option><option value="skipped">Skipped</option><option value="delayed">Delayed</option></select></div>
-        <div class="fg full"><label>Notes</label><input id="l-notes" placeholder="site, reaction..."></div>
       </div>
+      <div class="fg-row">
+        <div class="fg"><label>Syringe units</label><input id="l-syr" type="number"></div>
+        <div class="fg"><label>Vol drawn (mL)</label><input id="l-vol" type="number" step="0.001"></div>
+      </div>
+      <div class="fg"><label>Status</label>
+        <select id="l-status">
+          <option value="taken">Taken</option>
+          <option value="skipped">Skipped</option>
+          <option value="delayed">Delayed</option>
+        </select>
+      </div>
+      <div class="fg"><label>Notes</label><input id="l-notes" placeholder="site, reaction..."></div>
     </div>
     <div class="sheet-footer">
-      <button class="btn btn-g" onclick="closeSheet('sheet-log')">Cancel</button>
-      <button class="btn btn-p" onclick="saveLog()">Save</button>
+      <button class="btn btn-g" style="flex:1" onclick="closeSheet('sh-log')">Cancel</button>
+      <button class="btn btn-p" style="flex:2" onclick="saveLog()">Save entry</button>
     </div>
   </div>
 </div>
 
 <!-- Add Vial -->
-<div class="sheet-overlay" id="sheet-vial">
+<div class="overlay" id="sh-vial">
   <div class="sheet">
     <div class="sheet-handle"></div>
-    <div class="sheet-hdr"><h3>Record Vial</h3><button class="sheet-close" onclick="closeSheet('sheet-vial')">✕</button></div>
+    <div class="sheet-hdr">
+      <h2>Record vial</h2>
+      <button class="sheet-close" onclick="closeSheet('sh-vial')">&#10005;</button>
+    </div>
     <div class="sheet-body">
-      <div class="fgrid">
-        <div class="fg full"><label>Medication</label><select id="v-med"></select></div>
-        <div class="fg"><label>Vial Amount (mg)</label><input id="v-amt" type="number" step="0.1"></div>
+      <div class="fg"><label>Medication</label><select id="v-med"></select></div>
+      <div class="fg-row">
+        <div class="fg"><label>Vial amount (mg)</label><input id="v-amt" type="number" step="0.1"></div>
         <div class="fg"><label>Diluent (mL)</label><input id="v-dil" type="number" step="0.1"></div>
-        <div class="fg"><label>Diluent Type</label><select id="v-dtype"><option>BAC Water</option><option>BAC + Acetic Acid</option><option>Saline</option></select></div>
-        <div class="fg"><label>Recon Date</label><input id="v-date" type="date"></div>
+      </div>
+      <div class="fg"><label>Diluent type</label>
+        <select id="v-dtype">
+          <option>BAC Water</option><option>BAC + Acetic Acid</option><option>Saline</option>
+        </select>
+      </div>
+      <div class="fg-row">
+        <div class="fg"><label>Recon date</label><input id="v-date" type="date"></div>
         <div class="fg"><label>Expires (days)</label><input id="v-exp" type="number" value="28"></div>
+      </div>
+      <div class="fg-row">
         <div class="fg"><label>Storage</label><input id="v-stor" placeholder="Fridge door"></div>
         <div class="fg"><label>Lot #</label><input id="v-lot"></div>
-        <div class="fg full"><label>Supplier</label><input id="v-sup"></div>
       </div>
+      <div class="fg"><label>Supplier</label><input id="v-sup"></div>
     </div>
     <div class="sheet-footer">
-      <button class="btn btn-g" onclick="closeSheet('sheet-vial')">Cancel</button>
-      <button class="btn btn-p" onclick="saveVial()">Save</button>
+      <button class="btn btn-g" style="flex:1" onclick="closeSheet('sh-vial')">Cancel</button>
+      <button class="btn btn-p" style="flex:2" onclick="saveVial()">Save vial</button>
     </div>
   </div>
 </div>
 
 <!-- Library Detail -->
-<div class="sheet-overlay" id="sheet-lib">
+<div class="overlay" id="sh-lib">
   <div class="sheet" style="max-height:95vh">
     <div class="sheet-handle"></div>
-    <div class="sheet-hdr"><h3 id="lib-sheet-name"></h3><button class="sheet-close" onclick="closeSheet('sheet-lib')">✕</button></div>
-    <div class="sheet-body" id="lib-sheet-body"></div>
+    <div class="sheet-hdr">
+      <h2 id="lib-sh-name"></h2>
+      <button class="sheet-close" onclick="closeSheet('sh-lib')">&#10005;</button>
+    </div>
+    <div class="sheet-body" id="lib-sh-body"></div>
     <div class="sheet-footer">
-      <button class="btn btn-g" onclick="closeSheet('sheet-lib')">Close</button>
-      <button class="btn btn-p" id="lib-add-btn">+ Add to Protocols</button>
+      <button class="btn btn-g" style="flex:1" onclick="closeSheet('sh-lib')">Close</button>
+      <button class="btn btn-p" style="flex:2" id="lib-add-btn">+ Add to protocols</button>
     </div>
   </div>
 </div>
 
 <!-- AI Scraper -->
-<div class="sheet-overlay" id="sheet-scraper">
+<div class="overlay" id="sh-scraper">
   <div class="sheet" style="max-height:95vh">
     <div class="sheet-handle"></div>
-    <div class="sheet-hdr"><h3>✦ AI Protocol Scan</h3><button class="sheet-close" onclick="closeSheet('sheet-scraper')">✕</button></div>
-    <div class="sheet-body">
-      <div class="fg"><label>Anthropic API Key</label><input id="ai-key" type="password" placeholder="sk-ant-..." oninput="localStorage.setItem('ai_key',this.value)"></div>
-      <div class="fg"><label>Paste protocol text, notes, or URL</label><textarea id="ai-input" rows="6" placeholder="Paste your research notes, a supplier page text, or any dosing protocol here..."></textarea></div>
-      <button class="btn btn-p" style="width:100%;margin-top:4px" onclick="runScraper()">✦ Extract Protocols</button>
-      <div id="scraper-loading" style="display:none;text-align:center;padding:16px;font-family:var(--mono);font-size:12px;color:var(--mute)">Scanning with Claude AI...</div>
-      <div id="scraper-results" style="margin-top:12px"></div>
+    <div class="sheet-hdr">
+      <h2>&#10022; AI Protocol Scan</h2>
+      <button class="sheet-close" onclick="closeSheet('sh-scraper')">&#10005;</button>
     </div>
-    <div style="padding:8px 18px 0">
-      <div style="font-family:var(--mono);font-size:10px;color:var(--mute);line-height:1.5">API key stored on-device only. Get yours at console.anthropic.com</div>
+    <div class="sheet-body">
+      <div class="fg">
+        <label>Anthropic API key</label>
+        <input id="ai-key" type="password" placeholder="sk-ant-..." oninput="localStorage.setItem('rx_ai_key',this.value)">
+      </div>
+      <div class="fg">
+        <label>Paste protocol text or notes</label>
+        <textarea id="ai-txt" rows="6" placeholder="Paste research notes, dosing protocols, supplier info..."></textarea>
+      </div>
+      <button class="btn btn-p btn-full" onclick="runScraper()">&#10022; Extract protocols</button>
+      <div id="ai-loading" style="display:none;text-align:center;padding:16px;font-size:12px;color:var(--mu)">Scanning with Claude AI...</div>
+      <div id="ai-results" style="margin-top:12px"></div>
+      <div style="margin-top:10px;font-size:10px;color:var(--mu);line-height:1.5">API key stored on-device only. Get yours at console.anthropic.com</div>
     </div>
   </div>
 </div>
 
 <script>
-// ── STORAGE ──────────────────────────────────────────────────────────────────
-const LS = {
-  get: k => { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } },
-  set: (k,v) => localStorage.setItem(k, JSON.stringify(v))
-};
+const LS={get:k=>{try{return JSON.parse(localStorage.getItem(k));}catch{return null;}},set:(k,v)=>localStorage.setItem(k,JSON.stringify(v))};
 
-let meds=[], logs=[], vials=[], titrations=[], volOv={};
-let editMedId=null, libSelected=null, medFilter='all', libFilter='all';
+let meds=[],logs=[],vials=[],titrations=[],volOv={};
+let editMedId=null,libSel=null,mF='all',lF='all';
 
-// ── SEED DATA ─────────────────────────────────────────────────────────────────
 const SEED_MEDS=[
-  {id:'ss31',name:'SS-31',source:'Aura Peptides',status:'active',dose:1,unit:'mg',freq:'eod',time:'20:00',days:[],cycleOn:0,cycleOff:0,start:'2026-05-02',vial:10,reorder:7,unitTbl:'5 units = 500mcg\n10 units = 1mg\n15 units = 1.5mg\n20 units = 2mg\n25 units = 2.5mg\n30 units = 3mg',notes:'1-3mg per dose. Every 1-3 days.'},
-  {id:'tirz',name:'Tirzepatide',source:'Peptide Crafters',status:'active',dose:1,unit:'mg',freq:'weekly',time:'08:00',days:['Sun'],cycleOn:0,cycleOff:0,start:'2026-04-27',vial:10,reorder:7,unitTbl:'5 units = 500mcg\n10 units = 1mg\n15 units = 1.5mg\n20 units = 2mg\n25 units = 2.5mg',notes:'~1mg/week. 1mL recon.'},
-  {id:'tesa',name:'Tesamorelin',source:'Aura Peptides',status:'active',dose:1,unit:'mg',freq:'5on2off',time:'21:00',days:[],cycleOn:0,cycleOff:0,start:'2026-04-22',vial:10,reorder:7,unitTbl:'10 units = 0.5mg\n20 units = 1mg\n30 units = 1.5mg\n40 units = 2mg',notes:'2mL recon. Stack with Ipamorelin 5on/2off.'},
-  {id:'tb500',name:'TB-500',source:'Peptide Crafters',status:'active',dose:2,unit:'mg',freq:'twice_weekly',time:'20:00',days:['Mon','Thu'],cycleOn:0,cycleOff:0,start:'2026-04-06',vial:10,reorder:7,unitTbl:'20 units = 2mg\n25 units = 2.5mg',notes:'2-2.5mg Mon+Thu. 1mL recon.'},
-  {id:'ipa',name:'Ipamorelin',source:'Peptide Crafters',status:'active',dose:200,unit:'mcg',freq:'5on2off',time:'22:00',days:[],cycleOn:0,cycleOff:0,start:'2026-04-06',vial:10,reorder:7,unitTbl:'2 units = 100mcg\n3 units = 150mcg\n4 units = 200mcg\n5 units = 250mcg\n6 units = 300mcg',notes:'100-300mcg nightly. 2mL recon.'},
-  {id:'klow',name:'KLOW Blend',source:'Peptide Crafters',status:'active',dose:10,unit:'units',freq:'daily',time:'09:00',days:[],cycleOn:0,cycleOff:0,start:'2026-03-07',vial:80,reorder:7,unitTbl:'10 units = 250mcg KPV/BPC/TB + 1.25mg GHK\n20 units = 500mcg KPV/BPC/TB + 2.5mg GHK',notes:'80mg (KPV/BPC/TB 10mg each + GHK 50mg). 4mL recon.'},
-  {id:'bpctb',name:'BPC-157 / TB-500 Blend',source:'PS',status:'active',dose:10,unit:'units',freq:'5on2off',time:'09:00',days:[],cycleOn:0,cycleOff:0,start:'2025-12-01',vial:20,reorder:7,unitTbl:'5 units = 250/250mcg each\n10 units = 500/500mcg each',notes:'250-500mcg/day 5on/2off. 2mL recon.'},
-  {id:'motsc',name:'MOTS-C',source:'Certified Pep',status:'stopped',dose:1,unit:'mg',freq:'5on2off',time:'08:00',days:[],cycleOn:4,cycleOff:0,start:'2026-02-06',vial:20,reorder:7,unitTbl:'10 units = 500mcg\n20 units = 1mg',notes:'Stopped after 4 weeks — bad ISR. Prefer smaller vials, more dilute.'},
-  {id:'cjc',name:'CJC-1295 / Ipamorelin Blend',source:'Certified Pep',status:'completed',dose:200,unit:'mcg',freq:'5on2off',time:'22:00',days:[],cycleOn:12,cycleOff:0,start:'2026-02-06',vial:10,reorder:7,unitTbl:'4 units = 100/100mcg\n6 units = 150/150mcg\n8 units = 200/200mcg\n10 units = 250/250mcg\n12 units = 300/300mcg',notes:'2mL recon. Titrate 100→300mcg over 5-12 weeks.'},
-  {id:'reta',name:'Retatrutide',source:'PS',status:'stopped',dose:0.5,unit:'mg',freq:'weekly',time:'08:00',days:['Sun'],cycleOn:0,cycleOff:0,start:'2025-01-01',vial:16,reorder:7,unitTbl:'5 units = 0.5mg\n10 units = 1mg',notes:'Stopped at 3 weeks — HR & NS overstimulation. 13.5mg remaining.'},
-  {id:'aod',name:'AOD-9604',source:'PS',status:'completed',dose:300,unit:'mcg',freq:'5on2off',time:'07:00',days:[],cycleOn:12,cycleOff:4,start:'2025-11-26',vial:10,reorder:7,unitTbl:'10 units = 250mcg\n12 units = 300mcg\n20 units = 500mcg',notes:'FASTED MORNING — no food/liquids 30-45min before/after. Last dose 12.25.2025.'},
+  {id:'ss31',name:'SS-31',src:'Aura Peptides',status:'active',dose:1,unit:'mg',freq:'eod',time:'20:00',days:[],cOn:0,cOff:0,start:'2026-05-02',vial:10,reorder:7,utbl:'5 units = 500mcg\n10 units = 1mg\n15 units = 1.5mg\n20 units = 2mg\n30 units = 3mg',notes:'1-3mg per dose. Every 1-3 days. 1mL reconstituted.'},
+  {id:'tirz',name:'Tirzepatide',src:'Peptide Crafters',status:'active',dose:1,unit:'mg',freq:'weekly',time:'08:00',days:['Sun'],cOn:0,cOff:0,start:'2026-04-27',vial:10,reorder:7,utbl:'5 units = 500mcg\n10 units = 1mg\n15 units = 1.5mg\n20 units = 2mg',notes:'~1mg/week single dose. 1mL reconstituted.'},
+  {id:'tesa',name:'Tesamorelin',src:'Aura Peptides',status:'active',dose:1,unit:'mg',freq:'5on2off',time:'21:00',days:[],cOn:0,cOff:0,start:'2026-04-22',vial:10,reorder:7,utbl:'10 units = 0.5mg\n20 units = 1mg\n30 units = 1.5mg\n40 units = 2mg',notes:'2mL reconstituted. Stack with Ipamorelin 5on/2off.'},
+  {id:'tb500',name:'TB-500',src:'Peptide Crafters',status:'active',dose:2,unit:'mg',freq:'twice_weekly',time:'20:00',days:['Mon','Thu'],cOn:0,cOff:0,start:'2026-04-06',vial:10,reorder:7,utbl:'20 units = 2mg\n25 units = 2.5mg',notes:'2-2.5mg Mon+Thu. 1mL reconstituted.'},
+  {id:'ipa',name:'Ipamorelin',src:'Peptide Crafters',status:'active',dose:200,unit:'mcg',freq:'5on2off',time:'22:00',days:[],cOn:0,cOff:0,start:'2026-04-06',vial:10,reorder:7,utbl:'2 units = 100mcg\n4 units = 200mcg\n6 units = 300mcg',notes:'100-300mcg nightly. 2mL reconstituted.'},
+  {id:'klow',name:'KLOW Blend',src:'Peptide Crafters',status:'active',dose:10,unit:'units',freq:'daily',time:'09:00',days:[],cOn:0,cOff:0,start:'2026-03-07',vial:80,reorder:7,utbl:'10 units = 250mcg KPV/BPC/TB + 1.25mg GHK\n20 units = 500mcg KPV/BPC/TB + 2.5mg GHK',notes:'80mg blend (KPV/BPC/TB 10mg each + GHK 50mg). 4mL reconstituted.'},
+  {id:'bpctb',name:'BPC-157 / TB-500',src:'PS',status:'active',dose:10,unit:'units',freq:'5on2off',time:'09:00',days:[],cOn:0,cOff:0,start:'2025-12-01',vial:20,reorder:7,utbl:'5 units = 250/250mcg\n10 units = 500/500mcg',notes:'250-500mcg/day 5on/2off. 2mL reconstituted.'},
+  {id:'motsc',name:'MOTS-C',src:'Certified Pep',status:'stopped',dose:1,unit:'mg',freq:'5on2off',time:'08:00',days:[],cOn:4,cOff:0,start:'2026-02-06',vial:20,reorder:7,utbl:'10 units = 500mcg\n20 units = 1mg',notes:'Stopped after 4 weeks — bad ISR. Prefer smaller vials, more dilute solution.'},
+  {id:'reta',name:'Retatrutide',src:'PS',status:'stopped',dose:0.5,unit:'mg',freq:'weekly',time:'08:00',days:['Sun'],cOn:0,cOff:0,start:'2025-01-01',vial:16,reorder:7,utbl:'5 units = 0.5mg\n10 units = 1mg',notes:'Stopped at 3 weeks — HR & nervous system overstimulation. 13.5mg remaining.'},
+  {id:'aod',name:'AOD-9604',src:'PS',status:'completed',dose:300,unit:'mcg',freq:'5on2off',time:'07:00',days:[],cOn:12,cOff:4,start:'2025-11-26',vial:10,reorder:7,utbl:'10 units = 250mcg\n12 units = 300mcg\n20 units = 500mcg',notes:'FASTED MORNING — no food/liquids 30-45min before/after. Last dose 12.25.2025.'},
 ];
 const SEED_VIALS=[
-  {id:'rv1',medId:'ss31',vialAmt:10,dil:1,dtype:'BAC Water',date:'2026-05-02',exp:28,stor:'Fridge',lot:'',sup:'Aura Peptides'},
-  {id:'rv2',medId:'tirz',vialAmt:10,dil:1,dtype:'BAC Water',date:'2026-04-27',exp:28,stor:'Fridge',lot:'',sup:'Peptide Crafters'},
-  {id:'rv3',medId:'tesa',vialAmt:10,dil:2,dtype:'BAC Water',date:'2026-04-22',exp:28,stor:'Fridge',lot:'',sup:'Aura Peptides'},
-  {id:'rv4',medId:'tb500',vialAmt:10,dil:1,dtype:'BAC Water',date:'2026-04-06',exp:28,stor:'Fridge',lot:'',sup:'Peptide Crafters'},
-  {id:'rv5',medId:'ipa',vialAmt:10,dil:2,dtype:'BAC Water',date:'2026-04-06',exp:28,stor:'Fridge',lot:'',sup:'Peptide Crafters'},
-  {id:'rv6',medId:'klow',vialAmt:80,dil:4,dtype:'BAC Water',date:'2026-03-07',exp:28,stor:'Fridge',lot:'',sup:'Peptide Crafters'},
+  {id:'rv1',medId:'ss31',amt:10,dil:1,dtype:'BAC Water',date:'2026-05-02',exp:28,stor:'Fridge',lot:'',sup:'Aura Peptides'},
+  {id:'rv2',medId:'tirz',amt:10,dil:1,dtype:'BAC Water',date:'2026-04-27',exp:28,stor:'Fridge',lot:'',sup:'Peptide Crafters'},
+  {id:'rv3',medId:'tesa',amt:10,dil:2,dtype:'BAC Water',date:'2026-04-22',exp:28,stor:'Fridge',lot:'',sup:'Aura Peptides'},
+  {id:'rv4',medId:'tb500',amt:10,dil:1,dtype:'BAC Water',date:'2026-04-06',exp:28,stor:'Fridge',lot:'',sup:'Peptide Crafters'},
+  {id:'rv5',medId:'ipa',amt:10,dil:2,dtype:'BAC Water',date:'2026-04-06',exp:28,stor:'Fridge',lot:'',sup:'Peptide Crafters'},
+  {id:'rv6',medId:'klow',amt:80,dil:4,dtype:'BAC Water',date:'2026-03-07',exp:28,stor:'Fridge',lot:'',sup:'Peptide Crafters'},
 ];
 const SEED_LOGS=[
-  {id:'lg1',medId:'ss31',date:'2026-05-02',time:'20:00',dose:1,unit:'mg',syr:10,vol:0.1,status:'taken',notes:'New Aura vial'},
-  {id:'lg2',medId:'ss31',date:'2026-05-04',time:'20:00',dose:1,unit:'mg',syr:10,vol:0.1,status:'taken',notes:''},
-  {id:'lg3',medId:'ss31',date:'2026-05-06',time:'20:00',dose:1,unit:'mg',syr:10,vol:0.1,status:'taken',notes:''},
-  {id:'lg4',medId:'ss31',date:'2026-05-08',time:'20:00',dose:1.5,unit:'mg',syr:15,vol:0.15,status:'taken',notes:'Increased dose'},
-  {id:'lg5',medId:'tirz',date:'2026-04-27',time:'08:00',dose:1,unit:'mg',syr:10,vol:0.1,status:'taken',notes:'Weekly dose'},
-  {id:'lg6',medId:'tirz',date:'2026-05-04',time:'08:00',dose:1,unit:'mg',syr:10,vol:0.1,status:'taken',notes:'Weekly dose'},
-  {id:'lg7',medId:'tesa',date:'2026-05-05',time:'21:00',dose:1,unit:'mg',syr:20,vol:0.2,status:'taken',notes:''},
-  {id:'lg8',medId:'tesa',date:'2026-05-06',time:'21:00',dose:1,unit:'mg',syr:20,vol:0.2,status:'taken',notes:''},
-  {id:'lg9',medId:'tesa',date:'2026-05-07',time:'21:00',dose:1,unit:'mg',syr:20,vol:0.2,status:'taken',notes:''},
-  {id:'lg10',medId:'tb500',date:'2026-05-05',time:'20:00',dose:2,unit:'mg',syr:20,vol:0.2,status:'taken',notes:''},
-  {id:'lg11',medId:'tb500',date:'2026-05-08',time:'20:00',dose:2,unit:'mg',syr:20,vol:0.2,status:'taken',notes:''},
-  {id:'lg12',medId:'ipa',date:'2026-05-05',time:'22:00',dose:200,unit:'mcg',syr:4,vol:0.04,status:'taken',notes:''},
-  {id:'lg13',medId:'ipa',date:'2026-05-06',time:'22:00',dose:200,unit:'mcg',syr:4,vol:0.04,status:'taken',notes:''},
-  {id:'lg14',medId:'ipa',date:'2026-05-07',time:'22:00',dose:200,unit:'mcg',syr:4,vol:0.04,status:'taken',notes:''},
-  {id:'lg15',medId:'klow',date:'2026-05-06',time:'09:00',dose:10,unit:'units',syr:10,vol:0.1,status:'taken',notes:''},
-  {id:'lg16',medId:'klow',date:'2026-05-07',time:'09:00',dose:10,unit:'units',syr:10,vol:0.1,status:'taken',notes:''},
-  {id:'lg17',medId:'klow',date:'2026-05-08',time:'09:00',dose:10,unit:'units',syr:10,vol:0.1,status:'taken',notes:''},
+  {id:'l1',medId:'ss31',date:'2026-05-02',time:'20:00',dose:1,unit:'mg',syr:10,vol:.1,status:'taken',notes:'New Aura vial'},
+  {id:'l2',medId:'ss31',date:'2026-05-04',time:'20:00',dose:1,unit:'mg',syr:10,vol:.1,status:'taken',notes:''},
+  {id:'l3',medId:'ss31',date:'2026-05-06',time:'20:00',dose:1,unit:'mg',syr:10,vol:.1,status:'taken',notes:''},
+  {id:'l4',medId:'ss31',date:'2026-05-08',time:'20:00',dose:1.5,unit:'mg',syr:15,vol:.15,status:'taken',notes:'Increased dose'},
+  {id:'l5',medId:'tirz',date:'2026-04-27',time:'08:00',dose:1,unit:'mg',syr:10,vol:.1,status:'taken',notes:''},
+  {id:'l6',medId:'tirz',date:'2026-05-04',time:'08:00',dose:1,unit:'mg',syr:10,vol:.1,status:'taken',notes:'Weekly dose'},
+  {id:'l7',medId:'tesa',date:'2026-05-05',time:'21:00',dose:1,unit:'mg',syr:20,vol:.2,status:'taken',notes:''},
+  {id:'l8',medId:'tesa',date:'2026-05-06',time:'21:00',dose:1,unit:'mg',syr:20,vol:.2,status:'taken',notes:''},
+  {id:'l9',medId:'tesa',date:'2026-05-07',time:'21:00',dose:1,unit:'mg',syr:20,vol:.2,status:'taken',notes:''},
+  {id:'l10',medId:'tb500',date:'2026-05-05',time:'20:00',dose:2,unit:'mg',syr:20,vol:.2,status:'taken',notes:''},
+  {id:'l11',medId:'tb500',date:'2026-05-08',time:'20:00',dose:2,unit:'mg',syr:20,vol:.2,status:'taken',notes:''},
+  {id:'l12',medId:'ipa',date:'2026-05-05',time:'22:00',dose:200,unit:'mcg',syr:4,vol:.04,status:'taken',notes:''},
+  {id:'l13',medId:'ipa',date:'2026-05-06',time:'22:00',dose:200,unit:'mcg',syr:4,vol:.04,status:'taken',notes:''},
+  {id:'l14',medId:'ipa',date:'2026-05-07',time:'22:00',dose:200,unit:'mcg',syr:4,vol:.04,status:'taken',notes:''},
+  {id:'l15',medId:'klow',date:'2026-05-06',time:'09:00',dose:10,unit:'units',syr:10,vol:.1,status:'taken',notes:''},
+  {id:'l16',medId:'klow',date:'2026-05-07',time:'09:00',dose:10,unit:'units',syr:10,vol:.1,status:'taken',notes:''},
+  {id:'l17',medId:'klow',date:'2026-05-08',time:'09:00',dose:10,unit:'units',syr:10,vol:.1,status:'taken',notes:''},
 ];
-const SEED_TITRATIONS=[
-  {id:'t1',name:'CJC/Ipamorelin Ramp-Up',medId:'cjc',start:'2026-02-06',step:3,steps:[
+const SEED_TITS=[
+  {id:'t1',name:'CJC/Ipamorelin ramp-up',medId:'motsc',start:'2026-02-06',step:3,steps:[
     {dose:'100mcg each',weeks:2,notes:'Start'},{dose:'150mcg each',weeks:2,notes:''},{dose:'200mcg each',weeks:2,notes:'Current'},{dose:'250mcg each',weeks:3,notes:''},{dose:'300mcg each',weeks:3,notes:'Target'}
   ]},
-  {id:'t2',name:'Retatrutide Titration',medId:'reta',start:'2025-01-01',step:1,steps:[
+  {id:'t2',name:'Retatrutide titration',medId:'reta',start:'2025-01-01',step:1,steps:[
     {dose:'0.5mg',weeks:1,notes:'STOPPED — HR/NS effects'},{dose:'1mg',weeks:1,notes:'Not reached'},{dose:'2mg',weeks:2,notes:'Not reached'},{dose:'4mg',weeks:4,notes:'Not reached'}
   ]},
 ];
-
-// ── LIBRARY DATA ─────────────────────────────────────────────────────────────
-const LIBRARY=[
-  {id:'l1',name:'BPC-157',aka:'Body Protection Compound 157',cat:'Healing',tags:['Healing','Gut','Tendon'],summary:'Synthetic peptide for soft tissue healing, gut repair, and anti-inflammatory effects. Well-studied, broad spectrum.',dosing:{typical:'250–500 mcg/day',range:'200–600 mcg/day',freq:'5 on / 2 off',timing:'Any time. Subcut near injury or systemic.',cycle:'4–12 weeks on, 2–4 off'},recon:{vial:'10mg',dil:'2mL BAC Water',conc:'5mg/mL',tbl:'5 units = 250mcg\n10 units = 500mcg',exp:28},defaults:{dose:500,unit:'mcg',freq:'5on2off',time:'09:00'},notes:'Can be taken orally in saline for gut effects.',warnings:'Research peptide. Not FDA approved.'},
-  {id:'l2',name:'TB-500',aka:'Thymosin Beta-4 fragment',cat:'Healing',tags:['Healing','Recovery','Flexibility'],summary:'Promotes healing of muscles, tendons, and ligaments. Often stacked with BPC-157 for synergistic repair.',dosing:{typical:'2–2.5mg, 2-3x/week',range:'2–5mg/week total',freq:'2-3x per week or EOD',timing:'Subcut. Any time.',cycle:'4–12 weeks on, 2–4 off'},recon:{vial:'10mg',dil:'1mL BAC Water',conc:'10mg/mL',tbl:'20 units = 2mg\n25 units = 2.5mg',exp:28},defaults:{dose:2,unit:'mg',freq:'twice_weekly',time:'20:00'},notes:'Loading dose approach common for acute injuries.',warnings:'Research peptide.'},
-  {id:'l3',name:'SS-31',aka:'Elamipretide / Bendavia',cat:'Mitochondrial',tags:['Mitochondrial','Cardio','Anti-aging'],summary:'Tetrapeptide targeting the inner mitochondrial membrane. Improves mitochondrial function and reduces oxidative stress.',dosing:{typical:'1–3mg/dose',range:'0.5–5mg',freq:'Daily or every 1–3 days',timing:'Subcut. Any time.',cycle:'20-day cycles or continuous'},recon:{vial:'10mg',dil:'1mL BAC Water',conc:'10mg/mL',tbl:'10 units = 1mg\n20 units = 2mg\n30 units = 3mg',exp:28},defaults:{dose:1,unit:'mg',freq:'eod',time:'20:00'},notes:'Higher-dose 30mg vials for intensive 20-day protocols.',warnings:'Research peptide.'},
-  {id:'l4',name:'Tesamorelin',aka:'EGRIFTA / GRF(1-44)',cat:'GH Secretagogue',tags:['GH','Fat Loss','Cognitive'],summary:'GHRH analogue stimulating pituitary GH release. FDA-approved for HIV lipodystrophy. Used for fat loss and cognition.',dosing:{typical:'1–2mg/day',range:'0.5–2mg/day',freq:'Daily or 5 on / 2 off',timing:'Before bed or waking, empty stomach.',cycle:'8–16 weeks'},recon:{vial:'10mg',dil:'2mL BAC Water',conc:'5mg/mL',tbl:'10 units = 0.5mg\n20 units = 1mg\n30 units = 1.5mg\n40 units = 2mg',exp:28},defaults:{dose:1,unit:'mg',freq:'5on2off',time:'21:00'},notes:'Best stacked with Ipamorelin. No carbs 2hr before for max GH.',warnings:'May increase IGF-1.'},
-  {id:'l5',name:'Ipamorelin',aka:'NNC 26-0161',cat:'GH Secretagogue',tags:['GH','Sleep','Body Comp'],summary:'Selective GHRP. Clean GH secretagogue with minimal cortisol or prolactin elevation. Best in class for side effect profile.',dosing:{typical:'100–300mcg/dose',range:'100–500mcg',freq:'Nightly or 5 on / 2 off',timing:'Before bed, empty stomach.',cycle:'8–16 weeks'},recon:{vial:'10mg',dil:'2mL BAC Water',conc:'5mg/mL',tbl:'2 units = 100mcg\n4 units = 200mcg\n6 units = 300mcg',exp:28},defaults:{dose:200,unit:'mcg',freq:'5on2off',time:'22:00'},notes:'Stack with Tesamorelin or CJC-1295 for synergistic GH pulse.',warnings:'Avoid dosing within 2hr of food.'},
-  {id:'l6',name:'CJC-1295',aka:'Mod GRF 1-29 / CJC without DAC',cat:'GH Secretagogue',tags:['GH','Recovery','Body Comp'],summary:'GHRH analogue. Often blended with Ipamorelin. Titrated from 100mcg up to 300mcg over 5–12 weeks.',dosing:{typical:'100–300mcg/dose',range:'100–500mcg',freq:'Daily or 5 on / 2 off',timing:'Before bed or waking, empty stomach.',cycle:'8–16 weeks'},recon:{vial:'5mg (blend)',dil:'2mL BAC Water',conc:'2.5mg/mL (blend)',tbl:'4 units = 100/100mcg\n8 units = 200/200mcg\n12 units = 300/300mcg',exp:28},defaults:{dose:200,unit:'mcg',freq:'5on2off',time:'22:00'},notes:'Start at 100mcg. Increase 50mcg every 1–2 weeks as tolerated.',warnings:'DAC version dosed only 1-2x/week.'},
-  {id:'l7',name:'MOTS-C',aka:'Mitochondrial Open Reading Frame Peptide',cat:'Mitochondrial',tags:['Metabolic','Insulin Sensitivity','Exercise'],summary:'Mitochondria-derived peptide regulating metabolic homeostasis and mimicking exercise effects at cellular level.',dosing:{typical:'5mg/week (1mg/day)',range:'2–10mg/week',freq:'Daily or 5 on / 2 off',timing:'Morning, subcut.',cycle:'4–8 weeks'},recon:{vial:'5–10mg (prefer small)',dil:'More dilute preferred',conc:'~1.67mg/mL',tbl:'10 units = 500mcg\n20 units = 1mg',exp:28},defaults:{dose:1,unit:'mg',freq:'5on2off',time:'08:00'},notes:'ISR common — use smaller vials, more dilute solution. Abdomen injection may reduce ISR.',warnings:'ISR common, especially at higher concentrations.'},
-  {id:'l8',name:'Tirzepatide',aka:'GIP/GLP-1 dual agonist',cat:'Metabolic',tags:['Weight Loss','GLP-1','Blood Sugar'],summary:'Dual GIP and GLP-1 receptor agonist. FDA-approved (Mounjaro/Zepbound). Highly effective for weight loss.',dosing:{typical:'2.5–10mg/week',range:'2.5mg start → 15mg max',freq:'Once weekly',timing:'Any consistent day.',cycle:'Continuous'},recon:{vial:'10mg',dil:'1mL BAC Water',conc:'10mg/mL',tbl:'5 units = 500mcg\n10 units = 1mg\n20 units = 2mg\n25 units = 2.5mg',exp:28},defaults:{dose:1,unit:'mg',freq:'weekly',time:'08:00'},notes:'Titrate: start 2.5mg, increase 2.5mg every 4 weeks. Nausea common early.',warnings:'Prescription in many jurisdictions. Risk of thyroid C-cell tumors (animal data).'},
-  {id:'l9',name:'Retatrutide',aka:'Triple GLP-1/GIP/Glucagon agonist',cat:'Metabolic',tags:['Weight Loss','Experimental','Triple Agonist'],summary:'Triple receptor agonist. More potent than dual agonists due to glucagon component increasing energy expenditure.',dosing:{typical:'0.5–4mg/week',range:'0.5mg start → 8mg in trials',freq:'Once weekly',timing:'Any consistent day.',cycle:'Continuous, titrate slowly'},recon:{vial:'16mg',dil:'1.6mL BAC Water',conc:'10mg/mL',tbl:'5 units = 0.5mg\n10 units = 1mg\n20 units = 2mg',exp:28},defaults:{dose:0.5,unit:'mg',freq:'weekly',time:'08:00'},notes:'Titrate VERY slowly. Glucagon component increases HR and CNS stimulation.',warnings:'⚠ HR elevation and NS stimulation common. Your protocol stopped at 3 weeks due to these effects. Not FDA approved.'},
-  {id:'l10',name:'AOD-9604',aka:'hGH fragment 176-191',cat:'Metabolic',tags:['Fat Loss','Lipolytic','Fasted'],summary:'Fragment of human growth hormone. Stimulates fat breakdown without affecting insulin or IGF-1.',dosing:{typical:'300mcg/day',range:'120–500mcg/day',freq:'5 on / 2 off',timing:'FASTED: first thing AM, 30–45 min before food.',cycle:'4–12 weeks; 3–6 months total then 6–8 weeks off'},recon:{vial:'10mg',dil:'3mL BAC + 1mL Acetic Acid',conc:'2.5mg/mL',tbl:'10 units = 250mcg\n12 units = 300mcg\n20 units = 500mcg',exp:42},defaults:{dose:300,unit:'mcg',freq:'5on2off',time:'07:00'},notes:'MUST be taken fasted. No food/liquids 30–45 min before AND after. Acetic acid required in reconstitution.',warnings:'Requires acetic acid — not just BAC water. Research peptide.'},
-  {id:'l11',name:'KPV',aka:'Lys-Pro-Val / α-MSH fragment',cat:'Healing',tags:['Anti-inflammatory','Gut','Immune'],summary:'Tripeptide fragment of alpha-MSH. Potent anti-inflammatory. Used for IBD, gut inflammation, and wound healing.',dosing:{typical:'250–500mcg/day',range:'100–1000mcg/day',freq:'Daily or 5 on / 2 off',timing:'Any time. Subcut or oral.',cycle:'4–8 weeks'},recon:{vial:'10mg',dil:'2mL BAC Water',conc:'5mg/mL',tbl:'5 units = 250mcg\n10 units = 500mcg',exp:28},defaults:{dose:500,unit:'mcg',freq:'5on2off',time:'09:00'},notes:'Often combined with BPC-157 and TB-500 in blends (your KLOW). Oral for gut-specific effects.',warnings:'Research peptide.'},
-  {id:'l12',name:'GHK-Cu',aka:'Copper Peptide',cat:'Healing',tags:['Skin','Collagen','Anti-aging','Hair'],summary:'Copper-binding tripeptide. Promotes collagen synthesis, wound healing, and broad anti-aging effects.',dosing:{typical:'1–3mg/day subcut',range:'0.5–5mg/day',freq:'Daily or 5 on / 2 off',timing:'Any time.',cycle:'8–12 weeks'},recon:{vial:'50mg',dil:'10mL BAC Water',conc:'5mg/mL',tbl:'10 units = 500mcg\n20 units = 1mg\n60 units = 3mg',exp:28},defaults:{dose:2,unit:'mg',freq:'5on2off',time:'09:00'},notes:'Blue/green color is normal (copper complex). Also available as topical.',warnings:'Research peptide for subcut use.'},
+const LIB=[
+  {id:'l1',name:'BPC-157',aka:'Body Protection Compound',cat:'Healing',tags:['Healing','Gut','Tendon'],summary:'Synthetic peptide for soft tissue healing, gut repair, and anti-inflammatory effects.',dosing:{typical:'250-500mcg/day',range:'200-600mcg/day',freq:'5 on / 2 off',timing:'Any time. Subcut near injury or systemic.',cycle:'4-12 weeks on, 2-4 off'},recon:{vial:'10mg',dil:'2mL BAC Water',conc:'5mg/mL',tbl:'5 units = 250mcg\n10 units = 500mcg',exp:28},def:{dose:500,unit:'mcg',freq:'5on2off',time:'09:00'},notes:'Can be taken orally in saline for gut effects.',warn:'Research peptide.'},
+  {id:'l2',name:'TB-500',aka:'Thymosin Beta-4 fragment',cat:'Healing',tags:['Healing','Recovery'],summary:'Promotes healing of muscles, tendons, and ligaments. Often stacked with BPC-157.',dosing:{typical:'2-2.5mg, 2-3x/week',range:'2-5mg/week',freq:'2-3x per week',timing:'Subcut. Any time.',cycle:'4-12 weeks on'},recon:{vial:'10mg',dil:'1mL BAC Water',conc:'10mg/mL',tbl:'20 units = 2mg\n25 units = 2.5mg',exp:28},def:{dose:2,unit:'mg',freq:'twice_weekly',time:'20:00'},notes:'Often paired with BPC-157.',warn:'Research peptide.'},
+  {id:'l3',name:'SS-31',aka:'Elamipretide / Bendavia',cat:'Mitochondrial',tags:['Mitochondrial','Cardio'],summary:'Targets the inner mitochondrial membrane. Improves mitochondrial function and reduces oxidative stress.',dosing:{typical:'1-3mg/dose',range:'0.5-5mg',freq:'Daily or every 1-3 days',timing:'Subcut. Any time.',cycle:'20-day cycles or continuous'},recon:{vial:'10mg',dil:'1mL BAC Water',conc:'10mg/mL',tbl:'10 units = 1mg\n20 units = 2mg\n30 units = 3mg',exp:28},def:{dose:1,unit:'mg',freq:'eod',time:'20:00'},notes:'Higher-dose 30mg vials for intensive 20-day protocols.',warn:'Research peptide.'},
+  {id:'l4',name:'Tesamorelin',aka:'EGRIFTA / GRF(1-44)',cat:'GH Secretagogue',tags:['GH','Fat Loss','Cognitive'],summary:'GHRH analogue stimulating GH release. FDA-approved for HIV lipodystrophy. Fat loss and cognition.',dosing:{typical:'1-2mg/day',range:'0.5-2mg/day',freq:'Daily or 5 on / 2 off',timing:'Before bed or waking, empty stomach.',cycle:'8-16 weeks'},recon:{vial:'10mg',dil:'2mL BAC Water',conc:'5mg/mL',tbl:'10 units = 0.5mg\n20 units = 1mg\n30 units = 1.5mg\n40 units = 2mg',exp:28},def:{dose:1,unit:'mg',freq:'5on2off',time:'21:00'},notes:'Stack with Ipamorelin for synergistic GH pulse.',warn:'May increase IGF-1.'},
+  {id:'l5',name:'Ipamorelin',aka:'NNC 26-0161',cat:'GH Secretagogue',tags:['GH','Sleep','Body Comp'],summary:'Selective GHRP. Clean GH secretagogue with minimal cortisol or prolactin elevation.',dosing:{typical:'100-300mcg/dose',range:'100-500mcg',freq:'Nightly or 5 on / 2 off',timing:'Before bed, empty stomach.',cycle:'8-16 weeks'},recon:{vial:'10mg',dil:'2mL BAC Water',conc:'5mg/mL',tbl:'2 units = 100mcg\n4 units = 200mcg\n6 units = 300mcg',exp:28},def:{dose:200,unit:'mcg',freq:'5on2off',time:'22:00'},notes:'Stack with Tesamorelin or CJC-1295.',warn:'Avoid within 2hr of food.'},
+  {id:'l6',name:'CJC-1295',aka:'Mod GRF 1-29',cat:'GH Secretagogue',tags:['GH','Recovery'],summary:'GHRH analogue. Often blended with Ipamorelin. Titrate 100mcg up to 300mcg over 5-12 weeks.',dosing:{typical:'100-300mcg/dose',range:'100-500mcg',freq:'Daily or 5 on / 2 off',timing:'Before bed or waking, empty stomach.',cycle:'8-16 weeks'},recon:{vial:'5mg blend',dil:'2mL BAC Water',conc:'2.5mg/mL',tbl:'4 units = 100/100mcg\n8 units = 200/200mcg\n12 units = 300/300mcg',exp:28},def:{dose:200,unit:'mcg',freq:'5on2off',time:'22:00'},notes:'Start at 100mcg, increase 50mcg every 1-2 weeks.',warn:'DAC version dosed 1-2x/week only.'},
+  {id:'l7',name:'MOTS-C',aka:'Mitochondrial peptide',cat:'Mitochondrial',tags:['Metabolic','Insulin Sensitivity'],summary:'Regulates metabolic homeostasis. Improves insulin sensitivity. Mimics exercise at cellular level.',dosing:{typical:'5mg/week (1mg/day)',range:'2-10mg/week',freq:'Daily or 5 on / 2 off',timing:'Morning, subcut.',cycle:'4-8 weeks'},recon:{vial:'5-10mg (prefer small)',dil:'More dilute preferred',conc:'~1.67mg/mL',tbl:'10 units = 500mcg\n20 units = 1mg',exp:28},def:{dose:1,unit:'mg',freq:'5on2off',time:'08:00'},notes:'ISR common — use smaller vials, more dilute solution.',warn:'ISR common at higher concentrations.'},
+  {id:'l8',name:'Tirzepatide',aka:'GIP/GLP-1 dual agonist',cat:'Metabolic',tags:['Weight Loss','GLP-1','Blood Sugar'],summary:'Dual GIP and GLP-1 receptor agonist. FDA-approved as Mounjaro/Zepbound. Highly effective for weight loss.',dosing:{typical:'2.5-10mg/week',range:'2.5mg start → 15mg max',freq:'Once weekly',timing:'Any consistent day.',cycle:'Continuous'},recon:{vial:'10mg',dil:'1mL BAC Water',conc:'10mg/mL',tbl:'5 units = 500mcg\n10 units = 1mg\n25 units = 2.5mg',exp:28},def:{dose:1,unit:'mg',freq:'weekly',time:'08:00'},notes:'Titrate: start 2.5mg, increase 2.5mg every 4 weeks. Nausea common early.',warn:'Prescription in many jurisdictions.'},
+  {id:'l9',name:'Retatrutide',aka:'Triple GLP-1/GIP/Glucagon agonist',cat:'Metabolic',tags:['Weight Loss','Experimental'],summary:'Triple receptor agonist. More potent than dual agonists. Glucagon component increases energy expenditure.',dosing:{typical:'0.5-4mg/week',range:'0.5mg start → 8mg in trials',freq:'Once weekly',timing:'Any consistent day.',cycle:'Continuous, titrate slowly'},recon:{vial:'16mg',dil:'1.6mL BAC Water',conc:'10mg/mL',tbl:'5 units = 0.5mg\n10 units = 1mg\n20 units = 2mg',exp:28},def:{dose:0.5,unit:'mg',freq:'weekly',time:'08:00'},notes:'Titrate VERY slowly. Glucagon component increases HR and CNS stimulation.',warn:'HR elevation and NS stimulation common. Your protocol stopped at 3 weeks.'},
+  {id:'l10',name:'AOD-9604',aka:'hGH fragment 176-191',cat:'Metabolic',tags:['Fat Loss','Lipolytic'],summary:'Fragment of human GH. Stimulates fat breakdown without affecting insulin or IGF-1.',dosing:{typical:'300mcg/day',range:'120-500mcg/day',freq:'5 on / 2 off',timing:'FASTED: first thing AM, 30-45min before food.',cycle:'4-12 weeks on'},recon:{vial:'10mg',dil:'3mL BAC + 1mL Acetic Acid',conc:'2.5mg/mL',tbl:'10 units = 250mcg\n12 units = 300mcg\n20 units = 500mcg',exp:42},def:{dose:300,unit:'mcg',freq:'5on2off',time:'07:00'},notes:'MUST be taken fasted. Acetic acid required in reconstitution.',warn:'Requires acetic acid — not just BAC water alone.'},
+  {id:'l11',name:'KPV',aka:'Lys-Pro-Val / alpha-MSH fragment',cat:'Healing',tags:['Anti-inflammatory','Gut'],summary:'Tripeptide fragment of alpha-MSH. Potent anti-inflammatory for gut, IBD, and wound healing.',dosing:{typical:'250-500mcg/day',range:'100-1000mcg/day',freq:'Daily or 5 on / 2 off',timing:'Any time. Subcut or oral.',cycle:'4-8 weeks'},recon:{vial:'10mg',dil:'2mL BAC Water',conc:'5mg/mL',tbl:'5 units = 250mcg\n10 units = 500mcg',exp:28},def:{dose:500,unit:'mcg',freq:'5on2off',time:'09:00'},notes:'Often combined with BPC-157 and TB-500 in blends (your KLOW).',warn:'Research peptide.'},
+  {id:'l12',name:'GHK-Cu',aka:'Copper Peptide',cat:'Healing',tags:['Skin','Collagen','Anti-aging'],summary:'Copper-binding tripeptide. Promotes collagen synthesis, wound healing, and anti-aging effects.',dosing:{typical:'1-3mg/day subcut',range:'0.5-5mg/day',freq:'Daily or 5 on / 2 off',timing:'Any time.',cycle:'8-12 weeks'},recon:{vial:'50mg',dil:'10mL BAC Water',conc:'5mg/mL',tbl:'10 units = 500mcg\n20 units = 1mg\n60 units = 3mg',exp:28},def:{dose:2,unit:'mg',freq:'5on2off',time:'09:00'},notes:'Blue/green color is normal (copper complex). Also available topical.',warn:'Research peptide for subcut.'},
 ];
 
-// ── INIT ──────────────────────────────────────────────────────────────────────
 function init(){
-  if(!localStorage.getItem('seeded_pwa_v1')){
-    meds=SEED_MEDS;logs=SEED_LOGS;vials=SEED_VIALS;titrations=SEED_TITRATIONS;volOv={};
-    LS.set('meds',meds);LS.set('logs',logs);LS.set('vials',vials);
-    LS.set('titrations',titrations);LS.set('volOv',volOv);
-    localStorage.setItem('seeded_pwa_v1','1');
+  if(!localStorage.getItem('rx_seed_v2')){
+    meds=SEED_MEDS;logs=SEED_LOGS;vials=SEED_VIALS;titrations=SEED_TITS;volOv={};
+    ['meds','logs','vials','titrations','volOv'].forEach(k=>LS.set(k,eval(k)));
+    localStorage.setItem('rx_seed_v2','1');
   } else {
-    meds=LS.get('meds')||SEED_MEDS;logs=LS.get('logs')||[];
-    vials=LS.get('vials')||SEED_VIALS;titrations=LS.get('titrations')||SEED_TITRATIONS;
+    meds=LS.get('meds')||SEED_MEDS;
+    logs=LS.get('logs')||[];
+    vials=LS.get('vials')||SEED_VIALS;
+    titrations=LS.get('titrations')||SEED_TITS;
     volOv=LS.get('volOv')||{};
   }
-  document.getElementById('ai-key').value=localStorage.getItem('ai_key')||'';
+  const k=localStorage.getItem('rx_ai_key');
+  if(k)document.getElementById('ai-key').value=k;
   render();
 }
 
 function save(){
-  LS.set('meds',meds);LS.set('logs',logs);LS.set('vials',vials);
-  LS.set('titrations',titrations);LS.set('volOv',volOv);
+  ['meds','logs','vials','titrations','volOv'].forEach(k=>LS.set(k,eval(k)));
 }
 
 function render(){
-  renderDashboard();renderMeds();renderLog();renderRecon();renderLibrary();
-  const rc=meds.filter(m=>m.status==='active'&&getFc(m)?.needsReorder).length;
-  const b=document.getElementById('reorder-badge');
-  if(rc>0){b.textContent=rc;b.style.display='';}else b.style.display='none';
+  renderDash();renderMeds();renderLog();renderVials();renderLib();
+  const ro=meds.filter(m=>m.status==='active'&&getFc(m)?.needsReorder);
+  const b=document.getElementById('ro-badge');
+  b.textContent=ro.length;
+  b.style.display=ro.length?'':'none';
 }
 
-// ── NAV ───────────────────────────────────────────────────────────────────────
 function switchTab(el){
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  el.classList.add('active');
-  document.getElementById('s-'+el.dataset.tab).classList.add('active');
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));
+  el.classList.add('on');
+  document.getElementById('sc-'+el.dataset.sc).classList.add('on');
 }
 
-// ── FORECAST ─────────────────────────────────────────────────────────────────
+// Forecast
 function dpw(m){return{daily:7,'5on2off':5,weekly:1,eod:3.5,twice_weekly:2.5,monthly:.25}[m.freq]||1;}
-function doseVol(m,v){
+function dv(m,v){
   let mg=parseFloat(m.dose)||0;
   if(m.unit==='mcg')mg/=1000;
   if(m.unit==='units'||m.unit==='mL')return null;
-  return mg/(v.vialAmt/v.dil);
+  return mg/(v.amt/v.dil);
 }
-function daysLeft(v){return Math.floor((new Date(v.date).getTime()+v.exp*86400000-Date.now())/86400000);}
-function activeVial(m){return vials.filter(v=>v.medId===m.id&&daysLeft(v)>0).sort((a,b)=>new Date(b.date)-new Date(a.date))[0]||null;}
+function dl(v){return Math.floor((new Date(v.date).getTime()+v.exp*86400000-Date.now())/86400000);}
+function activeVial(m){return vials.filter(v=>v.medId===m.id&&dl(v)>0).sort((a,b)=>new Date(b.date)-new Date(a.date))[0]||null;}
 function getFc(m){
   const v=activeVial(m);if(!v)return null;
-  const dv=doseVol(m,v);
-  const reconStart=new Date(v.date);
-  const used=logs.filter(l=>l.medId===m.id&&l.status==='taken'&&new Date(l.date)>=reconStart)
-    .reduce((s,l)=>s+(l.vol||dv||0),0);
+  const dvol=dv(m,v);
+  const since=new Date(v.date);
+  const used=logs.filter(l=>l.medId===m.id&&l.status==='taken'&&new Date(l.date)>=since).reduce((s,l)=>s+(l.vol||dvol||0),0);
   const rem=volOv[v.id]!==undefined?volOv[v.id]:Math.max(0,v.dil-used);
-  const pct=Math.min(100,Math.max(0,(rem/v.dil)*100));
-  const dl=dv&&dv>0?Math.floor(rem/dv):null;
-  const ds=dl!==null?Math.round(dl/dpw(m)*7):null;
-  const fd=ds!==null?new Date(Date.now()+ds*86400000):null;
-  const exp=daysLeft(v);
-  const lim=ds!==null?Math.min(ds,exp):exp;
+  const pct=Math.min(100,Math.max(0,rem/v.dil*100));
+  const dLeft=dvol&&dvol>0?Math.floor(rem/dvol):null;
+  const ds=dLeft!==null?Math.round(dLeft/dpw(m)*7):null;
+  const fin=ds!==null?new Date(Date.now()+ds*86400000):null;
+  const expD=dl(v);
+  const lim=ds!==null?Math.min(ds,expD):expD;
   const thr=m.reorder||7;
-  return{v,rem,pct,dosesLeft:dl,daysSupply:ds,finish:fd,expD:exp,lim,needsReorder:lim<=thr,warnReorder:lim<=thr*2&&lim>thr,conc:v.vialAmt/v.dil,dv};
+  return{v,rem,pct,dLeft,ds,fin,expD,lim,needsReorder:lim<=thr,warnReorder:lim<=thr*2&&lim>thr,conc:v.amt/v.dil,dvol};
 }
 
-// ── DASHBOARD ─────────────────────────────────────────────────────────────────
-function renderDashboard(){
+// Dashboard
+function renderDash(){
   const now=new Date();
-  document.getElementById('dash-date-str').textContent=now.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+  document.getElementById('dash-date').textContent=now.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
   const active=meds.filter(m=>m.status==='active');
-  const todayLogs=logs.filter(l=>l.date===fmtD(now));
-  const reorders=active.filter(m=>getFc(m)?.needsReorder);
+  const todayL=logs.filter(l=>l.date===fD(now));
+  const ro=active.filter(m=>getFc(m)?.needsReorder);
   document.getElementById('dash-stats').innerHTML=`
     <div class="stat"><div class="stat-l">Active</div><div class="stat-v">${active.length}</div><div class="stat-s">of ${meds.length} total</div></div>
-    <div class="stat"><div class="stat-l">Logged Today</div><div class="stat-v">${todayLogs.filter(l=>l.status==='taken').length}</div><div class="stat-s">${todayToday().length} scheduled</div></div>
-    <div class="stat"><div class="stat-l">Reorder Now</div><div class="stat-v" style="color:${reorders.length?'var(--dang)':'var(--acc)'}">${reorders.length}</div><div class="stat-s">≤7d supply</div></div>
-    <div class="stat"><div class="stat-l">Active Vials</div><div class="stat-v">${vials.filter(v=>daysLeft(v)>0).length}</div><div class="stat-s">${vials.filter(v=>daysLeft(v)<=0).length} expired</div></div>
+    <div class="stat"><div class="stat-l">Logged today</div><div class="stat-v">${todayL.filter(l=>l.status==='taken').length}</div><div class="stat-s">${todaySchedule().length} scheduled</div></div>
+    <div class="stat"><div class="stat-l">Reorder now</div><div class="stat-v" style="color:${ro.length?'var(--dn)':'var(--ac)'}">${ro.length}</div><div class="stat-s">7d or less</div></div>
+    <div class="stat"><div class="stat-l">Active vials</div><div class="stat-v">${vials.filter(v=>dl(v)>0).length}</div><div class="stat-s">${vials.filter(v=>dl(v)<=0).length} expired</div></div>
   `;
-  const today=todayToday();
-  const todayEl=document.getElementById('dash-today');
-  if(!today.length){todayEl.innerHTML='<div class="card" style="color:var(--mute);font-family:var(--mono);font-size:12px">No doses scheduled today.</div>';}
-  else{
-    todayEl.innerHTML=today.map(m=>{
-      const logged=logs.find(l=>l.medId===m.id&&l.date===fmtD(now));
+  const today=todaySchedule();
+  const te=document.getElementById('dash-today');
+  if(!today.length){
+    te.innerHTML='<div class="card" style="color:var(--mu);font-size:13px">No doses scheduled today.</div>';
+  } else {
+    te.innerHTML=today.map(m=>{
+      const logged=logs.find(l=>l.medId===m.id&&l.date===fD(now));
       const fc=getFc(m);
-      return `<div class="today-row">
-        <div class="tr-left">
-          <div class="tr-name">${m.name}</div>
-          <div class="tr-meta">${m.dose} ${m.unit} · ${m.time||'—'}${fc?.dosesLeft!=null?' · '+fc.dosesLeft+' left':''}</div>
+      return `<div class="tr">
+        <div class="tr-top">
+          <div>
+            <div class="tr-name">${m.name}</div>
+            <div class="tr-src">${m.src||''}</div>
+            <div class="tr-meta">${m.dose} ${m.unit} &middot; ${m.time||'&mdash;'}${fc?.dLeft!=null?' &middot; '+fc.dLeft+' doses left':''}</div>
+          </div>
+          <div class="tr-btns">
+            ${fc?.needsReorder?'<span class="badge b-dn">REORDER</span>':''}
+            ${logged?`<span class="badge ${logged.status==='taken'?'b-on':logged.status==='skipped'?'b-dn':'b-wn'}">${logged.status}</span>`:''}
+          </div>
         </div>
-        <div class="tr-right">
-          ${fc?.needsReorder?'<span class="badge b-dang">REORDER</span>':''}
-          ${logged?`<span class="badge ${logged.status==='taken'?'b-on':logged.status==='skipped'?'b-dang':'b-warn'}">${logged.status.toUpperCase()}</span>`:
-          `<button class="btn btn-p btn-sm" onclick="quickLog('${m.id}')">✓ Taken</button>`}
-          <button class="btn btn-g btn-xs" onclick="openLogDoseFor('${m.id}')">+</button>
+        <div style="display:flex;gap:8px">
+          ${!logged?`<button class="btn btn-p btn-sm" style="flex:1" onclick="quickLog('${m.id}')">&#10003; Taken</button>`:''}
+          <button class="btn btn-g btn-sm" onclick="openLogFor('${m.id}')">+ Detail</button>
         </div>
       </div>`;
     }).join('');
   }
-  // Mini cards
-  document.getElementById('dash-active').innerHTML=active.map(m=>{
+  document.getElementById('dash-mini').innerHTML=active.map(m=>{
     const fc=getFc(m);
-    const barCls=fc?.needsReorder?'dang':fc?.warnReorder?'warn':'';
-    return `<div class="mini-card">
-      <div class="mini-card-bar ${barCls}"></div>
-      <div style="font-weight:700;font-size:13px;line-height:1.2">${m.name}</div>
-      <div style="font-family:var(--mono);font-size:9px;color:var(--mute);margin-top:2px">${m.source}</div>
-      <div style="font-family:var(--mono);font-size:10px;color:var(--mute);margin-top:4px">${m.dose} ${m.unit} · ${flabel(m.freq)}</div>
-      ${fc?`<div style="margin-top:7px">
-        <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;color:var(--mute);margin-bottom:3px">
-          <span>${fc.dosesLeft!=null?fc.dosesLeft+' doses':''}</span>
-          <span>${fc.finish?shortDate(fc.finish):''}</span>
-        </div>
-        <div class="vol-track"><div class="vol-fill${fc.pct<20?' d':fc.pct<40?' w':''}" style="width:${fc.pct}%"></div></div>
-      </div>`:''}
+    const bc=fc?.needsReorder?'var(--dn)':fc?.warnReorder?'var(--wn)':'var(--ac)';
+    return `<div class="mini">
+      <div class="mini-bar" style="background:${bc}"></div>
+      <div class="mini-name">${m.name}</div>
+      <div class="mini-src">${m.src||''}</div>
+      <div class="mini-dose">${m.dose} ${m.unit} &middot; ${flbl(m.freq)}</div>
+      ${fc?`<div class="mini-nums"><span style="color:${fc.dLeft!=null&&fc.dLeft<=5?'var(--dn)':fc.dLeft!=null&&fc.dLeft<=14?'var(--wn)':'var(--ac)'}">${fc.dLeft!=null?fc.dLeft+' left':'&mdash;'}</span><span style="color:var(--mu)">${fc.fin?sd(fc.fin):'&mdash;'}</span></div>
+      <div class="vol-track" style="margin-top:5px"><div class="vol-fill${fc.pct<20?' d':fc.pct<40?' w':''}" style="width:${fc.pct}%"></div></div>`:''}
     </div>`;
   }).join('');
 }
 
-function todayToday(){
+function todaySchedule(){
   return meds.filter(m=>{
     if(m.status!=='active')return false;
     const dn=new Date().getDay();
@@ -673,128 +760,154 @@ function todayToday(){
   });
 }
 
-// ── MEDICATIONS ───────────────────────────────────────────────────────────────
+// Medications
 function renderMeds(){
   const q=(document.getElementById('med-search')?.value||'').toLowerCase();
-  let f=meds.filter(m=>m.name.toLowerCase().includes(q)||(m.source||'').toLowerCase().includes(q));
-  if(medFilter!=='all')f=f.filter(m=>m.status===medFilter);
+  let f=meds.filter(m=>m.name.toLowerCase().includes(q)||(m.src||'').toLowerCase().includes(q));
+  if(mF!=='all')f=f.filter(m=>m.status===mF);
   f.sort((a,b)=>['active','off','completed','stopped'].indexOf(a.status)-['active','off','completed','stopped'].indexOf(b.status));
-  document.getElementById('med-list').innerHTML=f.length?f.map(m=>medCardHTML(m)).join(''):'<div class="empty">No medications found.</div>';
+  document.getElementById('med-list').innerHTML=f.length?f.map(m=>mcHTML(m)).join(''):'<div style="text-align:center;padding:40px 0;color:var(--mu);font-size:13px">No medications found.</div>';
 }
 
-function medCardHTML(m){
+function mcHTML(m){
   const fc=getFc(m);
-  const barCls=fc?.needsReorder?'dang':fc?.warnReorder?'warn':m.status!=='active'?'mute':'';
-  const sb=m.status==='active'?'b-on':m.status==='stopped'?'b-stopped':'b-mute';
-  const rows=(m.unitTbl||'').split('\n').filter(Boolean);
-  let fcHTML='';
+  const bc=fc?.needsReorder?'var(--dn)':fc?.warnReorder?'var(--wn)':m.status!=='active'?'var(--mu)':'var(--ac)';
+  const sb=m.status==='active'?'b-on':m.status==='stopped'?'b-dn':'b-mu';
+  const rows=(m.utbl||'').split('\n').filter(Boolean);
+  let fcH='';
   if(fc){
-    const pc=fc.pct<20?'d':fc.pct<40?'w':'';
-    fcHTML=`<div class="fc">
-      <div class="fc-hdr"><span class="fc-title">FORECAST</span><span style="font-family:var(--mono);font-size:9px;color:var(--mute)">${fc.conc.toFixed(2)}mg/mL</span></div>
+    const pc=fc.pct<20?' d':fc.pct<40?' w':'';
+    fcH=`<div class="fc">
+      <div class="fc-hdr"><span class="fc-label">Forecast</span><span class="fc-conc">${fc.conc.toFixed(2)} mg/mL</span></div>
       <div class="fc-grid">
-        <div class="fc-cell"><div class="fc-cell-l">Doses Left</div><div class="fc-cell-v ${fc.dosesLeft!=null&&fc.dosesLeft<=5?'d':fc.dosesLeft!=null&&fc.dosesLeft<=14?'w':'a'}">${fc.dosesLeft!=null?fc.dosesLeft:'—'}</div></div>
-        <div class="fc-cell"><div class="fc-cell-l">Est. Finish</div><div class="fc-cell-v ${fc.daysSupply!=null&&fc.daysSupply<=7?'d':fc.daysSupply!=null&&fc.daysSupply<=14?'w':''}">${fc.finish?shortDate(fc.finish):'—'}</div></div>
-        <div class="fc-cell"><div class="fc-cell-l">Days Supply</div><div class="fc-cell-v ${fc.lim<=7?'d':fc.lim<=14?'w':''}">${fc.lim<=0?'Expired':fc.lim+'d'}</div></div>
-        <div class="fc-cell"><div class="fc-cell-l">Vial Expiry</div><div class="fc-cell-v ${fc.expD<=3?'d':fc.expD<=7?'w':''}">${fc.expD}d</div></div>
+        <div class="fc-cell"><div class="fc-cl">Doses left</div><div class="fc-cv ${fc.dLeft!=null&&fc.dLeft<=5?'d':fc.dLeft!=null&&fc.dLeft<=14?'w':'a'}">${fc.dLeft!=null?fc.dLeft:'&mdash;'}</div></div>
+        <div class="fc-cell"><div class="fc-cl">Est. finish</div><div class="fc-cv ${fc.ds!=null&&fc.ds<=7?'d':fc.ds!=null&&fc.ds<=14?'w':''}">${fc.fin?sd(fc.fin):'&mdash;'}</div></div>
+        <div class="fc-cell"><div class="fc-cl">Days supply</div><div class="fc-cv ${fc.lim<=7?'d':fc.lim<=14?'w':''}">${fc.lim<=0?'Expired':fc.lim+'d'}</div></div>
+        <div class="fc-cell"><div class="fc-cl">Vial expiry</div><div class="fc-cv ${fc.expD<=3?'d':fc.expD<=7?'w':''}">${fc.expD}d</div></div>
       </div>
-      <div class="vol-lbl"><span>Volume remaining</span><span>${fc.rem.toFixed(2)}/${fc.v.dil}mL (${Math.round(fc.pct)}%)</span></div>
-      <div class="vol-track"><div class="vol-fill${pc?' '+pc:''}" style="width:${fc.pct}%"></div></div>
-      <div class="ov-row">
+      <div class="vol-hdr"><span>Volume remaining</span><span>${fc.rem.toFixed(2)}/${fc.v.dil}mL (${Math.round(fc.pct)}%)</span></div>
+      <div class="vol-track"><div class="vol-fill${pc}" style="width:${fc.pct}%"></div></div>
+      <div class="ov-row" style="margin-top:8px">
         <span class="ov-lbl">Override vol:</span>
         <input class="ov-inp" type="number" step="0.01" placeholder="auto" value="${volOv[fc.v.id]!==undefined?volOv[fc.v.id]:''}" onchange="setOv('${fc.v.id}',this.value)">
         <span class="ov-lbl">mL</span>
-        ${volOv[fc.v.id]!==undefined?`<button class="btn btn-g btn-xs" onclick="clearOv('${fc.v.id}')">Clear</button>`:''}
+        ${volOv[fc.v.id]!==undefined?`<button class="btn btn-xs btn-g" onclick="clearOv('${fc.v.id}')">Clear</button>`:''}
       </div>
-      ${fc.needsReorder?`<div class="reorder-banner">⚠ Reorder Now — ${fc.lim}d supply left</div>`:''}
-      ${fc.warnReorder?`<div class="reorder-banner w">↻ Order Soon — ${fc.lim}d supply left</div>`:''}
+      ${fc.needsReorder?`<div class="reorder-ban">&#9888; Reorder now &mdash; ${fc.lim}d supply left</div>`:''}
+      ${fc.warnReorder?`<div class="reorder-ban w">&#8635; Order soon &mdash; ${fc.lim}d supply left</div>`:''}
     </div>`;
   }
   return `<div class="mc">
-    <div class="mc-bar ${barCls}"></div>
+    <div class="mc-bar" style="background:${bc}"></div>
     <div class="mc-body">
       <div class="mc-hdr">
-        <div><div class="mc-name">${m.name}</div><div class="mc-src">${m.source||''}</div></div>
-        <span class="badge ${sb}">${m.status.toUpperCase()}</span>
+        <div><div class="mc-name">${m.name}</div><div class="mc-src">${m.src||''}</div></div>
+        <span class="badge ${sb}">${m.status}</span>
       </div>
-      <div class="mc-meta">${m.dose} ${m.unit} · ${flabel(m.freq)} · ${m.time||'—'}</div>
+      <div class="mc-meta">${m.dose} ${m.unit} &middot; ${flbl(m.freq)} &middot; ${m.time||'&mdash;'}</div>
       <div class="mc-badges">
-        ${m.cycleOn?`<span class="badge b-warn">${m.cycleOn}w on/${m.cycleOff}w off</span>`:''}
+        ${m.cOn?`<span class="badge b-wn">${m.cOn}w on / ${m.cOff}w off</span>`:''}
         ${m.start?`<span class="badge">Started ${m.start}</span>`:''}
         ${m.vial?`<span class="badge">${m.vial}mg vial</span>`:''}
       </div>
-      ${rows.length?`<table class="unit-tbl">${rows.map(r=>`<tr><td>${r.split('=')[0]?.trim()}</td><td class="uh">${r.split('=')[1]?.trim()}</td></tr>`).join('')}</table>`:''}
-      ${m.notes?`<div class="note-box">${m.notes}</div>`:''}
-      ${fcHTML}
-      <div class="mc-actions">
+      ${rows.length?`<table class="ut">${rows.map(r=>`<tr><td>${r.split('=')[0]?.trim()||''}</td><td class="uv">${r.split('=')[1]?.trim()||''}</td></tr>`).join('')}</table>`:''}
+      ${m.notes?`<div class="nb">${m.notes}</div>`:''}
+      ${fcH}
+      <div class="mc-acts">
         <button class="btn btn-g btn-sm" onclick="editMed('${m.id}')">Edit</button>
-        <button class="btn btn-g btn-sm" onclick="openAddVialFor('${m.id}')">+ Vial</button>
-        <button class="btn btn-g btn-sm" onclick="openLogDoseFor('${m.id}')">Log</button>
-        <button class="btn btn-d btn-sm" onclick="deleteMed('${m.id}')">✕</button>
+        <button class="btn btn-g btn-sm" onclick="openVialFor('${m.id}')">+ Vial</button>
+        <button class="btn btn-g btn-sm" onclick="openLogFor('${m.id}')">Log dose</button>
+        <button class="btn btn-d btn-sm" onclick="delMed('${m.id}')">Delete</button>
       </div>
     </div>
   </div>`;
 }
 
-function setMedFilter(btn){
-  medFilter=btn.dataset.filter;
-  document.querySelectorAll('#s-medications .f-btn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');renderMeds();
+function setF(btn,type){
+  if(type==='med'){mF=btn.dataset.f;document.querySelectorAll('#sc-meds .fb').forEach(b=>b.classList.remove('on'));}
+  else{lF=btn.dataset.f;document.querySelectorAll('#sc-lib .fb').forEach(b=>b.classList.remove('on'));}
+  btn.classList.add('on');
+  if(type==='med')renderMeds();else renderLib();
 }
-function flabel(f){return{daily:'Daily','5on2off':'5on/2off',weekly:'Weekly',eod:'EOD',twice_weekly:'2-3x/Wk',monthly:'Monthly'}[f]||f;}
+function flbl(f){return{daily:'Daily','5on2off':'5on/2off',weekly:'Weekly',eod:'EOD',twice_weekly:'2-3x/wk',monthly:'Monthly'}[f]||f;}
 
-// ── MED CRUD ─────────────────────────────────────────────────────────────────
-function openAddMed(libDefaults=null){
+function openAddMed(def=null){
   editMedId=null;
-  document.getElementById('med-sheet-title').textContent='Add Medication';
-  ['m-name','m-source','m-notes','m-start','m-unit-tbl'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('m-dose').value='';document.getElementById('m-unit').value='mcg';
-  document.getElementById('m-freq').value='5on2off';document.getElementById('m-time').value='20:00';
-  document.getElementById('m-cycle-on').value=0;document.getElementById('m-cycle-off').value=0;
-  document.getElementById('m-vial').value='';document.getElementById('m-reorder').value=7;
+  document.getElementById('med-sh-title').textContent='Add medication';
+  ['m-name','m-src','m-notes','m-start','m-utbl'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('m-dose').value='';
+  document.getElementById('m-unit').value='mcg';
+  document.getElementById('m-freq').value='5on2off';
+  document.getElementById('m-time').value='20:00';
+  document.getElementById('m-con').value=0;
+  document.getElementById('m-coff').value=0;
+  document.getElementById('m-vial').value='';
+  document.getElementById('m-reorder').value=7;
   document.getElementById('m-status').value='active';
-  document.querySelectorAll('.day-t').forEach(d=>d.classList.remove('sel'));
-  if(libDefaults){
-    document.getElementById('m-name').value=libDefaults.name||'';
-    document.getElementById('m-dose').value=libDefaults.dose||'';
-    document.getElementById('m-unit').value=libDefaults.unit||'mcg';
-    document.getElementById('m-freq').value=libDefaults.freq||'5on2off';
-    document.getElementById('m-time').value=libDefaults.time||'20:00';
-    document.getElementById('m-unit-tbl').value=libDefaults.unitTbl||'';
-    document.getElementById('m-notes').value=libDefaults.notes||'';
-    if(libDefaults.vial)document.getElementById('m-vial').value=libDefaults.vial;
+  document.querySelectorAll('.dt').forEach(d=>d.classList.remove('on'));
+  if(def){
+    if(def.name)document.getElementById('m-name').value=def.name;
+    if(def.dose)document.getElementById('m-dose').value=def.dose;
+    if(def.unit)document.getElementById('m-unit').value=def.unit;
+    if(def.freq)document.getElementById('m-freq').value=def.freq;
+    if(def.time)document.getElementById('m-time').value=def.time;
+    if(def.utbl)document.getElementById('m-utbl').value=def.utbl;
+    if(def.notes)document.getElementById('m-notes').value=def.notes;
+    if(def.vial)document.getElementById('m-vial').value=def.vial;
   }
-  toggleDays();openSheet('sheet-med');
+  toggleDays();openSheet('sh-med');
 }
-
 function editMed(id){
   const m=meds.find(x=>x.id===id);if(!m)return;
   editMedId=id;
-  document.getElementById('med-sheet-title').textContent='Edit Medication';
-  document.getElementById('m-name').value=m.name;document.getElementById('m-source').value=m.source||'';
-  document.getElementById('m-status').value=m.status;document.getElementById('m-dose').value=m.dose;
-  document.getElementById('m-unit').value=m.unit;document.getElementById('m-freq').value=m.freq;
-  document.getElementById('m-time').value=m.time||'';document.getElementById('m-cycle-on').value=m.cycleOn||0;
-  document.getElementById('m-cycle-off').value=m.cycleOff||0;document.getElementById('m-start').value=m.start||'';
-  document.getElementById('m-vial').value=m.vial||'';document.getElementById('m-reorder').value=m.reorder||7;
-  document.getElementById('m-unit-tbl').value=m.unitTbl||'';document.getElementById('m-notes').value=m.notes||'';
-  document.querySelectorAll('.day-t').forEach(d=>d.classList.toggle('sel',(m.days||[]).includes(d.dataset.day)));
-  toggleDays();openSheet('sheet-med');
+  document.getElementById('med-sh-title').textContent='Edit medication';
+  document.getElementById('m-name').value=m.name;
+  document.getElementById('m-src').value=m.src||'';
+  document.getElementById('m-status').value=m.status;
+  document.getElementById('m-dose').value=m.dose;
+  document.getElementById('m-unit').value=m.unit;
+  document.getElementById('m-freq').value=m.freq;
+  document.getElementById('m-time').value=m.time||'';
+  document.getElementById('m-con').value=m.cOn||0;
+  document.getElementById('m-coff').value=m.cOff||0;
+  document.getElementById('m-start').value=m.start||'';
+  document.getElementById('m-vial').value=m.vial||'';
+  document.getElementById('m-reorder').value=m.reorder||7;
+  document.getElementById('m-utbl').value=m.utbl||'';
+  document.getElementById('m-notes').value=m.notes||'';
+  document.querySelectorAll('.dt').forEach(d=>d.classList.toggle('on',(m.days||[]).includes(d.dataset.day)));
+  toggleDays();openSheet('sh-med');
 }
-
 function saveMed(){
-  const name=document.getElementById('m-name').value.trim();if(!name){alert('Name required');return;}
-  const days=[...document.querySelectorAll('.day-t.sel')].map(d=>d.dataset.day);
-  const med={id:editMedId||uid(),name,source:document.getElementById('m-source').value,status:document.getElementById('m-status').value,dose:document.getElementById('m-dose').value,unit:document.getElementById('m-unit').value,freq:document.getElementById('m-freq').value,time:document.getElementById('m-time').value,days,cycleOn:parseInt(document.getElementById('m-cycle-on').value)||0,cycleOff:parseInt(document.getElementById('m-cycle-off').value)||0,start:document.getElementById('m-start').value,vial:parseFloat(document.getElementById('m-vial').value)||10,reorder:parseInt(document.getElementById('m-reorder').value)||7,unitTbl:document.getElementById('m-unit-tbl').value,notes:document.getElementById('m-notes').value};
-  if(editMedId){const i=meds.findIndex(m=>m.id===editMedId);meds[i]=med;}else meds.push(med);
-  save();closeSheet('sheet-med');render();
+  const name=document.getElementById('m-name').value.trim();
+  if(!name){alert('Name required');return;}
+  const days=[...document.querySelectorAll('.dt.on')].map(d=>d.dataset.day);
+  const med={
+    id:editMedId||uid(),name,
+    src:document.getElementById('m-src').value,
+    status:document.getElementById('m-status').value,
+    dose:parseFloat(document.getElementById('m-dose').value)||0,
+    unit:document.getElementById('m-unit').value,
+    freq:document.getElementById('m-freq').value,
+    time:document.getElementById('m-time').value,
+    days,
+    cOn:parseInt(document.getElementById('m-con').value)||0,
+    cOff:parseInt(document.getElementById('m-coff').value)||0,
+    start:document.getElementById('m-start').value,
+    vial:parseFloat(document.getElementById('m-vial').value)||10,
+    reorder:parseInt(document.getElementById('m-reorder').value)||7,
+    utbl:document.getElementById('m-utbl').value,
+    notes:document.getElementById('m-notes').value
+  };
+  if(editMedId){const i=meds.findIndex(m=>m.id===editMedId);meds[i]=med;}
+  else meds.push(med);
+  save();closeSheet('sh-med');render();
 }
+function delMed(id){if(!confirm('Delete this medication?'))return;meds=meds.filter(m=>m.id!==id);save();render();}
+function toggleDays(){const f=document.getElementById('m-freq').value;document.getElementById('days-pick').style.display=(f==='weekly'||f==='twice_weekly')?'':'none';}
+function toggleDay(el){el.classList.toggle('on');}
 
-function deleteMed(id){if(!confirm('Delete this medication?'))return;meds=meds.filter(m=>m.id!==id);save();render();}
-function toggleDays(){const f=document.getElementById('m-freq').value;document.getElementById('days-row').style.display=(f==='weekly'||f==='twice_weekly')?'':'none';}
-function toggleDay(el){el.classList.toggle('sel');}
-
-// ── LOG ───────────────────────────────────────────────────────────────────────
+// Log
 function renderLog(){
   const sorted=[...logs].sort((a,b)=>new Date(b.date+' '+(b.time||'00:00'))-new Date(a.date+' '+(a.time||'00:00')));
   if(!sorted.length){document.getElementById('log-body').innerHTML='';document.getElementById('log-empty').style.display='';return;}
@@ -802,206 +915,205 @@ function renderLog(){
   document.getElementById('log-body').innerHTML=sorted.map(l=>{
     const m=meds.find(x=>x.id===l.medId);
     return `<tr>
-      <td style="white-space:nowrap">${l.date}<br><span style="color:var(--mute)">${l.time||''}</span></td>
-      <td>${m?.name||'—'}<br><span style="color:var(--mute);font-size:9px">${m?.source||''}</span></td>
+      <td style="white-space:nowrap">${l.date}<br><span style="color:var(--mu);font-size:10px">${l.time||''}</span></td>
+      <td>${m?.name||'&mdash;'}<br><span style="color:var(--mu);font-size:10px">${m?.src||''}</span></td>
       <td style="white-space:nowrap">${l.dose} ${l.unit}</td>
       <td><span class="sdot ${l.status}"></span>${l.status}</td>
-      <td style="color:var(--mute);font-size:10px">${l.notes||''}</td>
-      <td><button class="btn btn-d btn-xs" onclick="delLog('${l.id}')">✕</button></td>
+      <td><button class="btn btn-d btn-xs" onclick="delLog('${l.id}')">&#10005;</button></td>
     </tr>`;
   }).join('');
 }
-
 function openLogDose(){
   document.getElementById('l-med').innerHTML=meds.map(m=>`<option value="${m.id}">${m.name}</option>`).join('');
-  const now=new Date();document.getElementById('l-date').value=fmtD(now);document.getElementById('l-time').value=now.toTimeString().slice(0,5);
+  const now=new Date();
+  document.getElementById('l-date').value=fD(now);
+  document.getElementById('l-time').value=now.toTimeString().slice(0,5);
   ['l-dose','l-unit','l-syr','l-vol','l-notes'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('l-status').value='taken';prefillDose();openSheet('sheet-log');
+  document.getElementById('l-status').value='taken';
+  prefill();openSheet('sh-log');
 }
-function openLogDoseFor(medId){openLogDose();document.getElementById('l-med').value=medId;prefillDose();}
-function prefillDose(){const m=meds.find(x=>x.id===document.getElementById('l-med').value);if(m){document.getElementById('l-dose').value=m.dose;document.getElementById('l-unit').value=m.unit;}}
+function openLogFor(medId){openLogDose();document.getElementById('l-med').value=medId;prefill();}
+function prefill(){const m=meds.find(x=>x.id===document.getElementById('l-med').value);if(m){document.getElementById('l-dose').value=m.dose;document.getElementById('l-unit').value=m.unit;}}
 function saveLog(){
   const medId=document.getElementById('l-med').value;if(!medId)return;
-  const entry={id:uid(),medId,date:document.getElementById('l-date').value,time:document.getElementById('l-time').value,dose:parseFloat(document.getElementById('l-dose').value),unit:document.getElementById('l-unit').value,syr:parseFloat(document.getElementById('l-syr').value)||null,vol:parseFloat(document.getElementById('l-vol').value)||null,status:document.getElementById('l-status').value,notes:document.getElementById('l-notes').value};
-  logs.push(entry);save();closeSheet('sheet-log');render();
+  const e={
+    id:uid(),medId,
+    date:document.getElementById('l-date').value,
+    time:document.getElementById('l-time').value,
+    dose:parseFloat(document.getElementById('l-dose').value)||0,
+    unit:document.getElementById('l-unit').value,
+    syr:parseFloat(document.getElementById('l-syr').value)||null,
+    vol:parseFloat(document.getElementById('l-vol').value)||null,
+    status:document.getElementById('l-status').value,
+    notes:document.getElementById('l-notes').value
+  };
+  logs.push(e);save();closeSheet('sh-log');render();
 }
-function delLog(id){logs=logs.filter(l=>l.id!==id);save();renderLog();renderDashboard();}
+function delLog(id){logs=logs.filter(l=>l.id!==id);save();renderLog();renderDash();}
 function quickLog(medId){
   const m=meds.find(x=>x.id===medId);if(!m)return;
-  const fc=getFc(m);const now=new Date();
-  logs.push({id:uid(),medId,date:fmtD(now),time:now.toTimeString().slice(0,5),dose:parseFloat(m.dose),unit:m.unit,syr:null,vol:fc?.dv||null,status:'taken',notes:''});
+  const now=new Date();const fc=getFc(m);
+  logs.push({id:uid(),medId,date:fD(now),time:now.toTimeString().slice(0,5),dose:parseFloat(m.dose),unit:m.unit,syr:null,vol:fc?.dvol||null,status:'taken',notes:''});
   save();render();
 }
 
-// ── RECON ─────────────────────────────────────────────────────────────────────
-function renderRecon(){
-  const el=document.getElementById('recon-list');
-  const sorted=[...vials].sort((a,b)=>daysLeft(b)-daysLeft(a));
-  if(!sorted.length){el.innerHTML='<div class="empty">No vials recorded.</div>';return;}
+// Vials
+function renderVials(){
+  const el=document.getElementById('vial-list');
+  const sorted=[...vials].sort((a,b)=>dl(b)-dl(a));
+  if(!sorted.length){el.innerHTML='<div style="text-align:center;padding:30px 0;color:var(--mu);font-size:13px">No vials recorded.</div>';return;}
   el.innerHTML=sorted.map(v=>{
-    const m=meds.find(x=>x.id===v.medId);const dl=daysLeft(v);
-    const conc=v.vialAmt/v.dil;const dv=m?doseVol(m,v):null;
+    const m=meds.find(x=>x.id===v.medId);
+    const d=dl(v);const conc=v.amt/v.dil;
+    const dvol=m?dv(m,v):null;
     const expDate=new Date(new Date(v.date).getTime()+v.exp*86400000);
-    return `<div class="rc-card">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-        <div><div style="font-weight:700;font-size:14px">${m?.name||'Unknown'}</div><div style="font-family:var(--mono);font-size:10px;color:var(--mute)">${v.sup||''}</div></div>
-        <span class="badge ${dl<=0?'b-dang':dl<=7?'b-warn':'b-on'}">${dl<=0?'EXPIRED':dl+'d left'}</span>
+    return `<div class="rc">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div><div style="font-family:var(--head);font-size:15px;font-weight:700;color:var(--tx)">${m?.name||'Unknown'}</div><div style="font-size:10px;color:var(--mu)">${v.sup||''}</div></div>
+        <span class="badge ${d<=0?'b-dn':d<=7?'b-wn':'b-on'}">${d<=0?'Expired':d+'d left'}</span>
       </div>
-      <div class="rc-row"><span>Vial</span><span>${v.vialAmt}mg / ${v.dil}mL ${v.dtype}</span></div>
-      <div class="rc-row"><span>Concentration</span><span>${conc.toFixed(3)} mg/mL</span></div>
-      ${dv?`<div class="rc-row"><span>Vol/dose (${m.dose}${m.unit})</span><span>${(dv*1000).toFixed(1)}µL = ${dv.toFixed(3)}mL</span></div>`:''}
-      ${dv?`<div class="rc-row"><span>U-100 marks</span><span>${(dv*100).toFixed(1)} units</span></div>`:''}
-      <div class="rc-row"><span>Recon'd</span><span>${v.date}</span></div>
-      <div class="rc-row"><span>Expires</span><span>${expDate.toLocaleDateString()}</span></div>
-      ${v.stor?`<div class="rc-row"><span>Storage</span><span>${v.stor}</span></div>`:''}
-      ${dv?`<div class="rc-row"><span>Est. total doses</span><span>${Math.floor(v.dil/dv)}</span></div>`:''}
-      <div style="display:flex;justify-content:flex-end;margin-top:8px"><button class="btn btn-d btn-xs" onclick="delVial('${v.id}')">Remove</button></div>
+      <div class="rc-row"><span class="rc-lbl">Vial</span><span class="rc-val">${v.amt}mg / ${v.dil}mL ${v.dtype}</span></div>
+      <div class="rc-row"><span class="rc-lbl">Concentration</span><span class="rc-val">${conc.toFixed(3)} mg/mL</span></div>
+      ${dvol?`<div class="rc-row"><span class="rc-lbl">Vol/dose (${m.dose}${m.unit})</span><span class="rc-val">${(dvol*1000).toFixed(1)}&micro;L = ${dvol.toFixed(3)}mL</span></div>`:''}
+      ${dvol?`<div class="rc-row"><span class="rc-lbl">U-100 marks</span><span class="rc-val">${(dvol*100).toFixed(1)} units</span></div>`:''}
+      <div class="rc-row"><span class="rc-lbl">Reconstituted</span><span class="rc-val">${v.date}</span></div>
+      <div class="rc-row"><span class="rc-lbl">Expires</span><span class="rc-val">${expDate.toLocaleDateString()}</span></div>
+      ${v.stor?`<div class="rc-row"><span class="rc-lbl">Storage</span><span class="rc-val">${v.stor}</span></div>`:''}
+      ${dvol?`<div class="rc-row"><span class="rc-lbl">Est. total doses</span><span class="rc-val" style="color:var(--ac)">${Math.floor(v.dil/dvol)}</span></div>`:''}
+      <div style="text-align:right;margin-top:10px"><button class="btn btn-d btn-sm" onclick="delVial('${v.id}')">Remove</button></div>
     </div>`;
   }).join('');
   document.getElementById('v-med').innerHTML=meds.map(m=>`<option value="${m.id}">${m.name}</option>`).join('');
 }
-function setOv(id,val){if(val===''||val===null)delete volOv[id];else volOv[id]=parseFloat(val);save();render();}
-function clearOv(id){delete volOv[id];save();render();}
 function openAddVial(){
   document.getElementById('v-med').innerHTML=meds.map(m=>`<option value="${m.id}">${m.name}</option>`).join('');
   ['v-amt','v-dil','v-stor','v-lot','v-sup'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('v-date').value=fmtD(new Date());document.getElementById('v-exp').value=28;
-  openSheet('sheet-vial');
+  document.getElementById('v-date').value=fD(new Date());
+  document.getElementById('v-exp').value=28;
+  openSheet('sh-vial');
 }
-function openAddVialFor(medId){openAddVial();document.getElementById('v-med').value=medId;}
+function openVialFor(medId){openAddVial();document.getElementById('v-med').value=medId;}
 function saveVial(){
-  const e={id:uid(),medId:document.getElementById('v-med').value,vialAmt:parseFloat(document.getElementById('v-amt').value),dil:parseFloat(document.getElementById('v-dil').value),dtype:document.getElementById('v-dtype').value,date:document.getElementById('v-date').value,exp:parseInt(document.getElementById('v-exp').value)||28,stor:document.getElementById('v-stor').value,lot:document.getElementById('v-lot').value,sup:document.getElementById('v-sup').value};
-  if(!e.vialAmt||!e.dil){alert('Amount and diluent required');return;}
-  vials.push(e);save();closeSheet('sheet-vial');renderRecon();renderDashboard();
+  const e={id:uid(),medId:document.getElementById('v-med').value,amt:parseFloat(document.getElementById('v-amt').value),dil:parseFloat(document.getElementById('v-dil').value),dtype:document.getElementById('v-dtype').value,date:document.getElementById('v-date').value,exp:parseInt(document.getElementById('v-exp').value)||28,stor:document.getElementById('v-stor').value,lot:document.getElementById('v-lot').value,sup:document.getElementById('v-sup').value};
+  if(!e.amt||!e.dil){alert('Amount and diluent required');return;}
+  vials.push(e);save();closeSheet('sh-vial');renderVials();renderDash();
 }
-function delVial(id){if(!confirm('Remove vial?'))return;vials=vials.filter(v=>v.id!==id);save();renderRecon();renderDashboard();}
-function calcRecon(){
+function delVial(id){if(!confirm('Remove vial?'))return;vials=vials.filter(v=>v.id!==id);save();renderVials();renderDash();}
+function setOv(id,val){if(!val||val==='')delete volOv[id];else volOv[id]=parseFloat(val);save();render();}
+function clearOv(id){delete volOv[id];save();render();}
+function calcR(){
   const v=parseFloat(document.getElementById('rc-vial').value);
   const b=parseFloat(document.getElementById('rc-bac').value);
   const mcg=parseFloat(document.getElementById('rc-mcg').value);
-  const mg=parseFloat(document.getElementById('rc-mg').value);
-  const el=document.getElementById('calc-result');
+  const mg=parseFloat(document.getElementById('rc-mgd').value);
+  const el=document.getElementById('calc-out');
   if(!v||!b){el.style.display='none';return;}
   const c=v/b;const d=mg||(mcg?mcg/1000:null);const vol=d?d/c:null;
-  el.style.display='';el.innerHTML=`<div class="calc-result">
-    <div class="rc-row"><span>Concentration</span><span>${c.toFixed(4)} mg/mL</span></div>
-    ${vol?`<div class="rc-row"><span>Vol / dose</span><span>${(vol*1000).toFixed(1)}µL = ${vol.toFixed(4)}mL</span></div>`:''}
-    ${vol?`<div class="rc-row"><span>U-100 marks</span><span>${(vol*100).toFixed(1)} units</span></div>`:''}
-    ${vol?`<div class="rc-row"><span>Est. doses</span><span>${Math.floor(b/vol)}</span></div>`:''}
+  el.style.display='';
+  el.innerHTML=`<div class="calc-out">
+    <div class="rc-row"><span class="rc-lbl">Concentration</span><span class="rc-val">${c.toFixed(4)} mg/mL</span></div>
+    ${vol?`<div class="rc-row"><span class="rc-lbl">Vol / dose</span><span class="rc-val">${(vol*1000).toFixed(1)}&micro;L = ${vol.toFixed(4)}mL</span></div>`:''}
+    ${vol?`<div class="rc-row"><span class="rc-lbl">U-100 marks</span><span class="rc-val">${(vol*100).toFixed(1)} units</span></div>`:''}
+    ${vol?`<div class="rc-row"><span class="rc-lbl">Est. doses</span><span class="rc-val" style="color:var(--ac)">${Math.floor(b/vol)}</span></div>`:''}
   </div>`;
 }
 
-// ── LIBRARY ───────────────────────────────────────────────────────────────────
-function renderLibrary(){
+// Library
+function renderLib(){
   const q=(document.getElementById('lib-search')?.value||'').toLowerCase();
   const inUse=meds.map(m=>m.name.toLowerCase());
-  let f=LIBRARY.filter(l=>libFilter==='all'||l.cat===libFilter);
+  let f=LIB.filter(l=>lF==='all'||l.cat===lF);
   if(q)f=f.filter(l=>l.name.toLowerCase().includes(q)||l.aka.toLowerCase().includes(q)||l.tags.some(t=>t.toLowerCase().includes(q)));
-  const catColors={'GH Secretagogue':'rgba(126,184,247,.15)','Healing':'rgba(168,224,168,.15)','Metabolic':'rgba(247,201,126,.15)','Mitochondrial':'rgba(201,126,247,.15)'};
-  const catText={'GH Secretagogue':'#7eb8f7',Healing:'#a8e0a8',Metabolic:'#f7c97e',Mitochondrial:'#c97ef7'};
+  const catC={'GH Secretagogue':['rgba(126,184,247,.15)','#7eb8f7'],'Healing':['rgba(168,224,168,.15)','#a8e0a8'],'Metabolic':['rgba(247,201,126,.15)','#f7c97e'],'Mitochondrial':['rgba(201,126,247,.15)','#c97ef7']};
   document.getElementById('lib-grid').innerHTML=f.map(l=>{
     const iu=inUse.some(n=>l.name.toLowerCase().includes(n)||n.includes(l.name.toLowerCase()));
-    return `<div class="lib-card ${iu?'inuse':''}" onclick="openLibDetail('${l.id}')">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start">
-        <div class="lib-name">${l.name}</div>
-        ${iu?'<span style="color:var(--acc);font-size:12px">✓</span>':''}
+    const [cbg,ctx]=catC[l.cat]||['var(--s2)','var(--mu)'];
+    return `<div class="lc ${iu?'used':''}" onclick="openLibDetail('${l.id}')">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:2px">
+        <div class="lc-name">${l.name}</div>
+        ${iu?'<span style="color:var(--ac);font-size:12px">&#10003;</span>':''}
       </div>
-      <div class="lib-aka">${l.aka}</div>
-      <div class="cat-tag" style="background:${catColors[l.cat]||'var(--surf2)'};color:${catText[l.cat]||'var(--mute)'}">${l.cat}</div>
-      <div class="lib-preview">${l.summary}</div>
+      <div class="lc-aka">${l.aka}</div>
+      <div class="lc-cat" style="background:${cbg};color:${ctx}">${l.cat}</div>
+      <div class="lc-pre">${l.summary}</div>
     </div>`;
   }).join('');
 }
-function setLibFilter(btn){
-  libFilter=btn.dataset.filter;
-  document.querySelectorAll('#lib-filters .f-btn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');renderLibrary();
-}
 function openLibDetail(id){
-  const l=LIBRARY.find(x=>x.id===id);if(!l)return;
-  libSelected=l;
-  document.getElementById('lib-sheet-name').textContent=l.name;
-  document.getElementById('lib-sheet-body').innerHTML=`
-    <p style="font-family:var(--mono);font-size:12px;color:var(--mute);margin-bottom:10px">${l.aka}</p>
-    <p style="font-family:var(--mono);font-size:12px;line-height:1.6;margin-bottom:10px">${l.summary}</p>
-    <div class="note-box accent">${l.notes}</div>
-    ${l.warnings?`<div class="note-box" style="margin-top:8px">⚠ ${l.warnings}</div>`:''}
-    <div style="margin-top:14px">
-      <div class="st">DOSING PROTOCOL</div>
-      ${infoRow('Typical',l.dosing.typical)}${infoRow('Range',l.dosing.range)}${infoRow('Frequency',l.dosing.freq)}${infoRow('Timing',l.dosing.timing)}${infoRow('Cycle',l.dosing.cycle)}
-    </div>
-    <div style="margin-top:14px">
-      <div class="st">RECONSTITUTION</div>
-      ${infoRow('Vial',l.recon.vial)}${infoRow('Diluent',l.recon.dil)}${infoRow('Concentration',l.recon.conc)}${infoRow('Expiry',l.recon.exp+' days')}
-      ${l.recon.tbl?`<table class="unit-tbl" style="margin-top:8px">${l.recon.tbl.split('\n').map(r=>`<tr><td>${r.split('=')[0]?.trim()}</td><td class="uh">${r.split('=')[1]?.trim()}</td></tr>`).join('')}</table>`:''}
-    </div>
+  const l=LIB.find(x=>x.id===id);if(!l)return;
+  libSel=l;
+  document.getElementById('lib-sh-name').textContent=l.name;
+  const irw=(label,val)=>`<div class="rc-row"><span class="rc-lbl">${label}</span><span class="rc-val">${val}</span></div>`;
+  document.getElementById('lib-sh-body').innerHTML=`
+    <div style="font-size:12px;color:var(--mu);margin-bottom:4px">${l.aka}</div>
+    <div style="font-size:13px;color:var(--tx);line-height:1.6;margin-bottom:10px">${l.summary}</div>
+    <div class="nb accent">${l.notes}</div>
+    ${l.warn?`<div class="nb" style="margin-top:8px">&#9888; ${l.warn}</div>`:''}
+    <div class="sl" style="margin-top:16px">Dosing protocol</div>
+    ${irw('Typical',l.dosing.typical)}${irw('Range',l.dosing.range)}${irw('Frequency',l.dosing.freq)}${irw('Timing',l.dosing.timing)}${irw('Cycle',l.dosing.cycle)}
+    <div class="sl" style="margin-top:14px">Reconstitution</div>
+    ${irw('Vial',l.recon.vial)}${irw('Diluent',l.recon.dil)}${irw('Concentration',l.recon.conc)}${irw('Expiry',l.recon.exp+' days')}
+    ${l.recon.tbl?`<table class="ut" style="margin-top:8px">${l.recon.tbl.split('\n').map(r=>`<tr><td>${r.split('=')[0]?.trim()}</td><td class="uv">${r.split('=')[1]?.trim()}</td></tr>`).join('')}</table>`:''}
   `;
-  document.getElementById('lib-add-btn').onclick=()=>addLibToProtocol(l);
-  openSheet('sheet-lib');
+  document.getElementById('lib-add-btn').onclick=()=>addLib(l);
+  openSheet('sh-lib');
 }
-function infoRow(label,val){return `<div style="display:flex;gap:8px;padding:4px 0;border-bottom:1px solid var(--bord);font-family:var(--mono);font-size:11px"><span style="color:var(--mute);width:90px;flex-shrink:0">${label}</span><span>${val}</span></div>`;}
-function addLibToProtocol(l){
+function addLib(l){
   if(!confirm(`Add ${l.name} to your protocols?`))return;
-  openAddMed({name:l.name,dose:l.defaults.dose,unit:l.defaults.unit,freq:l.defaults.freq,time:l.defaults.time,unitTbl:l.recon.tbl,notes:l.dosing.typical+' · '+l.dosing.timing,vial:parseFloat(l.recon.vial)||10});
-  closeSheet('sheet-lib');
+  openAddMed({name:l.name,dose:l.def.dose,unit:l.def.unit,freq:l.def.freq,time:l.def.time,utbl:l.recon.tbl||'',notes:l.dosing.typical+' \xb7 '+l.dosing.timing,vial:parseFloat(l.recon.vial)||10});
+  closeSheet('sh-lib');
 }
 
-// ── AI SCRAPER ────────────────────────────────────────────────────────────────
-function openScraper(){openSheet('sheet-scraper');}
+// AI Scraper
+function openScraper(){openSheet('sh-scraper');}
 async function runScraper(){
   const key=document.getElementById('ai-key').value.trim();
-  const input=document.getElementById('ai-input').value.trim();
+  const txt=document.getElementById('ai-txt').value.trim();
   if(!key){alert('Enter your Anthropic API key first.');return;}
-  if(!input){alert('Enter some text to scan.');return;}
-  document.getElementById('scraper-loading').style.display='';
-  document.getElementById('scraper-results').innerHTML='';
-  const prompt=`You are a medical protocol data extractor. Extract all medication/peptide dosing information from the text below. Return ONLY valid JSON, no markdown:\n{"protocols":[{"name":"string","dose":number_or_null,"unit":"mcg|mg|IU|mL|units or null","frequency":"daily|5on2off|weekly|eod|twice_weekly|monthly or null","cycleOnWeeks":number_or_null,"vialSizeMg":number_or_null,"diluentMl":number_or_null,"unitTable":"newline separated syringe units to dose mapping or null","timing":"string or null","notes":"string or null","warnings":"string or null","confidence":0.0_to_1.0}],"summary":"brief summary"}\n\nText:\n${input.slice(0,6000)}`;
+  if(!txt){alert('Enter some text to scan.');return;}
+  document.getElementById('ai-loading').style.display='';
+  document.getElementById('ai-results').innerHTML='';
+  const prompt=`You are a medical protocol data extractor. Extract all medication/peptide dosing from the text. Return ONLY valid JSON, no markdown:\n{"protocols":[{"name":"string","dose":number_or_null,"unit":"mcg|mg|IU|mL|units or null","frequency":"daily|5on2off|weekly|eod|twice_weekly|monthly or null","cycleOnWeeks":number_or_null,"vialSizeMg":number_or_null,"diluentMl":number_or_null,"unitTable":"newline-separated or null","timing":"string or null","notes":"string or null","warnings":"string or null","confidence":0.0_to_1.0}],"summary":"brief"}\n\nText:\n${txt.slice(0,6000)}`;
   try{
     const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:2048,messages:[{role:'user',content:prompt}]})});
     const data=await res.json();
-    const text=(data.content||[]).map(c=>c.text||'').join('').replace(/```json|```/g,'').trim();
-    const parsed=JSON.parse(text);
-    document.getElementById('scraper-loading').style.display='none';
+    const raw=(data.content||[]).map(c=>c.text||'').join('').replace(/```json|```/g,'').trim();
+    const parsed=JSON.parse(raw);
+    document.getElementById('ai-loading').style.display='none';
     const protos=parsed.protocols||[];
-    document.getElementById('scraper-results').innerHTML=`
-      <div style="font-family:var(--mono);font-size:11px;color:var(--mute);margin-bottom:8px">${parsed.summary||''}</div>
-      ${protos.map(p=>`<div class="scraped-card">
-        <div style="font-weight:700;font-size:14px">${p.name}</div>
-        ${p.dose?`<div style="font-family:var(--mono);font-size:11px;color:var(--mute);margin-top:3px">${p.dose} ${p.unit||''} · ${p.frequency||''}</div>`:''}
-        ${p.notes?`<div style="font-family:var(--mono);font-size:11px;color:var(--mute);margin-top:4px;line-height:1.4">${p.notes}</div>`:''}
-        ${p.warnings?`<div class="note-box" style="margin-top:6px;font-size:10px">⚠ ${p.warnings}</div>`:''}
-        <div class="conf-bar" style="width:${Math.round((p.confidence||0)*100)}%;margin-bottom:4px"></div>
-        <div style="font-family:var(--mono);font-size:9px;color:var(--acc)">${Math.round((p.confidence||0)*100)}% confidence</div>
-        <button class="btn btn-p btn-sm" style="margin-top:8px" onclick='addScraped(${JSON.stringify(p)})'>+ Add to Protocols</button>
+    document.getElementById('ai-results').innerHTML=`
+      <div style="font-size:11px;color:var(--mu);margin-bottom:10px">${parsed.summary||''}</div>
+      ${protos.map(p=>`<div class="scraped">
+        <div style="font-family:var(--head);font-size:15px;font-weight:700;color:var(--tx)">${p.name}</div>
+        ${p.dose?`<div style="font-size:12px;color:var(--mu);margin-top:3px">${p.dose} ${p.unit||''} &middot; ${p.frequency||''}</div>`:''}
+        ${p.notes?`<div style="font-size:11px;color:var(--mu);margin-top:5px;line-height:1.5">${p.notes}</div>`:''}
+        ${p.warnings?`<div class="nb" style="margin-top:6px;font-size:10px">&#9888; ${p.warnings}</div>`:''}
+        <div class="conf-bar" style="width:${Math.round((p.confidence||0)*100)}%"></div>
+        <div style="font-size:9px;color:var(--ac);margin-bottom:8px">${Math.round((p.confidence||0)*100)}% confidence</div>
+        <button class="btn btn-p btn-sm" onclick='addScraped(${JSON.stringify(p)})'>+ Add to protocols</button>
       </div>`).join('')}
     `;
-  } catch(e){
-    document.getElementById('scraper-loading').style.display='none';
-    document.getElementById('scraper-results').innerHTML=`<div class="note-box">Error: ${e.message}</div>`;
+  }catch(e){
+    document.getElementById('ai-loading').style.display='none';
+    document.getElementById('ai-results').innerHTML=`<div class="nb">Error: ${e.message}</div>`;
   }
 }
 function addScraped(p){
-  openAddMed({name:p.name,dose:p.dose,unit:p.unit||'mcg',freq:p.frequency||'5on2off',time:'20:00',unitTbl:p.unitTable||'',notes:[p.notes,p.timing].filter(Boolean).join(' · '),vial:p.vialSizeMg||10});
-  closeSheet('sheet-scraper');
+  openAddMed({name:p.name,dose:p.dose,unit:p.unit||'mcg',freq:p.frequency||'5on2off',time:'20:00',utbl:p.unitTable||'',notes:[p.notes,p.timing].filter(Boolean).join(' \xb7 '),vial:p.vialSizeMg||10});
+  closeSheet('sh-scraper');
 }
 
-// ── SHEET HELPERS ─────────────────────────────────────────────────────────────
-function openSheet(id){document.getElementById(id).classList.add('open');}
-function closeSheet(id){document.getElementById(id).classList.remove('open');}
-// Close on overlay tap
-document.querySelectorAll('.sheet-overlay').forEach(o=>{
-  o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');});
-});
+// Sheets
+function openSheet(id){document.getElementById(id).classList.add('on');}
+function closeSheet(id){document.getElementById(id).classList.remove('on');}
+document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('on');}));
 
-// ── UTILS ─────────────────────────────────────────────────────────────────────
-function fmtD(d){return d.toISOString().split('T')[0];}
-function shortDate(d){return d.toLocaleDateString('en-US',{month:'short',day:'numeric'});}
+// Utils
+function fD(d){return d.toISOString().split('T')[0];}
+function sd(d){return d.toLocaleDateString('en-US',{month:'short',day:'numeric'});}
 function uid(){return Math.random().toString(36).slice(2,8)+Date.now().toString(36);}
 
-// ── SERVICE WORKER ────────────────────────────────────────────────────────────
-if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('./sw.js').catch(()=>{});
-}
+if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});
 
 init();
 </script>

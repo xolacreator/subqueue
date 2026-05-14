@@ -1,4 +1,4 @@
-const CACHE = 'rxtracker-v1';
+const CACHE = 'SubQueue-v1';
 const ASSETS = ['./index.html', './manifest.json'];
 
 self.addEventListener('install', e => {

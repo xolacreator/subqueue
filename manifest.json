@@ -1,6 +1,6 @@
 {
-  "name": "RxTracker",
-  "short_name": "RxTracker",
+  "name": "SubQueue",
+  "short_name": "SubQueue",
   "description": "Injectable peptide protocol manager",
   "start_url": "./index.html",
   "display": "standalone",

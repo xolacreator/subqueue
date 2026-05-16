@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Subqueue">
+<meta name="theme-color" content="#0d0a1a">
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<title>Subqueue</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{
+  --bg:#0d0a1a;
+  --s1:#150f2e;
+  --s2:#1e1640;
+  --br:#2e1f6b;
+  --ac:#a78bfa;
+  --a2:#7c3aed;
+  --a3:#4c1d95;
+  --wn:#fbbf24;
+  --dn:#f87171;
+  --tx:#ede9fe;
+  --mu:#6d5eac;
+  --mu2:#4a3d7a;
+  --mono:'IBM Plex Mono',monospace;
+  --head:'Outfit',sans-serif;
+  --safe-t:env(safe-area-inset-top,44px);
+  --safe-b:env(safe-area-inset-bottom,20px);
+}
+html{height:100%;background:var(--bg);}
+body{height:100%;background:var(--bg);color:var(--tx);font-family:var(--mono);display:flex;flex-direction:column;overflow:hidden;}
+.app{display:flex;flex-direction:column;height:100%;max-width:480px;margin:0 auto;width:100%;}
+.status-pad{height:var(--safe-t);background:var(--bg);flex-shrink:0;}
+.screens{flex:1;position:relative;overflow:hidden;}
+.screen{position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;background:var(--bg);display:none;flex-direction:column;}
+.screen.on{display:flex;}
+
+/* TAB BAR */
+.tabs{flex-shrink:0;display:grid;grid-template-columns:repeat(6,1fr);background:var(--s1);border-top:1px solid var(--br);padding-bottom:var(--safe-b);}
+.tab{display:flex;flex-direction:column;align-items:center;padding:9px 0 5px;cursor:pointer;color:var(--mu);position:relative;gap:2px;}
+.tab.on{color:var(--ac);}
+.tab-ic{font-size:19px;line-height:1;}
+.tab-lb{font-size:8px;letter-spacing:.02em;}
+.tab-badge{position:absolute;top:5px;right:calc(50% - 18px);background:var(--dn);color:#fff;font-size:8px;font-weight:700;padding:1px 5px;border-radius:8px;min-width:16px;text-align:center;}
+
+/* PAGE HEADER */
+.ph{padding:14px 16px 8px;background:var(--bg);flex-shrink:0;}
+.ph-row{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.ph h1{font-family:var(--head);font-size:24px;font-weight:800;letter-spacing:-.01em;color:var(--tx);}
+.wordmark{font-family:var(--mono);font-size:9px;color:var(--ac);letter-spacing:.18em;margin-bottom:2px;text-transform:uppercase;}
+
+/* SCROLL BODY */
+.sb{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px 14px 28px;}
+
+/* SECTION LABEL */
+.sl{font-size:9px;color:var(--mu);letter-spacing:.1em;text-transform:uppercase;padding-bottom:7px;border-bottom:1px solid var(--br);margin-bottom:10px;margin-top:18px;}
+.sl:first-child{margin-top:0;}
+
+/* CARDS */
+.card{background:var(--s1);border:1px solid var(--br);border-radius:12px;padding:14px;margin-bottom:10px;}
+
+/* STATS */
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px;}
+.stat{background:var(--s1);border:1px solid var(--br);border-radius:10px;padding:12px 13px;}
+.stat-l{font-size:8px;color:var(--mu);text-transform:uppercase;letter-spacing:.08em;}
+.stat-v{font-size:28px;color:var(--ac);font-weight:500;margin-top:2px;line-height:1;}
+.stat-s{font-size:10px;color:var(--mu);margin-top:2px;}
+
+/* TODAY ROW */
+.tr{background:var(--s1);border:1px solid var(--br);border-radius:12px;padding:13px;margin-bottom:8px;}
+.tr-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:10px;}
+.tr-name{font-family:var(--head);font-size:15px;font-weight:700;color:var(--tx);}
+.tr-src{font-size:9px;color:var(--mu);margin-top:1px;}
+.tr-meta{font-size:10px;color:var(--mu);margin-top:3px;}
+.tr-btns{display:flex;gap:6px;align-items:center;flex-shrink:0;}
+
+/* BUTTONS */
+.btn{border:none;border-radius:8px;cursor:pointer;font-family:var(--mono);font-weight:500;font-size:12px;padding:10px 16px;transition:opacity .15s;display:inline-flex;align-items:center;gap:5px;white-space:nowrap;}
+.btn:active{opacity:.7;}
+.btn-p{background:var(--ac);color:#0d0a1a;}
+.btn-g{background:var(--s2);border:1px solid var(--br);color:var(--mu);}
+.btn-d{background:rgba(248,113,113,.1);border:1px solid var(--dn);color:var(--dn);}
+.btn-w{background:var(--wn);color:#0d0a1a;}
+.btn-sm{padding:8px 12px;font-size:11px;}
+.btn-xs{padding:5px 9px;font-size:10px;}
+.btn-full{width:100%;justify-content:center;}
+
+/* BADGES */
+.badge{font-size:9px;padding:3px 7px;border-radius:4px;background:var(--s2);border:1px solid var(--br);white-space:nowrap;display:inline-block;}
+.b-on{color:var(--ac);border-color:var(--a2);background:rgba(167,139,250,.08);}
+.b-dn{color:var(--dn);border-color:var(--dn);background:rgba(248,113,113,.08);}
+.b-wn{color:var(--wn);border-color:var(--wn);background:rgba(251,191,36,.08);}
+.b-mu{color:var(--mu);}
+
+/* MED CARD */
+.mc{background:var(--s1);border:1px solid var(--br);border-radius:12px;overflow:hidden;margin-bottom:10px;}
+.mc-bar{height:3px;}
+.mc-body{padding:13px;}
+.mc-hdr{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:5px;}
+.mc-name{font-family:var(--head);font-size:15px;font-weight:700;color:var(--tx);}
+.mc-src{font-size:9px;color:var(--mu);margin-top:1px;}
+.mc-meta{font-size:10px;color:var(--mu);margin-bottom:8px;}
+.mc-badges{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;}
+
+/* UNIT TABLE */
+.ut{width:100%;border-collapse:collapse;margin-top:8px;margin-bottom:4px;}
+.ut td{padding:4px 0;border-bottom:1px solid rgba(46,31,107,.5);font-size:11px;}
+.ut tr:last-child td{border:none;}
+.ut .uv{color:var(--ac);text-align:right;}
+
+/* NOTE BOX */
+.nb{background:rgba(251,191,36,.05);border:1px solid rgba(251,191,36,.2);border-radius:8px;padding:10px 12px;font-size:11px;color:var(--wn);margin-top:8px;line-height:1.6;}
+.nb.ac{background:rgba(167,139,250,.05);border-color:rgba(167,139,250,.2);color:var(--ac);}
+.nb.info{background:rgba(96,165,250,.05);border-color:rgba(96,165,250,.2);color:#93c5fd;}
+.nb.dn{background:rgba(248,113,113,.05);border-color:rgba(248,113,113,.2);color:var(--dn);}
+
+/* FORECAST */
+.fc{background:var(--bg);border:1px solid var(--br);border-radius:8px;padding:12px;margin-top:10px;}
+.fc-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.fc-label{font-size:9px;color:var(--mu);text-transform:uppercase;letter-spacing:.08em;}
+.fc-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;}
+.fc-cell{background:var(--s1);border-radius:6px;padding:8px 10px;}
+.fc-cl{font-size:8px;color:var(--mu);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px;}
+.fc-cv{font-size:20px;font-weight:500;}
+.fc-cv.a{color:var(--ac);}
+.fc-cv.w{color:var(--wn);}
+.fc-cv.d{color:var(--dn);}
+.vol-hdr{display:flex;justify-content:space-between;font-size:9px;color:var(--mu);margin-bottom:4px;}
+.vol-track{background:var(--s2);border-radius:3px;height:5px;overflow:hidden;margin-bottom:10px;}
+.vol-fill{height:100%;border-radius:3px;background:var(--ac);}
+.vol-fill.w{background:var(--wn);}
+.vol-fill.d{background:var(--dn);}
+.ov-row{display:flex;align-items:center;gap:8px;}
+.ov-lbl{font-size:10px;color:var(--mu);flex-shrink:0;}
+.ov-inp{width:78px;padding:6px 8px;font-family:var(--mono);font-size:12px;background:var(--bg);border:1px solid var(--br);border-radius:6px;color:var(--tx);}
+.ov-inp:focus{outline:none;border-color:var(--ac);}
+.ro-ban{background:rgba(248,113,113,.07);border:1px solid rgba(248,113,113,.3);border-radius:6px;padding:8px 10px;margin-top:8px;font-size:11px;color:var(--dn);display:flex;align-items:center;gap:6px;}
+.ro-ban.w{background:rgba(251,191,36,.06);border-color:rgba(251,191,36,.3);color:var(--wn);}
+.mc-acts{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px;}
+
+/* H-SCROLL MINI CARDS */
+.hscroll{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px;}
+.hscroll::-webkit-scrollbar{display:none;}
+.mini{background:var(--s1);border:1px solid var(--br);border-radius:10px;padding:11px;flex-shrink:0;width:158px;overflow:hidden;position:relative;}
+.mini-bar{height:2px;position:absolute;top:0;left:0;right:0;}
+.mini-name{font-family:var(--head);font-size:13px;font-weight:700;color:var(--tx);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.mini-src{font-size:9px;color:var(--mu);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.mini-dose{font-size:10px;color:var(--mu);margin-top:4px;}
+.mini-nums{display:flex;justify-content:space-between;margin-top:5px;font-size:10px;}
+
+/* LOG TABLE */
+.lt-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.lt{width:100%;border-collapse:collapse;font-size:11px;min-width:400px;}
+.lt th{text-align:left;padding:8px 10px;font-size:8px;color:var(--mu);text-transform:uppercase;letter-spacing:.07em;border-bottom:1px solid var(--br);}
+.lt td{padding:9px 10px;border-bottom:1px solid rgba(46,31,107,.4);vertical-align:top;}
+.sdot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:4px;}
+.sdot.taken{background:var(--ac);}
+.sdot.skipped{background:var(--dn);}
+.sdot.delayed{background:var(--wn);}
+
+/* VIAL CARD */
+.vc{background:rgba(124,58,237,.05);border:1px solid var(--a2);border-radius:12px;padding:13px;margin-bottom:10px;}
+.vc-row{display:flex;justify-content:space-between;align-items:baseline;padding:5px 0;border-bottom:1px solid var(--br);font-size:11px;gap:8px;}
+.vc-row:last-child{border:none;}
+.vc-lbl{color:var(--mu);flex-shrink:0;}
+.vc-val{color:var(--tx);text-align:right;}
+
+/* LIBRARY */
+.lib-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.lc{background:var(--s1);border:1px solid var(--br);border-radius:10px;padding:12px;cursor:pointer;}
+.lc:active{background:var(--s2);}
+.lc.used{border-color:var(--a2);background:rgba(167,139,250,.04);}
+.lc-name{font-family:var(--head);font-size:13px;font-weight:700;color:var(--tx);margin-bottom:2px;}
+.lc-aka{font-size:9px;color:var(--mu);line-height:1.3;margin-bottom:5px;}
+.lc-cat{display:inline-block;font-size:8px;padding:2px 6px;border-radius:3px;margin-bottom:5px;}
+.lc-pre{font-size:10px;color:var(--mu);line-height:1.4;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
+
+/* SEARCH / FILTER */
+.search-wrap{padding:8px 14px 0;background:var(--bg);flex-shrink:0;}
+.search-inp{width:100%;background:var(--s1);border:1px solid var(--br);border-radius:10px;color:var(--tx);font-family:var(--mono);font-size:13px;padding:10px 13px;}
+.search-inp:focus{outline:none;border-color:var(--ac);}
+.filter-wrap{padding:6px 14px 0;background:var(--bg);flex-shrink:0;}
+.filters{display:flex;gap:5px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:5px;}
+.filters::-webkit-scrollbar{display:none;}
+.fb{font-family:var(--mono);font-size:10px;padding:5px 11px;border-radius:6px;border:1px solid var(--br);background:var(--bg);color:var(--mu);cursor:pointer;white-space:nowrap;flex-shrink:0;}
+.fb.on{background:var(--ac);border-color:var(--ac);color:#0d0a1a;font-weight:500;}
+
+/* FORM */
+.fg{margin-bottom:13px;}
+.fg label{display:block;font-size:9px;color:var(--mu);text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px;}
+.fg input,.fg select,.fg textarea{width:100%;background:var(--bg);border:1px solid var(--br);border-radius:8px;color:var(--tx);font-family:var(--mono);font-size:14px;padding:10px 12px;}
+.fg input:focus,.fg select:focus,.fg textarea:focus{outline:none;border-color:var(--ac);}
+.fg select option{background:var(--s1);}
+.fg-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.days-row{display:flex;gap:5px;flex-wrap:wrap;margin-top:4px;}
+.dt{width:36px;height:36px;border-radius:50%;border:1px solid var(--br);background:var(--bg);color:var(--mu);font-family:var(--mono);font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.dt.on{background:var(--ac);border-color:var(--ac);color:#0d0a1a;font-weight:700;}
+
+/* SHEET */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:50;display:none;align-items:flex-end;}
+.overlay.on{display:flex;}
+.sheet{background:var(--s1);border-radius:20px 20px 0 0;width:100%;max-height:92vh;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:calc(var(--safe-b) + 14px);}
+.sheet-handle{width:36px;height:4px;background:var(--br);border-radius:2px;margin:10px auto 0;}
+.sheet-hdr{display:flex;justify-content:space-between;align-items:center;padding:13px 16px 8px;}
+.sheet-hdr h2{font-family:var(--head);font-size:17px;font-weight:700;color:var(--tx);}
+.sheet-close{background:var(--s2);border:none;border-radius:50%;width:28px;height:28px;color:var(--mu);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.sheet-body{padding:0 16px;}
+.sheet-footer{padding:12px 16px 0;display:flex;gap:8px;}
+
+/* MIXING */
+.mix-rule{display:flex;gap:10px;align-items:flex-start;padding:11px 0;border-bottom:1px solid var(--br);}
+.mix-rule:last-child{border:none;}
+.mix-icon{font-size:16px;flex-shrink:0;margin-top:1px;}
+.mix-title{font-family:var(--head);font-size:13px;font-weight:700;color:var(--tx);margin-bottom:2px;}
+.mix-desc{font-size:11px;color:var(--mu);line-height:1.5;}
+
+/* LEARN TAB */
+.learn-hero{background:linear-gradient(135deg,var(--s1),var(--s2));border:1px solid var(--br);border-radius:14px;padding:18px;margin-bottom:12px;position:relative;overflow:hidden;}
+.learn-hero::after{content:'';position:absolute;top:-20px;right:-20px;width:100px;height:100px;background:radial-gradient(circle,rgba(167,139,250,.15),transparent 70%);pointer-events:none;}
+.learn-category{border-radius:12px;overflow:hidden;margin-bottom:8px;}
+.lcat-hdr{display:flex;align-items:center;gap:10px;padding:13px 14px;cursor:pointer;}
+.lcat-hdr:active{opacity:.8;}
+.lcat-ico{font-size:20px;flex-shrink:0;}
+.lcat-title{font-family:var(--head);font-size:14px;font-weight:700;color:var(--tx);}
+.lcat-sub{font-size:10px;color:var(--mu);margin-top:1px;}
+.lcat-body{padding:0 14px 14px;display:none;}
+.lcat-body.open{display:block;}
+.lcat-item{padding:10px 0;border-bottom:1px solid var(--br);}
+.lcat-item:last-child{border:none;}
+.lcat-item-name{font-family:var(--head);font-size:13px;font-weight:700;color:var(--tx);margin-bottom:3px;}
+.lcat-item-text{font-size:11px;color:var(--mu);line-height:1.6;}
+.info-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--br);font-size:11px;gap:8px;}
+.info-row:last-child{border:none;}
+.info-lbl{color:var(--mu);flex-shrink:0;}
+.info-val{color:var(--tx);text-align:right;}
+
+/* AI btn */
+.ai-btn{display:inline-flex;align-items:center;gap:5px;background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.3);border-radius:8px;color:var(--ac);font-family:var(--mono);font-size:11px;padding:8px 12px;cursor:pointer;}
+
+/* Titration */
+.tit-step{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid var(--br);}
+.tit-step:last-child{border:none;}
+.step-n{width:23px;height:23px;border-radius:50%;border:1px solid var(--br);background:var(--s2);display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0;color:var(--mu);}
+.step-n.cur{background:var(--ac);border-color:var(--ac);color:#0d0a1a;font-weight:700;}
+.step-n.dn{background:var(--a2);border-color:var(--a2);color:#fff;}
+
+::-webkit-scrollbar{width:0;height:0;}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="status-pad"></div>
+  <div class="screens">
+
+    <!-- DASHBOARD -->
+    <div class="screen on" id="sc-dashboard">
+      <div class="ph">
+        <div class="wordmark">Subqueue</div>
+        <div class="ph-row"><h1 id="dash-date"></h1></div>
+      </div>
+      <div class="sb">
+        <div class="stats" id="dash-stats"></div>
+        <div class="sl">Today's schedule</div>
+        <div id="dash-today"></div>
+        <div class="sl">Active protocols</div>
+        <div class="hscroll" id="dash-mini"></div>
+      </div>
+    </div>
+
+    <!-- MEDICATIONS -->
+    <div class="screen" id="sc-meds">
+      <div class="ph"><div class="ph-row"><h1>Medications</h1><button class="btn btn-p btn-sm" onclick="openAddMed()">+ Add</button></div></div>
+      <div class="search-wrap"><input class="search-inp" id="med-search" placeholder="Search..." oninput="renderMeds()"></div>
+      <div class="filter-wrap"><div class="filters">
+        <button class="fb on" data-f="all" onclick="setF(this,'med')">All</button>
+        <button class="fb" data-f="active" onclick="setF(this,'med')">Active</button>
+        <button class="fb" data-f="completed" onclick="setF(this,'med')">Completed</button>
+        <button class="fb" data-f="stopped" onclick="setF(this,'med')">Stopped</button>
+      </div></div>
+      <div class="sb" id="med-list"></div>
+    </div>
+
+    <!-- LOG -->
+    <div class="screen" id="sc-log">
+      <div class="ph"><div class="ph-row"><h1>Dose Log</h1><button class="btn btn-p btn-sm" onclick="openLogDose()">+ Log</button></div></div>
+      <div class="sb">
+        <div class="lt-wrap"><table class="lt">
+          <thead><tr><th>Date</th><th>Medication</th><th>Dose</th><th>Status</th><th></th></tr></thead>
+          <tbody id="log-body"></tbody>
+        </table></div>
+        <div id="log-empty" style="display:none;text-align:center;padding:40px 0;font-size:13px;color:var(--mu)">No doses logged yet.</div>
+      </div>
+    </div>
+
+    <!-- VIALS -->
+    <div class="screen" id="sc-vials">
+      <div class="ph"><div class="ph-row"><h1>Vials</h1><button class="btn btn-p btn-sm" onclick="openAddVial()">+ Vial</button></div></div>
+      <div class="sb">
+        <div class="sl">Active vials</div>
+        <div id="vial-list"></div>
+        <div class="sl">Dose calculator</div>
+        <div class="card">
+          <div class="fg-row">
+            <div class="fg"><label>Vial (mg)</label><input type="number" id="rc-vial" placeholder="10" oninput="calcR()"></div>
+            <div class="fg"><label>BAC water (mL)</label><input type="number" id="rc-bac" placeholder="2" oninput="calcR()"></div>
+          </div>
+          <div class="fg-row">
+            <div class="fg"><label>Dose (mcg)</label><input type="number" id="rc-mcg" placeholder="250" oninput="calcR()"></div>
+            <div class="fg"><label>Or dose (mg)</label><input type="number" id="rc-mgd" placeholder="1" oninput="calcR()"></div>
+          </div>
+          <div id="calc-out" style="display:none"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MIXING -->
+    <div class="screen" id="sc-mix">
+      <div class="ph"><div class="ph-row"><h1>Mixing</h1></div>
+        <div style="font-size:10px;color:var(--mu);margin-top:3px">Source: Extension Health Peptide Mixing Guide 2025</div>
+      </div>
+      <div class="sb">
+        <div class="sl">Your active protocol check</div>
+        <div id="mix-check"></div>
+        <div class="sl">Compatibility matrix</div>
+        <div class="card" style="overflow-x:auto"><div id="mix-matrix" style="min-width:480px"></div></div>
+        <div class="sl">Key stacking rules</div>
+        <div class="card">
+          <div class="mix-rule"><span class="mix-icon" style="color:var(--dn)">&#10005;</span><div><div class="mix-title">GLP-1s must always be injected alone</div><div class="mix-desc">Tirzepatide, Semaglutide, and Retatrutide cannot be mixed with anything. No exceptions.</div></div></div>
+          <div class="mix-rule"><span class="mix-icon" style="color:var(--mu)">&#9679;</span><div><div class="mix-title">Mitochondrial peptides: only with each other</div><div class="mix-desc">NAD+, MOTS-C, and SS-31 can be combined together but not with other categories.</div></div></div>
+          <div class="mix-rule"><span class="mix-icon" style="color:var(--ac)">&#10003;</span><div><div class="mix-title">Performance & healing peptides stack well</div><div class="mix-desc">BPC-157, TB-500, CJC+Ipamorelin, Tesamorelin, GHK-Cu, TA1, and Pinealon generally compatible.</div></div></div>
+          <div class="mix-rule"><span class="mix-icon" style="color:var(--wn)">&#9888;</span><div><div class="mix-title">Always inject separately first</div><div class="mix-desc">Test each peptide individually before mixing to assess your personal reaction.</div></div></div>
+        </div>
+        <div class="sl">Mixing science</div>
+        <div class="card">
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="background:var(--bg);border:1px solid var(--br);border-radius:8px;padding:11px"><div style="font-size:12px;font-weight:700;color:var(--ac);margin-bottom:4px">pH Compatibility</div><div style="font-size:11px;color:var(--mu);line-height:1.6">Each peptide is formulated within a specific pH range. Mixing peptides with different pH requirements can destabilize one or both, compromising effectiveness.</div></div>
+            <div style="background:var(--bg);border:1px solid var(--br);border-radius:8px;padding:11px"><div style="font-size:12px;font-weight:700;color:var(--ac);margin-bottom:4px">Solubility Differences</div><div style="font-size:11px;color:var(--mu);line-height:1.6">Incompatible solubilities can cause clumping or sedimentation — one peptide may fail to dissolve and lose effectiveness.</div></div>
+            <div style="background:var(--bg);border:1px solid var(--br);border-radius:8px;padding:11px"><div style="font-size:12px;font-weight:700;color:var(--ac);margin-bottom:4px">Chemical Modifications</div><div style="font-size:11px;color:var(--mu);line-height:1.6">Acetylated, PEGylated, or otherwise modified peptides may not mix with unmodified ones — can cause aggregation or reduced bioavailability.</div></div>
+          </div>
+        </div>
+        <div class="nb" style="margin-bottom:8px">&#9888; Always consult your provider before combining peptides. This is not medical advice.</div>
+      </div>
+    </div>
+
+    <!-- LEARN -->
+    <div class="screen" id="sc-learn">
+      <div class="ph"><div class="ph-row"><h1>Learn</h1></div>
+        <div style="font-size:10px;color:var(--mu);margin-top:3px">Source: Beginner's Guide to Peptide Therapy (Jan 2026)</div>
+      </div>
+      <div class="sb">
+        <!-- Hero -->
+        <div class="learn-hero">
+          <div style="font-family:var(--head);font-size:17px;font-weight:800;color:var(--tx);margin-bottom:6px">What are peptides?</div>
+          <div style="font-size:12px;color:var(--mu);line-height:1.7">Peptides are strings of amino acids — the building blocks of proteins. The body produces them naturally (endogenous), but they can also be administered externally (exogenous) to support specific biological functions.</div>
+          <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:5px">
+            <span class="badge b-on">20 amino acids</span>
+            <span class="badge b-on">Thousands of sequences</span>
+            <span class="badge b-on">Diverse applications</span>
+          </div>
+        </div>
+
+        <!-- Routes of admin -->
+        <div class="card">
+          <div style="font-family:var(--head);font-size:14px;font-weight:700;color:var(--tx);margin-bottom:10px">Routes of Administration</div>
+          <div class="info-row"><span class="info-lbl">Subcutaneous injection</span><span class="info-val" style="color:var(--ac)">Most common</span></div>
+          <div class="info-row"><span class="info-lbl">Why injectable?</span><span class="info-val">Peptides degrade in digestive tract. Bioavailability oral = 1-2%</span></div>
+          <div class="info-row"><span class="info-lbl">Exceptions (oral/topical)</span><span class="info-val">Collagen (63% oral), GHK-Cu (topical)</span></div>
+          <div class="info-row"><span class="info-lbl">Storage (reconstituted)</span><span class="info-val">Fridge at ~4°C / 39°F, up to 28 days</span></div>
+          <div class="info-row"><span class="info-lbl">Needle tip</span><span class="info-val">Thin gauge — much less discomfort than a standard shot</span></div>
+          <div class="info-row"><span class="info-lbl">Never shake</span><span class="info-val">Shaking degrades the peptide — swirl gently only</span></div>
+        </div>
+
+        <div class="sl">Peptide types by goal</div>
+
+        <!-- Weight Loss -->
+        <div class="learn-category" style="background:var(--s1);border:1px solid var(--br)">
+          <div class="lcat-hdr" onclick="toggleLearn(this)">
+            <span class="lcat-ico">&#9878;</span>
+            <div><div class="lcat-title">Weight Loss — GLP-1 RAs</div><div class="lcat-sub">Tirzepatide, Semaglutide</div></div>
+            <span style="margin-left:auto;color:var(--mu);font-size:12px">&#9660;</span>
+          </div>
+          <div class="lcat-body">
+            <div class="lcat-item"><div class="lcat-item-name">How they work</div><div class="lcat-item-text">Slow digestion, increase feelings of fullness, reduce appetite, and create milder glucose spikes — all combining to reduce caloric intake.</div></div>
+            <div class="lcat-item"><div class="lcat-item-name">Tirzepatide vs Semaglutide</div><div class="lcat-item-text">Both are highly effective. In a 2021 study, tirzepatide subjects lost 4-12 more pounds than semaglutide counterparts. Semaglutide is more widely accessible through telehealth.</div></div>
+            <div class="lcat-item"><div class="lcat-item-name">Your protocols</div><div class="lcat-item-text">You are currently tracking Tirzepatide (Peptide Crafters) and have completed an AOD-9604 cycle. Retatrutide was stopped due to HR/NS side effects.</div></div>
+            <div class="nb dn" style="margin-top:8px">&#10005; GLP-1s must always be injected alone — never mix.</div>
+          </div>
+        </div>
+
+        <!-- Body Recomp -->
+        <div class="learn-category" style="background:var(--s1);border:1px solid var(--br)">
+          <div class="lcat-hdr" onclick="toggleLearn(this)">
+            <span class="lcat-ico">&#9651;</span>
+            <div><div class="lcat-title">Body Recomposition</div><div class="lcat-sub">GH Secretagogues — CJC, Ipamorelin, Tesamorelin</div></div>
+            <span style="margin-left:auto;color:var(--mu);font-size:12px">&#9660;</span>
+          </div>
+          <div class="lcat-body">
+            <div class="lcat-item"><div class="lcat-item-name">How they work</div><div class="lcat-item-text">Growth hormone secretagogues stimulate the pituitary to release GH, which promotes muscle growth and regulates body fat via IGF-1.</div></div>
+            <div class="lcat-item"><div class="lcat-item-name">CJC-1295 / Ipamorelin</div><div class="lcat-item-text">Commonly stacked for synergistic GH pulses. Ipamorelin is selective with minimal cortisol/prolactin elevation — the cleanest GHRP. Best taken before bed on an empty stomach.</div></div>
+            <div class="lcat-item"><div class="lcat-item-name">Tesamorelin</div><div class="lcat-item-text">FDA-approved for HIV lipodystrophy but widely used off-label for abdominal fat loss and lean mass. Stack with Ipamorelin for best results.</div></div>
+            <div class="lcat-item"><div class="lcat-item-name">BPC-157 + TB-500</div><div class="lcat-item-text">Often used together for synergistic muscle gain and recovery acceleration — not GH secretagogues but popular for recomposition support.</div></div>
+            <div class="nb ac" style="margin-top:8px">Your active protocols: Tesamorelin, Ipamorelin, TB-500, BPC-157/TB-500 blend, KLOW blend.</div>
+          </div>
+        </div>
+
+        <!-- General Wellness -->
+        <div class="learn-category" style="background:var(--s1);border:1px solid var(--br)">
+          <div class="lcat-hdr" onclick="toggleLearn(this)">
+            <span class="lcat-ico">&#10022;</span>
+            <div><div class="lcat-title">General Wellness & Longevity</div><div class="lcat-sub">MOTS-C, Epitalon, GHK-Cu, TA1</div></div>
+            <span style="margin-left:auto;color:var(--mu);font-size:12px">&#9660;</span>
+          </div>
+          <div class="lcat-body">
+            <div class="lcat-item"><div class="lcat-item-name">MOTS-C</div><div class="lcat-item-text">Mitochondria-derived. May improve metabolic function, reduce inflammation, and improve bone health. ISR (injection site reactions) are common — prefer smaller vials and more dilute solution.</div></div>
+            <div class="lcat-item"><div class="lcat-item-name">Epitalon</div><div class="lcat-item-text">Four amino acids. May preserve telomere length, regulate melatonin, improve sleep, strengthen immune function, and slow age-related diseases.</div></div>
+            <div class="lcat-item"><div class="lcat-item-name">GHK-Cu (Copper Peptide)</div><div class="lcat-item-text">Tightens loose skin, improves firmness, reduces photodamage, promotes wound healing. Available subcut or topical. Blue/green color is normal.</div></div>
+            <div class="lcat-item"><div class="lcat-item-name">Thymosin Alpha-1 (TA1)</div><div class="lcat-item-text">Immune modulator. May treat hepatitis B, improve vaccine efficacy, and reduce chemo toxicity.</div></div>
+          </div>
+        </div>
+
+        <!-- Mitochondrial -->
+        <div class="learn-category" style="background:var(--s1);border:1px solid var(--br)">
+          <div class="lcat-hdr" onclick="toggleLearn(this)">
+            <span class="lcat-ico">&#9889;</span>
+            <div><div class="lcat-title">Mitochondrial & Energy</div><div class="lcat-sub">SS-31, MOTS-C, NAD+</div></div>
+            <span style="margin-left:auto;color:var(--mu);font-size:12px">&#9660;</span>
+          </div>
+          <div class="lcat-body">
+            <div class="lcat-item"><div class="lcat-item-name">SS-31 (Elamipretide)</div><div class="lcat-item-text">Tetrapeptide targeting the inner mitochondrial membrane. Reduces oxidative stress, supports cardiac health, improves mitochondrial function. Your current active protocol.</div></div>
+            <div class="lcat-item"><div class="lcat-item-name">MOTS-C</div><div class="lcat-item-text">Mimics exercise effects at the cellular level. Improves insulin sensitivity. You ran 4 weeks with Certified Pep — stopped due to ISR. Consider retry with more dilute recon.</div></div>
+            <div class="lcat-item"><div class="lcat-item-name">Mixing rule</div><div class="lcat-item-text">Mitochondrial peptides (SS-31, MOTS-C, NAD+) can be mixed with each other but not with peptides from other categories.</div></div>
+          </div>
+        </div>
+
+        <!-- Cognitive -->
+        <div class="learn-category" style="background:var(--s1);border:1px solid var(--br)">
+          <div class="lcat-hdr" onclick="toggleLearn(this)">
+            <span class="lcat-ico">&#9679;</span>
+            <div><div class="lcat-title">Cognitive Enhancement</div><div class="lcat-sub">Selank, Semax, Pinealon</div></div>
+            <span style="margin-left:auto;color:var(--mu);font-size:12px">&#9660;</span>
+          </div>
+          <div class="lcat-body">
+            <div class="lcat-item"><div class="lcat-item-name">Selank</div><div class="lcat-item-text">Produces stable, sustained improvements in learning and memory. Also has anxiolytic effects.</div></div>
+            <div class="lcat-item"><div class="lcat-item-name">Semax</div><div class="lcat-item-text">Supports differentiation, maturation, and survival of neurons. Memory and focus enhancement.</div></div>
+            <div class="lcat-item"><div class="lcat-item-name">Pinealon</div><div class="lcat-item-text">Improves learning and memory via gene expression modulation and neurotransmitter activity.</div></div>
+          </div>
+        </div>
+
+        <!-- Safety -->
+        <div class="sl">Safety considerations</div>
+        <div class="card">
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="background:var(--bg);border:1px solid var(--br);border-radius:8px;padding:11px">
+              <div style="font-size:12px;font-weight:700;color:var(--wn);margin-bottom:4px">Immunogenicity</div>
+              <div style="font-size:11px;color:var(--mu);line-height:1.6">Synthetic peptides can trigger immune responses. At worst, antibodies can neutralize the peptide or cause systemic reactions. ISR (injection site reactions) are the most common mild form.</div>
+            </div>
+            <div style="background:var(--bg);border:1px solid var(--br);border-radius:8px;padding:11px">
+              <div style="font-size:12px;font-weight:700;color:var(--wn);margin-bottom:4px">Carcinogenicity Risk</div>
+              <div style="font-size:11px;color:var(--mu);line-height:1.6">GH secretagogues (Sermorelin, Tesamorelin, CJC-1295) are contraindicated for anyone with active cancer or a personal/family history of cancer — their growth-promoting effects can accelerate tumor growth.</div>
+            </div>
+            <div style="background:var(--bg);border:1px solid var(--br);border-radius:8px;padding:11px">
+              <div style="font-size:12px;font-weight:700;color:var(--ac);margin-bottom:4px">Generally Safe Profile</div>
+              <div style="font-size:11px;color:var(--mu);line-height:1.6">Pharmaceutical-grade peptides are generally well-tolerated. For most people, adverse events are limited to mild, transient flu-like effects and injection site reactions.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Legal status -->
+        <div class="sl">Legal status (US)</div>
+        <div class="card">
+          <div style="font-size:11px;color:var(--mu);line-height:1.7;margin-bottom:12px">Peptide legality in the US is governed by Section 503A of the Federal Food, Drug, and Cosmetic Act. Compounded peptides must come from accredited pharmacies and either derive from an FDA-approved drug or appear on the 503A bulks list.</div>
+          <div style="font-size:11px;font-weight:700;color:var(--tx);margin-bottom:8px">Currently in legal gray area (not on 503A bulks list):</div>
+          <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px">
+            <span class="badge b-wn">BPC-157</span>
+            <span class="badge b-wn">CJC-1295</span>
+            <span class="badge b-wn">Ipamorelin</span>
+            <span class="badge b-wn">MOTS-C</span>
+            <span class="badge b-wn">GHK-Cu (injectable)</span>
+            <span class="badge b-wn">Selank</span>
+            <span class="badge b-wn">TA1</span>
+            <span class="badge b-wn">TB-500</span>
+            <span class="badge b-wn">Epitalon</span>
+          </div>
+          <div class="nb" style="margin-top:4px">&#9888; FDA is not actively enforcing prohibition during evaluation, and 503A exemptions exist with a valid prescription. The bulks list is a living document — status can change.</div>
+        </div>
+
+        <!-- How peptides are made -->
+        <div class="sl">How peptides are made</div>
+        <div class="card">
+          <div class="info-row"><span class="info-lbl">Bioactive (natural)</span><span class="info-val">From plants/animals. Enzymatic hydrolysis or fermentation. Collagen, GHK-Cu.</span></div>
+          <div class="info-row"><span class="info-lbl">Synthetic</span><span class="info-val">Lab-derived amino acid chains. Semaglutide, Tirzepatide, Tesamorelin. Up to ~50 AAs.</span></div>
+          <div class="info-row"><span class="info-lbl">Recombinant</span><span class="info-val">Recombinant DNA technology. Can exceed 50 AAs. Higher upfront cost, better at scale.</span></div>
+          <div class="info-row"><span class="info-lbl">Research-grade warning</span><span class="info-val">Purity as low as 60%. Not for human use. Only pharmaceutical-grade for therapy.</span></div>
+        </div>
+
+        <div style="height:8px"></div>
+      </div>
+    </div>
+
+    <!-- LIBRARY -->
+    <div class="screen" id="sc-lib">
+      <div class="ph"><div class="ph-row"><h1>Library</h1><button class="ai-btn" onclick="openSheet('sh-scraper')">&#10022; AI Scan</button></div></div>
+      <div class="search-wrap"><input class="search-inp" id="lib-search" placeholder="Search compounds..." oninput="renderLib()"></div>
+      <div class="filter-wrap"><div class="filters">
+        <button class="fb on" data-f="all" onclick="setF(this,'lib')">All</button>
+        <button class="fb" data-f="GH Secretagogue" onclick="setF(this,'lib')">GH</button>
+        <button class="fb" data-f="Healing" onclick="setF(this,'lib')">Healing</button>
+        <button class="fb" data-f="Metabolic" onclick="setF(this,'lib')">Metabolic</button>
+        <button class="fb" data-f="Mitochondrial" onclick="setF(this,'lib')">Mito</button>
+      </div></div>
+      <div class="sb"><div class="lib-grid" id="lib-grid"></div></div>
+    </div>
+
+  </div>
+
+  <!-- TAB BAR -->
+  <div class="tabs" style="grid-template-columns:repeat(7,1fr)">
+    <div class="tab on" data-sc="dashboard" onclick="switchTab(this)"><div class="tab-ic">&#8962;</div><div class="tab-lb">Home</div></div>
+    <div class="tab" data-sc="meds" onclick="switchTab(this)" style="position:relative"><div class="tab-ic">&#10010;</div><div class="tab-lb">Meds</div><div class="tab-badge" id="ro-badge" style="display:none">0</div></div>
+    <div class="tab" data-sc="log" onclick="switchTab(this)"><div class="tab-ic">&#9776;</div><div class="tab-lb">Log</div></div>
+    <div class="tab" data-sc="vials" onclick="switchTab(this)"><div class="tab-ic">&#8853;</div><div class="tab-lb">Vials</div></div>
+    <div class="tab" data-sc="mix" onclick="switchTab(this)"><div class="tab-ic">&#9883;</div><div class="tab-lb">Mix</div></div>
+    <div class="tab" data-sc="learn" onclick="switchTab(this)"><div class="tab-ic">&#9679;</div><div class="tab-lb">Learn</div></div>
+    <div class="tab" data-sc="lib" onclick="switchTab(this)"><div class="tab-ic">&#9634;</div><div class="tab-lb">Library</div></div>
+  </div>
+</div>
+
+<!-- SHEETS -->
+<div class="overlay" id="sh-med"><div class="sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-hdr"><h2 id="med-sh-title">Add medication</h2><button class="sheet-close" onclick="closeSheet('sh-med')">&#10005;</button></div>
+  <div class="sheet-body">
+    <div class="fg"><label>Name</label><input id="m-name" placeholder="e.g. BPC-157"></div>
+    <div class="fg-row"><div class="fg"><label>Source</label><input id="m-src"></div><div class="fg"><label>Status</label><select id="m-status"><option value="active">Active</option><option value="off">Cycle OFF</option><option value="completed">Completed</option><option value="stopped">Stopped</option></select></div></div>
+    <div class="fg-row"><div class="fg"><label>Dose</label><input id="m-dose" type="number" step="0.001"></div><div class="fg"><label>Unit</label><select id="m-unit"><option>mcg</option><option>mg</option><option>IU</option><option>mL</option><option>units</option></select></div></div>
+    <div class="fg-row"><div class="fg"><label>Frequency</label><select id="m-freq" onchange="toggleDays()"><option value="daily">Daily</option><option value="5on2off">5 on / 2 off</option><option value="weekly">Weekly</option><option value="eod">Every other day</option><option value="twice_weekly">2-3x/week</option><option value="monthly">Monthly</option></select></div><div class="fg"><label>Time</label><input id="m-time" type="time" value="20:00"></div></div>
+    <div class="fg" id="days-pick" style="display:none"><label>Days</label><div class="days-row"><button class="dt" data-day="Sun" onclick="toggleDay(this)">Su</button><button class="dt" data-day="Mon" onclick="toggleDay(this)">Mo</button><button class="dt" data-day="Tue" onclick="toggleDay(this)">Tu</button><button class="dt" data-day="Wed" onclick="toggleDay(this)">We</button><button class="dt" data-day="Thu" onclick="toggleDay(this)">Th</button><button class="dt" data-day="Fri" onclick="toggleDay(this)">Fr</button><button class="dt" data-day="Sat" onclick="toggleDay(this)">Sa</button></div></div>
+    <div class="fg-row"><div class="fg"><label>Cycle ON (wks)</label><input id="m-con" type="number" value="0"></div><div class="fg"><label>Cycle OFF (wks)</label><input id="m-coff" type="number" value="0"></div></div>
+    <div class="fg-row"><div class="fg"><label>Start date</label><input id="m-start" type="date"></div><div class="fg"><label>Vial size (mg)</label><input id="m-vial" type="number" step="0.1"></div></div>
+    <div class="fg"><label>Reorder lead (days)</label><input id="m-reorder" type="number" value="7"></div>
+    <div class="fg"><label>Unit → dose table</label><textarea id="m-utbl" rows="4" placeholder="5 units = 250mcg&#10;10 units = 500mcg"></textarea></div>
+    <div class="fg"><label>Notes</label><textarea id="m-notes" rows="2"></textarea></div>
+  </div>
+  <div class="sheet-footer"><button class="btn btn-g" style="flex:1" onclick="closeSheet('sh-med')">Cancel</button><button class="btn btn-p" style="flex:2" onclick="saveMed()">Save</button></div>
+</div></div>
+
+<div class="overlay" id="sh-log"><div class="sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-hdr"><h2>Log dose</h2><button class="sheet-close" onclick="closeSheet('sh-log')">&#10005;</button></div>
+  <div class="sheet-body">
+    <div class="fg"><label>Medication</label><select id="l-med" onchange="prefill()"></select></div>
+    <div class="fg-row"><div class="fg"><label>Date</label><input id="l-date" type="date"></div><div class="fg"><label>Time</label><input id="l-time" type="time"></div></div>
+    <div class="fg-row"><div class="fg"><label>Dose</label><input id="l-dose" type="number" step="0.001"></div><div class="fg"><label>Unit</label><input id="l-unit"></div></div>
+    <div class="fg-row"><div class="fg"><label>Syringe units</label><input id="l-syr" type="number"></div><div class="fg"><label>Vol drawn (mL)</label><input id="l-vol" type="number" step="0.001"></div></div>
+    <div class="fg"><label>Status</label><select id="l-status"><option value="taken">Taken</option><option value="skipped">Skipped</option><option value="delayed">Delayed</option></select></div>
+    <div class="fg"><label>Notes</label><input id="l-notes" placeholder="site, reaction..."></div>
+  </div>
+  <div class="sheet-footer"><button class="btn btn-g" style="flex:1" onclick="closeSheet('sh-log')">Cancel</button><button class="btn btn-p" style="flex:2" onclick="saveLog()">Save</button></div>
+</div></div>
+
+<div class="overlay" id="sh-vial"><div class="sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-hdr"><h2>Record vial</h2><button class="sheet-close" onclick="closeSheet('sh-vial')">&#10005;</button></div>
+  <div class="sheet-body">
+    <div class="fg"><label>Medication</label><select id="v-med"></select></div>
+    <div class="fg-row"><div class="fg"><label>Vial (mg)</label><input id="v-amt" type="number" step="0.1"></div><div class="fg"><label>Diluent (mL)</label><input id="v-dil" type="number" step="0.1"></div></div>
+    <div class="fg"><label>Diluent type</label><select id="v-dtype"><option>BAC Water</option><option>BAC + Acetic Acid</option><option>Saline</option></select></div>
+    <div class="fg-row"><div class="fg"><label>Recon date</label><input id="v-date" type="date"></div><div class="fg"><label>Expires (days)</label><input id="v-exp" type="number" value="28"></div></div>
+    <div class="fg-row"><div class="fg"><label>Storage</label><input id="v-stor" placeholder="Fridge door"></div><div class="fg"><label>Lot #</label><input id="v-lot"></div></div>
+    <div class="fg"><label>Supplier</label><input id="v-sup"></div>
+  </div>
+  <div class="sheet-footer"><button class="btn btn-g" style="flex:1" onclick="closeSheet('sh-vial')">Cancel</button><button class="btn btn-p" style="flex:2" onclick="saveVial()">Save</button></div>
+</div></div>
+
+<div class="overlay" id="sh-lib"><div class="sheet" style="max-height:95vh">
+  <div class="sheet-handle"></div>
+  <div class="sheet-hdr"><h2 id="lib-sh-name"></h2><button class="sheet-close" onclick="closeSheet('sh-lib')">&#10005;</button></div>
+  <div class="sheet-body" id="lib-sh-body"></div>
+  <div class="sheet-footer"><button class="btn btn-g" style="flex:1" onclick="closeSheet('sh-lib')">Close</button><button class="btn btn-p" style="flex:2" id="lib-add-btn">+ Add to protocols</button></div>
+</div></div>
+
+<div class="overlay" id="sh-scraper"><div class="sheet" style="max-height:95vh">
+  <div class="sheet-handle"></div>
+  <div class="sheet-hdr"><h2>&#10022; AI Protocol Scan</h2><button class="sheet-close" onclick="closeSheet('sh-scraper')">&#10005;</button></div>
+  <div class="sheet-body">
+    <div class="fg"><label>Anthropic API key</label><input id="ai-key" type="password" placeholder="sk-ant-..." oninput="localStorage.setItem('rx_ai_key',this.value)"></div>
+    <div class="fg"><label>Paste protocol text or notes</label><textarea id="ai-txt" rows="6" placeholder="Paste research notes, dosing protocols, supplier info..."></textarea></div>
+    <button class="btn btn-p btn-full" onclick="runScraper()">&#10022; Extract protocols</button>
+    <div id="ai-loading" style="display:none;text-align:center;padding:16px;font-size:12px;color:var(--mu)">Scanning with Claude AI...</div>
+    <div id="ai-results" style="margin-top:12px"></div>
+    <div style="margin-top:10px;font-size:10px;color:var(--mu);line-height:1.5">API key stored on-device only. Get yours at console.anthropic.com</div>
+  </div>
+</div></div>
+
+<script>
+const LS={get:k=>{try{return JSON.parse(localStorage.getItem(k));}catch{return null;}},set:(k,v)=>localStorage.setItem(k,JSON.stringify(v))};
+let meds=[],logs=[],vials=[],titrations=[],volOv={};
+let editMedId=null,libSel=null,mF='all',lF='all';
+
+// ── SEED DATA ─────────────────────────────────────────────────────────────────
+const SM=[
+  {id:'ss31',name:'SS-31',src:'Aura Peptides',status:'active',dose:1,unit:'mg',freq:'eod',time:'20:00',days:[],cOn:0,cOff:0,start:'2026-05-02',vial:10,reorder:7,utbl:'5 units = 500mcg\n10 units = 1mg\n15 units = 1.5mg\n20 units = 2mg\n25 units = 2.5mg\n30 units = 3mg',notes:'1-3mg per dose. Every 1-3 days. 1mL reconstituted.'},
+  {id:'tirz',name:'Tirzepatide',src:'Peptide Crafters',status:'active',dose:1,unit:'mg',freq:'weekly',time:'08:00',days:['Sun'],cOn:0,cOff:0,start:'2026-04-27',vial:10,reorder:7,utbl:'5 units = 500mcg\n10 units = 1mg\n15 units = 1.5mg\n20 units = 2mg\n25 units = 2.5mg',notes:'~1mg/week. 1mL reconstituted. Do not mix with other peptides.'},
+  {id:'tesa',name:'Tesamorelin',src:'Aura Peptides',status:'active',dose:1,unit:'mg',freq:'5on2off',time:'21:00',days:[],cOn:0,cOff:0,start:'2026-04-22',vial:10,reorder:7,utbl:'10 units = 0.5mg\n20 units = 1mg\n30 units = 1.5mg\n40 units = 2mg',notes:'2mL reconstituted. Stack with Ipamorelin 5on/2off. Before bed, empty stomach.'},
+  {id:'tb500',name:'TB-500',src:'Peptide Crafters',status:'active',dose:2,unit:'mg',freq:'twice_weekly',time:'20:00',days:['Mon','Thu'],cOn:0,cOff:0,start:'2026-04-06',vial:10,reorder:7,utbl:'20 units = 2mg\n25 units = 2.5mg',notes:'2-2.5mg Mon+Thu. 1mL reconstituted. Use to boost KLOW.'},
+  {id:'ipa',name:'Ipamorelin',src:'Peptide Crafters',status:'active',dose:200,unit:'mcg',freq:'5on2off',time:'22:00',days:[],cOn:0,cOff:0,start:'2026-04-06',vial:10,reorder:7,utbl:'2 units = 100mcg\n4 units = 200mcg\n6 units = 300mcg',notes:'100-300mcg nightly. 2mL reconstituted. Stack with Tesamorelin 5on/2off.'},
+  {id:'klow',name:'KLOW Blend',src:'Peptide Crafters',status:'active',dose:10,unit:'units',freq:'daily',time:'09:00',days:[],cOn:0,cOff:0,start:'2026-03-07',vial:80,reorder:7,utbl:'10 units = 250mcg KPV/BPC/TB + 1.25mg GHK\n20 units = 500mcg KPV/BPC/TB + 2.5mg GHK',notes:'80mg blend (KPV/BPC/TB 10mg each + GHK 50mg). 4mL reconstituted.'},
+  {id:'bpctb',name:'BPC-157 / TB-500 Blend',src:'PS',status:'active',dose:10,unit:'units',freq:'5on2off',time:'09:00',days:[],cOn:0,cOff:0,start:'2025-12-01',vial:20,reorder:7,utbl:'5 units = 250/250mcg\n10 units = 500/500mcg',notes:'5on/2off. 2mL reconstituted.'},
+  {id:'motsc',name:'MOTS-C',src:'Certified Pep',status:'stopped',dose:1,unit:'mg',freq:'5on2off',time:'08:00',days:[],cOn:4,cOff:0,start:'2026-02-06',vial:20,reorder:7,utbl:'10 units = 500mcg\n20 units = 1mg',notes:'Stopped — bad ISR after 4 weeks. Retry with smaller vials and more dilute solution.'},
+  {id:'reta',name:'Retatrutide',src:'PS',status:'stopped',dose:0.5,unit:'mg',freq:'weekly',time:'08:00',days:['Sun'],cOn:0,cOff:0,start:'2025-01-01',vial:16,reorder:7,utbl:'5 units = 0.5mg\n10 units = 1mg',notes:'Stopped at 3 weeks — HR & NS overstimulation. Triple agonist — titrate very slowly if retrying.'},
+  {id:'aod',name:'AOD-9604',src:'PS',status:'completed',dose:300,unit:'mcg',freq:'5on2off',time:'07:00',days:[],cOn:12,cOff:4,start:'2025-11-26',vial:10,reorder:7,utbl:'10 units = 250mcg\n12 units = 300mcg\n20 units = 500mcg',notes:'FASTED MORNING — no food/liquids 30-45min before/after. Last dose 12.25.2025. 4mL (3mL BAC + 1mL Acetic Acid).'},
+];
+const SV=[
+  {id:'rv1',medId:'ss31',amt:10,dil:1,dtype:'BAC Water',date:'2026-05-02',exp:28,stor:'Fridge',lot:'',sup:'Aura Peptides'},
+  {id:'rv2',medId:'tirz',amt:10,dil:1,dtype:'BAC Water',date:'2026-04-27',exp:28,stor:'Fridge',lot:'',sup:'Peptide Crafters'},
+  {id:'rv3',medId:'tesa',amt:10,dil:2,dtype:'BAC Water',date:'2026-04-22',exp:28,stor:'Fridge',lot:'',sup:'Aura Peptides'},
+  {id:'rv4',medId:'tb500',amt:10,dil:1,dtype:'BAC Water',date:'2026-04-06',exp:28,stor:'Fridge',lot:'',sup:'Peptide Crafters'},
+  {id:'rv5',medId:'ipa',amt:10,dil:2,dtype:'BAC Water',date:'2026-04-06',exp:28,stor:'Fridge',lot:'',sup:'Peptide Crafters'},
+  {id:'rv6',medId:'klow',amt:80,dil:4,dtype:'BAC Water',date:'2026-03-07',exp:28,stor:'Fridge',lot:'',sup:'Peptide Crafters'},
+];
+const SL=[
+  {id:'l1',medId:'ss31',date:'2026-05-02',time:'20:00',dose:1,unit:'mg',syr:10,vol:.1,status:'taken',notes:'New Aura vial'},
+  {id:'l2',medId:'ss31',date:'2026-05-04',time:'20:00',dose:1,unit:'mg',syr:10,vol:.1,status:'taken',notes:''},
+  {id:'l3',medId:'ss31',date:'2026-05-06',time:'20:00',dose:1,unit:'mg',syr:10,vol:.1,status:'taken',notes:''},
+  {id:'l4',medId:'ss31',date:'2026-05-08',time:'20:00',dose:1.5,unit:'mg',syr:15,vol:.15,status:'taken',notes:'Increased dose'},
+  {id:'l5',medId:'tirz',date:'2026-04-27',time:'08:00',dose:1,unit:'mg',syr:10,vol:.1,status:'taken',notes:''},
+  {id:'l6',medId:'tirz',date:'2026-05-04',time:'08:00',dose:1,unit:'mg',syr:10,vol:.1,status:'taken',notes:'Weekly dose'},
+  {id:'l7',medId:'tesa',date:'2026-05-05',time:'21:00',dose:1,unit:'mg',syr:20,vol:.2,status:'taken',notes:''},
+  {id:'l8',medId:'tesa',date:'2026-05-06',time:'21:00',dose:1,unit:'mg',syr:20,vol:.2,status:'taken',notes:''},
+  {id:'l9',medId:'tesa',date:'2026-05-07',time:'21:00',dose:1,unit:'mg',syr:20,vol:.2,status:'taken',notes:''},
+  {id:'l10',medId:'tb500',date:'2026-05-05',time:'20:00',dose:2,unit:'mg',syr:20,vol:.2,status:'taken',notes:''},
+  {id:'l11',medId:'tb500',date:'2026-05-08',time:'20:00',dose:2,unit:'mg',syr:20,vol:.2,status:'taken',notes:''},
+  {id:'l12',medId:'ipa',date:'2026-05-05',time:'22:00',dose:200,unit:'mcg',syr:4,vol:.04,status:'taken',notes:''},
+  {id:'l13',medId:'ipa',date:'2026-05-06',time:'22:00',dose:200,unit:'mcg',syr:4,vol:.04,status:'taken',notes:''},
+  {id:'l14',medId:'ipa',date:'2026-05-07',time:'22:00',dose:200,unit:'mcg',syr:4,vol:.04,status:'taken',notes:''},
+  {id:'l15',medId:'klow',date:'2026-05-06',time:'09:00',dose:10,unit:'units',syr:10,vol:.1,status:'taken',notes:''},
+  {id:'l16',medId:'klow',date:'2026-05-07',time:'09:00',dose:10,unit:'units',syr:10,vol:.1,status:'taken',notes:''},
+  {id:'l17',medId:'klow',date:'2026-05-08',time:'09:00',dose:10,unit:'units',syr:10,vol:.1,status:'taken',notes:''},
+];
+const ST=[
+  {id:'t1',name:'CJC/Ipamorelin ramp-up',medId:'ipa',start:'2026-02-06',step:3,steps:[{dose:'100mcg each',weeks:2,notes:'Start'},{dose:'150mcg each',weeks:2,notes:''},{dose:'200mcg each',weeks:2,notes:'Current'},{dose:'250mcg each',weeks:3,notes:''},{dose:'300mcg each',weeks:3,notes:'Target'}]},
+  {id:'t2',name:'Retatrutide titration',medId:'reta',start:'2025-01-01',step:1,steps:[{dose:'0.5mg',weeks:1,notes:'STOPPED — HR/NS effects'},{dose:'1mg',weeks:1,notes:'Not reached'},{dose:'2mg',weeks:2,notes:'Not reached'},{dose:'4mg',weeks:4,notes:'Not reached'}]},
+];
+
+// ── LIBRARY DATA ──────────────────────────────────────────────────────────────
+const LIB=[
+  {id:'l1',name:'BPC-157',aka:'Body Protection Compound',cat:'Healing',tags:['Healing','Gut','Tendon'],summary:'Synthetic peptide for soft tissue healing, gut repair, and anti-inflammatory effects.',dosing:{typical:'250-500mcg/day',range:'200-600mcg/day',freq:'5 on / 2 off',timing:'Any time. Subcut near injury or systemic.',cycle:'4-12 weeks on, 2-4 off'},recon:{vial:'10mg',dil:'2mL BAC Water',conc:'5mg/mL',tbl:'5 units = 250mcg\n10 units = 500mcg',exp:28},def:{dose:500,unit:'mcg',freq:'5on2off',time:'09:00'},notes:'Can be taken orally in saline for gut effects.',warn:'Research peptide.'},
+  {id:'l2',name:'TB-500',aka:'Thymosin Beta-4 fragment',cat:'Healing',tags:['Healing','Recovery'],summary:'Promotes healing of muscles, tendons, and ligaments. Often stacked with BPC-157.',dosing:{typical:'2-2.5mg, 2-3x/week',range:'2-5mg/week',freq:'2-3x per week',timing:'Subcut. Any time.',cycle:'4-12 weeks on'},recon:{vial:'10mg',dil:'1mL BAC Water',conc:'10mg/mL',tbl:'20 units = 2mg\n25 units = 2.5mg',exp:28},def:{dose:2,unit:'mg',freq:'twice_weekly',time:'20:00'},notes:'Often paired with BPC-157 for synergistic repair.',warn:'Research peptide.'},
+  {id:'l3',name:'SS-31',aka:'Elamipretide / Bendavia',cat:'Mitochondrial',tags:['Mitochondrial','Cardio','Anti-aging'],summary:'Targets the inner mitochondrial membrane. Reduces oxidative stress, supports cardiac health.',dosing:{typical:'1-3mg/dose',range:'0.5-5mg',freq:'Daily or every 1-3 days',timing:'Subcut. Any time.',cycle:'20-day cycles or continuous'},recon:{vial:'10mg',dil:'1mL BAC Water',conc:'10mg/mL',tbl:'10 units = 1mg\n20 units = 2mg\n30 units = 3mg',exp:28},def:{dose:1,unit:'mg',freq:'eod',time:'20:00'},notes:'Higher-dose 30mg vials for intensive 20-day protocols.',warn:'Research peptide. Mix with mito peptides only.'},
+  {id:'l4',name:'Tesamorelin',aka:'EGRIFTA / GRF(1-44)',cat:'GH Secretagogue',tags:['GH','Fat Loss','Cognitive'],summary:'GHRH analogue. FDA-approved for HIV lipodystrophy. Fat loss, body recomp, cognitive support.',dosing:{typical:'1-2mg/day',range:'0.5-2mg/day',freq:'Daily or 5 on / 2 off',timing:'Before bed or waking, empty stomach.',cycle:'8-16 weeks'},recon:{vial:'10mg',dil:'2mL BAC Water',conc:'5mg/mL',tbl:'10 units = 0.5mg\n20 units = 1mg\n30 units = 1.5mg\n40 units = 2mg',exp:28},def:{dose:1,unit:'mg',freq:'5on2off',time:'21:00'},notes:'Stack with Ipamorelin. No carbs 2hr before for max GH.',warn:'Contraindicated with active cancer or cancer history. May increase IGF-1.'},
+  {id:'l5',name:'Ipamorelin',aka:'NNC 26-0161',cat:'GH Secretagogue',tags:['GH','Sleep','Body Comp'],summary:'Selective GHRP. Clean GH secretagogue — minimal cortisol or prolactin elevation.',dosing:{typical:'100-300mcg/dose',range:'100-500mcg',freq:'Nightly or 5 on / 2 off',timing:'Before bed, empty stomach.',cycle:'8-16 weeks'},recon:{vial:'10mg',dil:'2mL BAC Water',conc:'5mg/mL',tbl:'2 units = 100mcg\n4 units = 200mcg\n6 units = 300mcg',exp:28},def:{dose:200,unit:'mcg',freq:'5on2off',time:'22:00'},notes:'Stack with Tesamorelin or CJC-1295.',warn:'Avoid within 2hr of food.'},
+  {id:'l6',name:'CJC-1295',aka:'Mod GRF 1-29',cat:'GH Secretagogue',tags:['GH','Recovery'],summary:'GHRH analogue. Often blended with Ipamorelin. Titrate 100mcg up to 300mcg over 5-12 weeks.',dosing:{typical:'100-300mcg/dose',range:'100-500mcg',freq:'Daily or 5 on / 2 off',timing:'Before bed or waking, empty stomach.',cycle:'8-16 weeks'},recon:{vial:'5mg blend',dil:'2mL BAC Water',conc:'2.5mg/mL',tbl:'4 units = 100/100mcg\n8 units = 200/200mcg\n12 units = 300/300mcg',exp:28},def:{dose:200,unit:'mcg',freq:'5on2off',time:'22:00'},notes:'Start at 100mcg, increase 50mcg every 1-2 weeks.',warn:'DAC version dosed 1-2x/week only. Contraindicated with cancer history.'},
+  {id:'l7',name:'MOTS-C',aka:'Mitochondrial Open Reading Frame Peptide',cat:'Mitochondrial',tags:['Metabolic','Insulin Sensitivity'],summary:'Regulates metabolic homeostasis. Improves insulin sensitivity. Mimics exercise at cellular level.',dosing:{typical:'5mg/week (1mg/day)',range:'2-10mg/week',freq:'Daily or 5 on / 2 off',timing:'Morning, subcut.',cycle:'4-8 weeks'},recon:{vial:'5-10mg (prefer small)',dil:'More dilute preferred',conc:'~1.67mg/mL',tbl:'10 units = 500mcg\n20 units = 1mg',exp:28},def:{dose:1,unit:'mg',freq:'5on2off',time:'08:00'},notes:'ISR common. Use smaller vials, more dilute solution. Abdomen injection may reduce ISR.',warn:'ISR common at higher concentrations.'},
+  {id:'l8',name:'Tirzepatide',aka:'GIP/GLP-1 dual agonist',cat:'Metabolic',tags:['Weight Loss','GLP-1'],summary:'Dual GIP and GLP-1 agonist. FDA-approved (Mounjaro/Zepbound). Highly effective for weight loss.',dosing:{typical:'2.5-10mg/week',range:'2.5mg start → 15mg max',freq:'Once weekly',timing:'Any consistent day.',cycle:'Continuous'},recon:{vial:'10mg',dil:'1mL BAC Water',conc:'10mg/mL',tbl:'5 units = 500mcg\n10 units = 1mg\n25 units = 2.5mg',exp:28},def:{dose:1,unit:'mg',freq:'weekly',time:'08:00'},notes:'Titrate: start 2.5mg, increase 2.5mg every 4 weeks. Nausea common early.',warn:'Must be injected alone. Prescription in many jurisdictions.'},
+  {id:'l9',name:'Retatrutide',aka:'Triple GLP-1/GIP/Glucagon agonist',cat:'Metabolic',tags:['Weight Loss','Experimental'],summary:'Triple receptor agonist. More potent than dual agonists. Glucagon component increases energy expenditure.',dosing:{typical:'0.5-4mg/week',range:'0.5mg start → 8mg in trials',freq:'Once weekly',timing:'Any consistent day.',cycle:'Continuous, titrate slowly'},recon:{vial:'16mg',dil:'1.6mL BAC Water',conc:'10mg/mL',tbl:'5 units = 0.5mg\n10 units = 1mg\n20 units = 2mg',exp:28},def:{dose:0.5,unit:'mg',freq:'weekly',time:'08:00'},notes:'Titrate VERY slowly. Glucagon component increases HR and CNS stimulation.',warn:'HR elevation and NS stimulation common. Your protocol stopped at 3 weeks. Must inject alone.'},
+  {id:'l10',name:'AOD-9604',aka:'hGH fragment 176-191',cat:'Metabolic',tags:['Fat Loss','Lipolytic'],summary:'Fragment of human GH. Stimulates fat breakdown without affecting insulin or IGF-1.',dosing:{typical:'300mcg/day',range:'120-500mcg/day',freq:'5 on / 2 off',timing:'FASTED: first thing AM, 30-45min before food.',cycle:'4-12 weeks on'},recon:{vial:'10mg',dil:'3mL BAC + 1mL Acetic Acid',conc:'2.5mg/mL',tbl:'10 units = 250mcg\n12 units = 300mcg\n20 units = 500mcg',exp:42},def:{dose:300,unit:'mcg',freq:'5on2off',time:'07:00'},notes:'MUST be taken fasted. No food/liquids 30-45 min before AND after.',warn:'Requires acetic acid — not just BAC water.'},
+  {id:'l11',name:'KPV',aka:'Lys-Pro-Val',cat:'Healing',tags:['Anti-inflammatory','Gut'],summary:'Tripeptide fragment of alpha-MSH. Potent anti-inflammatory for gut, IBD, wound healing.',dosing:{typical:'250-500mcg/day',range:'100-1000mcg/day',freq:'Daily or 5 on / 2 off',timing:'Any time. Subcut or oral.',cycle:'4-8 weeks'},recon:{vial:'10mg',dil:'2mL BAC Water',conc:'5mg/mL',tbl:'5 units = 250mcg\n10 units = 500mcg',exp:28},def:{dose:500,unit:'mcg',freq:'5on2off',time:'09:00'},notes:'Part of your KLOW blend (KPV/BPC/TB/GHK). Can be taken orally for gut effects.',warn:'Research peptide.'},
+  {id:'l12',name:'GHK-Cu',aka:'Copper Peptide',cat:'Healing',tags:['Skin','Collagen','Anti-aging'],summary:'Copper-binding tripeptide. Promotes collagen synthesis, wound healing, anti-aging. Oral bioavailability limited — subcut or topical for systemic effects.',dosing:{typical:'1-3mg/day subcut',range:'0.5-5mg/day',freq:'Daily or 5 on / 2 off',timing:'Any time.',cycle:'8-12 weeks'},recon:{vial:'50mg',dil:'10mL BAC Water',conc:'5mg/mL',tbl:'10 units = 500mcg\n20 units = 1mg\n60 units = 3mg',exp:28},def:{dose:2,unit:'mg',freq:'5on2off',time:'09:00'},notes:'Blue/green color is normal (copper complex). Also available topical. Part of your KLOW blend.',warn:'Injectable GHK-Cu is in legal gray area per 503A.'},
+];
+
+// ── MIXING DATA ───────────────────────────────────────────────────────────────
+const MP=['Tirzepatide','Semaglutide','Retatrutide','Sermorelin','CJC+Ipa','Tesamorelin','BPC-157','TB-500','BPC+TB','GHK-Cu','TA1','VIP','Epitalon','Pinealon','Selank','Mel-2','NAD+','MOTS-C','SS-31'];
+const MG={'Tirzepatide':'glp','Semaglutide':'glp','Retatrutide':'glp','Sermorelin':'perf','CJC+Ipa':'perf','Tesamorelin':'perf','BPC-157':'heal','TB-500':'heal','BPC+TB':'heal','GHK-Cu':'heal','TA1':'heal','VIP':'heal','Epitalon':'heal','Pinealon':'heal','Selank':'heal','Mel-2':'heal','NAD+':'mito','MOTS-C':'mito','SS-31':'mito'};
+const MC=(()=>{const m={};MP.forEach(a=>{m[a]={};MP.forEach(b=>{if(a===b){m[a][b]='self';return;}const ga=MG[a],gb=MG[b];if(ga==='glp'||gb==='glp'){m[a][b]='no';return;}if(ga==='mito'&&gb==='mito'){m[a][b]='yes';return;}if(ga==='mito'||gb==='mito'){m[a][b]='no';return;}const cp=[['VIP','BPC-157'],['VIP','TB-500'],['VIP','BPC+TB'],['Selank','Mel-2'],['Epitalon','Mel-2']];m[a][b]=cp.some(([x,y])=>(a===x&&b===y)||(a===y&&b===x))?'caution':'yes';});});return m;})();
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+function init(){
+  if(!localStorage.getItem('rx_seed_d1')){
+    meds=SM;logs=SL;vials=SV;titrations=ST;volOv={};
+    save();localStorage.setItem('rx_seed_d1','1');
+  } else {
+    meds=LS.get('meds')||SM;logs=LS.get('logs')||[];
+    vials=LS.get('vials')||SV;titrations=LS.get('titrations')||ST;
+    volOv=LS.get('volOv')||{};
+  }
+  const k=localStorage.getItem('rx_ai_key');
+  if(k)document.getElementById('ai-key').value=k;
+  render();
+}
+function save(){LS.set('meds',meds);LS.set('logs',logs);LS.set('vials',vials);LS.set('titrations',titrations);LS.set('volOv',volOv);}
+function render(){renderDash();renderMeds();renderLog();renderVials();renderLib();const ro=meds.filter(m=>m.status==='active'&&getFc(m)?.needsReorder);const b=document.getElementById('ro-badge');b.textContent=ro.length;b.style.display=ro.length?'':'none';}
+
+// ── NAV ───────────────────────────────────────────────────────────────────────
+function switchTab(el){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));
+  el.classList.add('on');
+  document.getElementById('sc-'+el.dataset.sc).classList.add('on');
+  if(el.dataset.sc==='mix')renderMix();
+}
+
+// ── FORECAST ──────────────────────────────────────────────────────────────────
+function dpw(m){return{daily:7,'5on2off':5,weekly:1,eod:3.5,twice_weekly:2.5,monthly:.25}[m.freq]||1;}
+function dv(m,v){let mg=parseFloat(m.dose)||0;if(m.unit==='mcg')mg/=1000;if(m.unit==='units'||m.unit==='mL')return null;return mg/(v.amt/v.dil);}
+function dl(v){return Math.floor((new Date(v.date).getTime()+v.exp*86400000-Date.now())/86400000);}
+function activeVial(m){return vials.filter(v=>v.medId===m.id&&dl(v)>0).sort((a,b)=>new Date(b.date)-new Date(a.date))[0]||null;}
+function getFc(m){
+  const v=activeVial(m);if(!v)return null;
+  const dvol=dv(m,v);
+  const since=new Date(v.date);
+  const used=logs.filter(l=>l.medId===m.id&&l.status==='taken'&&new Date(l.date)>=since).reduce((s,l)=>s+(l.vol||dvol||0),0);
+  const rem=volOv[v.id]!==undefined?volOv[v.id]:Math.max(0,v.dil-used);
+  const pct=Math.min(100,Math.max(0,rem/v.dil*100));
+  const dLeft=dvol&&dvol>0?Math.floor(rem/dvol):null;
+  const ds=dLeft!==null?Math.round(dLeft/dpw(m)*7):null;
+  const fin=ds!==null?new Date(Date.now()+ds*86400000):null;
+  const expD=dl(v);const lim=ds!==null?Math.min(ds,expD):expD;
+  const thr=m.reorder||7;
+  return{v,rem,pct,dLeft,ds,fin,expD,lim,needsReorder:lim<=thr,warnReorder:lim<=thr*2&&lim>thr,conc:v.amt/v.dil,dvol};
+}
+
+// ── DASHBOARD ─────────────────────────────────────────────────────────────────
+function renderDash(){
+  const now=new Date();
+  document.getElementById('dash-date').textContent=now.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+  const active=meds.filter(m=>m.status==='active');
+  const todayL=logs.filter(l=>l.date===fD(now));
+  const ro=active.filter(m=>getFc(m)?.needsReorder);
+  document.getElementById('dash-stats').innerHTML=`
+    <div class="stat"><div class="stat-l">Active</div><div class="stat-v">${active.length}</div><div class="stat-s">of ${meds.length} total</div></div>
+    <div class="stat"><div class="stat-l">Logged today</div><div class="stat-v">${todayL.filter(l=>l.status==='taken').length}</div><div class="stat-s">${todaySched().length} scheduled</div></div>
+    <div class="stat"><div class="stat-l">Reorder now</div><div class="stat-v" style="color:${ro.length?'var(--dn)':'var(--ac)'}">${ro.length}</div><div class="stat-s">&le;7d supply</div></div>
+    <div class="stat"><div class="stat-l">Active vials</div><div class="stat-v">${vials.filter(v=>dl(v)>0).length}</div><div class="stat-s">${vials.filter(v=>dl(v)<=0).length} expired</div></div>`;
+  const today=todaySched();
+  const te=document.getElementById('dash-today');
+  if(!today.length){te.innerHTML='<div class="card" style="color:var(--mu);font-size:13px">No doses scheduled today.</div>';}
+  else te.innerHTML=today.map(m=>{
+    const logged=logs.find(l=>l.medId===m.id&&l.date===fD(now));
+    const fc=getFc(m);
+    return `<div class="tr"><div class="tr-top"><div><div class="tr-name">${m.name}</div><div class="tr-src">${m.src||''}</div><div class="tr-meta">${m.dose} ${m.unit} &middot; ${m.time||'&mdash;'}${fc?.dLeft!=null?' &middot; '+fc.dLeft+' left':''}</div></div><div class="tr-btns">${fc?.needsReorder?'<span class="badge b-dn">REORDER</span>':''}${logged?`<span class="badge ${logged.status==='taken'?'b-on':logged.status==='skipped'?'b-dn':'b-wn'}">${logged.status}</span>`:''}</div></div><div style="display:flex;gap:7px">${!logged?`<button class="btn btn-p btn-sm" style="flex:1" onclick="quickLog('${m.id}')">&#10003; Taken</button>`:''}${`<button class="btn btn-g btn-sm" onclick="openLogFor('${m.id}')">+ Detail</button>`}</div></div>`;
+  }).join('');
+  document.getElementById('dash-mini').innerHTML=active.map(m=>{
+    const fc=getFc(m);const bc=fc?.needsReorder?'var(--dn)':fc?.warnReorder?'var(--wn)':'var(--ac)';
+    return `<div class="mini"><div class="mini-bar" style="background:${bc}"></div><div class="mini-name">${m.name}</div><div class="mini-src">${m.src||''}</div><div class="mini-dose">${m.dose} ${m.unit} &middot; ${flbl(m.freq)}</div>${fc?`<div class="mini-nums"><span style="color:${fc.dLeft!=null&&fc.dLeft<=5?'var(--dn)':fc.dLeft!=null&&fc.dLeft<=14?'var(--wn)':'var(--ac)'}">${fc.dLeft!=null?fc.dLeft+' left':'&mdash;'}</span><span style="color:var(--mu)">${fc.fin?sd(fc.fin):'&mdash;'}</span></div><div class="vol-track" style="margin-top:5px"><div class="vol-fill${fc.pct<20?' d':fc.pct<40?' w':''}" style="width:${fc.pct}%"></div></div>`:''}</div>`;
+  }).join('');
+}
+function todaySched(){return meds.filter(m=>{if(m.status!=='active')return false;const dn=new Date().getDay();const dow=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][dn];if(m.freq==='daily')return true;if(m.freq==='5on2off')return dn!==0&&dn!==6;if(m.freq==='weekly'||m.freq==='twice_weekly')return(m.days||[]).includes(dow);if(m.freq==='eod'){if(!m.start)return true;return Math.floor((Date.now()-new Date(m.start))/86400000)%2===0;}return false;});}
+
+// ── MEDICATIONS ───────────────────────────────────────────────────────────────
+function renderMeds(){
+  const q=(document.getElementById('med-search')?.value||'').toLowerCase();
+  let f=meds.filter(m=>m.name.toLowerCase().includes(q)||(m.src||'').toLowerCase().includes(q));
+  if(mF!=='all')f=f.filter(m=>m.status===mF);
+  f.sort((a,b)=>['active','off','completed','stopped'].indexOf(a.status)-['active','off','completed','stopped'].indexOf(b.status));
+  document.getElementById('med-list').innerHTML=f.length?f.map(m=>mcHTML(m)).join(''):'<div style="text-align:center;padding:40px 0;color:var(--mu);font-size:13px">No medications found.</div>';
+}
+function mcHTML(m){
+  const fc=getFc(m);
+  const bc=fc?.needsReorder?'var(--dn)':fc?.warnReorder?'var(--wn)':m.status!=='active'?'var(--mu)':'var(--ac)';
+  const sb=m.status==='active'?'b-on':m.status==='stopped'?'b-dn':'b-mu';
+  const rows=(m.utbl||'').split('\n').filter(Boolean);
+  let fcH='';
+  if(fc){
+    const pc=fc.pct<20?' d':fc.pct<40?' w':'';
+    fcH=`<div class="fc"><div class="fc-hdr"><span class="fc-label">Forecast</span><span style="font-size:9px;color:var(--mu)">${fc.conc.toFixed(2)} mg/mL</span></div><div class="fc-grid"><div class="fc-cell"><div class="fc-cl">Doses left</div><div class="fc-cv ${fc.dLeft!=null&&fc.dLeft<=5?'d':fc.dLeft!=null&&fc.dLeft<=14?'w':'a'}">${fc.dLeft!=null?fc.dLeft:'&mdash;'}</div></div><div class="fc-cell"><div class="fc-cl">Est. finish</div><div class="fc-cv ${fc.ds!=null&&fc.ds<=7?'d':fc.ds!=null&&fc.ds<=14?'w':''}">${fc.fin?sd(fc.fin):'&mdash;'}</div></div><div class="fc-cell"><div class="fc-cl">Days supply</div><div class="fc-cv ${fc.lim<=7?'d':fc.lim<=14?'w':''}">${fc.lim<=0?'Expired':fc.lim+'d'}</div></div><div class="fc-cell"><div class="fc-cl">Vial expiry</div><div class="fc-cv ${fc.expD<=3?'d':fc.expD<=7?'w':''}">${fc.expD}d</div></div></div><div class="vol-hdr"><span>Volume remaining</span><span>${fc.rem.toFixed(2)}/${fc.v.dil}mL (${Math.round(fc.pct)}%)</span></div><div class="vol-track"><div class="vol-fill${pc}" style="width:${fc.pct}%"></div></div><div class="ov-row" style="margin-top:8px"><span class="ov-lbl">Override vol:</span><input class="ov-inp" type="number" step="0.01" placeholder="auto" value="${volOv[fc.v.id]!==undefined?volOv[fc.v.id]:''}" onchange="setOv('${fc.v.id}',this.value)"><span class="ov-lbl">mL</span>${volOv[fc.v.id]!==undefined?`<button class="btn btn-xs btn-g" onclick="clearOv('${fc.v.id}')">Clear</button>`:''}</div>${fc.needsReorder?`<div class="ro-ban">&#9888; Reorder now &mdash; ${fc.lim}d supply left</div>`:''}${fc.warnReorder?`<div class="ro-ban w">&#8635; Order soon &mdash; ${fc.lim}d supply left</div>`:''}</div>`;
+  }
+  return `<div class="mc"><div class="mc-bar" style="background:${bc}"></div><div class="mc-body"><div class="mc-hdr"><div><div class="mc-name">${m.name}</div><div class="mc-src">${m.src||''}</div></div><span class="badge ${sb}">${m.status}</span></div><div class="mc-meta">${m.dose} ${m.unit} &middot; ${flbl(m.freq)} &middot; ${m.time||'&mdash;'}</div><div class="mc-badges">${m.cOn?`<span class="badge b-wn">${m.cOn}w on/${m.cOff}w off</span>`:''}${m.start?`<span class="badge">Started ${m.start}</span>`:''}${m.vial?`<span class="badge">${m.vial}mg vial</span>`:''}</div>${rows.length?`<table class="ut">${rows.map(r=>`<tr><td>${r.split('=')[0]?.trim()||''}</td><td class="uv">${r.split('=')[1]?.trim()||''}</td></tr>`).join('')}</table>`:''}${m.notes?`<div class="nb">${m.notes}</div>`:''}${fcH}<div class="mc-acts"><button class="btn btn-g btn-sm" onclick="editMed('${m.id}')">Edit</button><button class="btn btn-g btn-sm" onclick="openVialFor('${m.id}')">+ Vial</button><button class="btn btn-g btn-sm" onclick="openLogFor('${m.id}')">Log dose</button><button class="btn btn-d btn-sm" onclick="delMed('${m.id}')">Delete</button></div></div></div>`;
+}
+function setF(btn,type){if(type==='med'){mF=btn.dataset.f;document.querySelectorAll('#sc-meds .fb').forEach(b=>b.classList.remove('on'));}else{lF=btn.dataset.f;document.querySelectorAll('#sc-lib .fb').forEach(b=>b.classList.remove('on'));}btn.classList.add('on');if(type==='med')renderMeds();else renderLib();}
+function flbl(f){return{daily:'Daily','5on2off':'5on/2off',weekly:'Weekly',eod:'EOD',twice_weekly:'2-3x/wk',monthly:'Monthly'}[f]||f;}
+function openAddMed(def=null){editMedId=null;document.getElementById('med-sh-title').textContent='Add medication';['m-name','m-src','m-notes','m-start','m-utbl'].forEach(id=>document.getElementById(id).value='');document.getElementById('m-dose').value='';document.getElementById('m-unit').value='mcg';document.getElementById('m-freq').value='5on2off';document.getElementById('m-time').value='20:00';document.getElementById('m-con').value=0;document.getElementById('m-coff').value=0;document.getElementById('m-vial').value='';document.getElementById('m-reorder').value=7;document.getElementById('m-status').value='active';document.querySelectorAll('.dt').forEach(d=>d.classList.remove('on'));if(def){if(def.name)document.getElementById('m-name').value=def.name;if(def.dose)document.getElementById('m-dose').value=def.dose;if(def.unit)document.getElementById('m-unit').value=def.unit;if(def.freq)document.getElementById('m-freq').value=def.freq;if(def.time)document.getElementById('m-time').value=def.time;if(def.utbl)document.getElementById('m-utbl').value=def.utbl;if(def.notes)document.getElementById('m-notes').value=def.notes;if(def.vial)document.getElementById('m-vial').value=def.vial;}toggleDays();openSheet('sh-med');}
+function editMed(id){const m=meds.find(x=>x.id===id);if(!m)return;editMedId=id;document.getElementById('med-sh-title').textContent='Edit medication';document.getElementById('m-name').value=m.name;document.getElementById('m-src').value=m.src||'';document.getElementById('m-status').value=m.status;document.getElementById('m-dose').value=m.dose;document.getElementById('m-unit').value=m.unit;document.getElementById('m-freq').value=m.freq;document.getElementById('m-time').value=m.time||'';document.getElementById('m-con').value=m.cOn||0;document.getElementById('m-coff').value=m.cOff||0;document.getElementById('m-start').value=m.start||'';document.getElementById('m-vial').value=m.vial||'';document.getElementById('m-reorder').value=m.reorder||7;document.getElementById('m-utbl').value=m.utbl||'';document.getElementById('m-notes').value=m.notes||'';document.querySelectorAll('.dt').forEach(d=>d.classList.toggle('on',(m.days||[]).includes(d.dataset.day)));toggleDays();openSheet('sh-med');}
+function saveMed(){const name=document.getElementById('m-name').value.trim();if(!name){alert('Name required');return;}const days=[...document.querySelectorAll('.dt.on')].map(d=>d.dataset.day);const med={id:editMedId||uid(),name,src:document.getElementById('m-src').value,status:document.getElementById('m-status').value,dose:parseFloat(document.getElementById('m-dose').value)||0,unit:document.getElementById('m-unit').value,freq:document.getElementById('m-freq').value,time:document.getElementById('m-time').value,days,cOn:parseInt(document.getElementById('m-con').value)||0,cOff:parseInt(document.getElementById('m-coff').value)||0,start:document.getElementById('m-start').value,vial:parseFloat(document.getElementById('m-vial').value)||10,reorder:parseInt(document.getElementById('m-reorder').value)||7,utbl:document.getElementById('m-utbl').value,notes:document.getElementById('m-notes').value};if(editMedId){const i=meds.findIndex(m=>m.id===editMedId);meds[i]=med;}else meds.push(med);save();closeSheet('sh-med');render();}
+function delMed(id){if(!confirm('Delete this medication?'))return;meds=meds.filter(m=>m.id!==id);save();render();}
+function toggleDays(){const f=document.getElementById('m-freq').value;document.getElementById('days-pick').style.display=(f==='weekly'||f==='twice_weekly')?'':'none';}
+function toggleDay(el){el.classList.toggle('on');}
+
+// ── LOG ───────────────────────────────────────────────────────────────────────
+function renderLog(){const sorted=[...logs].sort((a,b)=>new Date(b.date+' '+(b.time||'00:00'))-new Date(a.date+' '+(a.time||'00:00')));if(!sorted.length){document.getElementById('log-body').innerHTML='';document.getElementById('log-empty').style.display='';return;}document.getElementById('log-empty').style.display='none';document.getElementById('log-body').innerHTML=sorted.map(l=>{const m=meds.find(x=>x.id===l.medId);return `<tr><td style="white-space:nowrap">${l.date}<br><span style="color:var(--mu);font-size:9px">${l.time||''}</span></td><td>${m?.name||'&mdash;'}<br><span style="color:var(--mu);font-size:9px">${m?.src||''}</span></td><td>${l.dose} ${l.unit}</td><td><span class="sdot ${l.status}"></span>${l.status}</td><td><button class="btn btn-d btn-xs" onclick="delLog('${l.id}')">&#10005;</button></td></tr>`;}).join('');}
+function openLogDose(){document.getElementById('l-med').innerHTML=meds.map(m=>`<option value="${m.id}">${m.name}</option>`).join('');const now=new Date();document.getElementById('l-date').value=fD(now);document.getElementById('l-time').value=now.toTimeString().slice(0,5);['l-dose','l-unit','l-syr','l-vol','l-notes'].forEach(id=>document.getElementById(id).value='');document.getElementById('l-status').value='taken';prefill();openSheet('sh-log');}
+function openLogFor(medId){openLogDose();document.getElementById('l-med').value=medId;prefill();}
+function prefill(){const m=meds.find(x=>x.id===document.getElementById('l-med').value);if(m){document.getElementById('l-dose').value=m.dose;document.getElementById('l-unit').value=m.unit;}}
+function saveLog(){const medId=document.getElementById('l-med').value;if(!medId)return;const e={id:uid(),medId,date:document.getElementById('l-date').value,time:document.getElementById('l-time').value,dose:parseFloat(document.getElementById('l-dose').value)||0,unit:document.getElementById('l-unit').value,syr:parseFloat(document.getElementById('l-syr').value)||null,vol:parseFloat(document.getElementById('l-vol').value)||null,status:document.getElementById('l-status').value,notes:document.getElementById('l-notes').value};logs.push(e);save();closeSheet('sh-log');render();}
+function delLog(id){logs=logs.filter(l=>l.id!==id);save();renderLog();renderDash();}
+function quickLog(medId){const m=meds.find(x=>x.id===medId);if(!m)return;const now=new Date();const fc=getFc(m);logs.push({id:uid(),medId,date:fD(now),time:now.toTimeString().slice(0,5),dose:parseFloat(m.dose),unit:m.unit,syr:null,vol:fc?.dvol||null,status:'taken',notes:''});save();render();}
+
+// ── VIALS ─────────────────────────────────────────────────────────────────────
+function renderVials(){const el=document.getElementById('vial-list');const sorted=[...vials].sort((a,b)=>dl(b)-dl(a));if(!sorted.length){el.innerHTML='<div style="text-align:center;padding:30px 0;color:var(--mu);font-size:13px">No vials recorded.</div>';return;}el.innerHTML=sorted.map(v=>{const m=meds.find(x=>x.id===v.medId);const d=dl(v);const conc=v.amt/v.dil;const dvol=m?dv(m,v):null;const expDate=new Date(new Date(v.date).getTime()+v.exp*86400000);return `<div class="vc"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><div><div style="font-family:var(--head);font-size:15px;font-weight:700;color:var(--tx)">${m?.name||'Unknown'}</div><div style="font-size:9px;color:var(--mu)">${v.sup||''}</div></div><span class="badge ${d<=0?'b-dn':d<=7?'b-wn':'b-on'}">${d<=0?'Expired':d+'d left'}</span></div><div class="vc-row"><span class="vc-lbl">Vial</span><span class="vc-val">${v.amt}mg / ${v.dil}mL ${v.dtype}</span></div><div class="vc-row"><span class="vc-lbl">Concentration</span><span class="vc-val">${conc.toFixed(3)} mg/mL</span></div>${dvol?`<div class="vc-row"><span class="vc-lbl">Vol/dose (${m.dose}${m.unit})</span><span class="vc-val">${(dvol*1000).toFixed(1)}&micro;L = ${dvol.toFixed(3)}mL</span></div>`:''}${dvol?`<div class="vc-row"><span class="vc-lbl">U-100 marks</span><span class="vc-val">${(dvol*100).toFixed(1)} units</span></div>`:''}<div class="vc-row"><span class="vc-lbl">Reconstituted</span><span class="vc-val">${v.date}</span></div><div class="vc-row"><span class="vc-lbl">Expires</span><span class="vc-val">${expDate.toLocaleDateString()}</span></div>${v.stor?`<div class="vc-row"><span class="vc-lbl">Storage</span><span class="vc-val">${v.stor}</span></div>`:''}${dvol?`<div class="vc-row"><span class="vc-lbl">Est. total doses</span><span class="vc-val" style="color:var(--ac)">${Math.floor(v.dil/dvol)}</span></div>`:''}<div style="text-align:right;margin-top:10px"><button class="btn btn-d btn-sm" onclick="delVial('${v.id}')">Remove</button></div></div>`;}).join('');document.getElementById('v-med').innerHTML=meds.map(m=>`<option value="${m.id}">${m.name}</option>`).join('');}
+function openAddVial(){document.getElementById('v-med').innerHTML=meds.map(m=>`<option value="${m.id}">${m.name}</option>`).join('');['v-amt','v-dil','v-stor','v-lot','v-sup'].forEach(id=>document.getElementById(id).value='');document.getElementById('v-date').value=fD(new Date());document.getElementById('v-exp').value=28;openSheet('sh-vial');}
+function openVialFor(medId){openAddVial();document.getElementById('v-med').value=medId;}
+function saveVial(){const e={id:uid(),medId:document.getElementById('v-med').value,amt:parseFloat(document.getElementById('v-amt').value),dil:parseFloat(document.getElementById('v-dil').value),dtype:document.getElementById('v-dtype').value,date:document.getElementById('v-date').value,exp:parseInt(document.getElementById('v-exp').value)||28,stor:document.getElementById('v-stor').value,lot:document.getElementById('v-lot').value,sup:document.getElementById('v-sup').value};if(!e.amt||!e.dil){alert('Amount and diluent required');return;}vials.push(e);save();closeSheet('sh-vial');renderVials();renderDash();}
+function delVial(id){if(!confirm('Remove vial?'))return;vials=vials.filter(v=>v.id!==id);save();renderVials();renderDash();}
+function setOv(id,val){if(!val||val==='')delete volOv[id];else volOv[id]=parseFloat(val);save();render();}
+function clearOv(id){delete volOv[id];save();render();}
+function calcR(){const v=parseFloat(document.getElementById('rc-vial').value);const b=parseFloat(document.getElementById('rc-bac').value);const mcg=parseFloat(document.getElementById('rc-mcg').value);const mg=parseFloat(document.getElementById('rc-mgd').value);const el=document.getElementById('calc-out');if(!v||!b){el.style.display='none';return;}const c=v/b;const d=mg||(mcg?mcg/1000:null);const vol=d?d/c:null;el.style.display='';el.innerHTML=`<div class="vc" style="margin-top:12px"><div class="vc-row"><span class="vc-lbl">Concentration</span><span class="vc-val">${c.toFixed(4)} mg/mL</span></div>${vol?`<div class="vc-row"><span class="vc-lbl">Vol / dose</span><span class="vc-val">${(vol*1000).toFixed(1)}&micro;L = ${vol.toFixed(4)}mL</span></div>`:''} ${vol?`<div class="vc-row"><span class="vc-lbl">U-100 marks</span><span class="vc-val">${(vol*100).toFixed(1)} units</span></div>`:''} ${vol?`<div class="vc-row"><span class="vc-lbl">Est. doses</span><span class="vc-val" style="color:var(--ac)">${Math.floor(b/vol)}</span></div>`:''}</div>`;}
+
+// ── MIXING ────────────────────────────────────────────────────────────────────
+function renderMix(){
+  const active=meds.filter(m=>m.status==='active');
+  const ck=document.getElementById('mix-check');
+  const STF={'Tirzepatide':['Tirzepatide'],'Semaglutide':['Semaglutide'],'Retatrutide':['Retatrutide'],'Sermorelin':['Sermorelin'],'CJC+Ipa':['CJC+Ipa'],'Tesamorelin':['Tesamorelin'],'BPC-157':['BPC-157'],'TB-500':['TB-500'],'BPC+TB':['BPC+TB'],'GHK-Cu':['GHK-Cu'],'TA1':['TA1'],'VIP':['VIP'],'Epitalon':['Epitalon'],'Pinealon':['Pinealon'],'Selank':['Selank'],'Mel-2':['Mel-2'],'NAD+':['NAD+'],'MOTS-C':['MOTS-C'],'SS-31':['SS-31']};
+  function findKey(name){return MP.find(p=>name.toLowerCase().includes(p.toLowerCase().split('+')[0].trim().replace('-',''))||p.toLowerCase().includes(name.toLowerCase().split(' ')[0].replace('-','')));}
+  const matched=active.map(m=>({med:m,key:findKey(m.name)})).filter(x=>x.key);
+  if(matched.length<2){ck.innerHTML='<div class="card" style="color:var(--mu);font-size:12px">Need 2+ recognized peptides in active protocols to check compatibility.</div>';}
+  else{let h='';for(let i=0;i<matched.length;i++){for(let j=i+1;j<matched.length;j++){const a=matched[i],b=matched[j];const c=MC[a.key]?.[b.key]||'caution';const ic=c==='yes'?'&#10003;':c==='no'?'&#10005;':'&#9888;';const col=c==='yes'?'var(--ac)':c==='no'?'var(--dn)':'var(--wn)';const lbl=c==='yes'?'Compatible':c==='no'?'Do NOT mix':'Use caution';h+=`<div style="display:flex;align-items:center;justify-content:space-between;padding:11px 13px;background:var(--s1);border:1px solid var(--br);border-radius:10px;margin-bottom:8px;gap:10px"><div style="font-size:12px;color:var(--tx)">${a.med.name} + ${b.med.name}</div><div style="display:flex;align-items:center;gap:5px;flex-shrink:0"><span style="color:${col};font-size:16px">${ic}</span><span style="font-size:10px;color:${col};font-weight:700">${lbl}</span></div></div>`;}}ck.innerHTML=h;}
+  // Matrix
+  const el=document.getElementById('mix-matrix');
+  const short=['GLP-1','Serm','CJC','Tesam','BPC','TB','B+T','GHK','TA1','VIP','Epit','Pin','Sel','Mel','NAD','MOTS','SS31'];
+  const full=[['Tirzepatide','Semaglutide','Retatrutide'],['Sermorelin'],['CJC+Ipa'],['Tesamorelin'],['BPC-157'],['TB-500'],['BPC+TB'],['GHK-Cu'],['TA1'],['VIP'],['Epitalon'],['Pinealon'],['Selank'],['Mel-2'],['NAD+'],['MOTS-C'],['SS-31']];
+  function bc(ri,ci){if(ri===ci)return'var(--br)';const akeys=full[ri],bkeys=full[ci];let best='yes';for(const a of akeys)for(const b of bkeys){const c=MC[a]?.[b];if(c==='no')return'rgba(248,113,113,.25)';if(c==='caution')best='caution';}return best==='caution'?'rgba(251,191,36,.2)':'rgba(124,58,237,.3)';}
+  function sym(ri,ci){if(ri===ci)return'';const akeys=full[ri],bkeys=full[ci];for(const a of akeys)for(const b of bkeys){const c=MC[a]?.[b];if(c==='no')return'&#10005;';if(c==='caution')return'~';}return'&#10003;';}
+  const cs=20;
+  let h=`<div style="display:grid;grid-template-columns:48px ${short.map(()=>cs+'px').join(' ')};gap:2px;align-items:center">`;
+  h+='<div></div>';
+  short.forEach(s=>{h+=`<div style="font-size:6px;color:var(--mu);text-align:center;writing-mode:vertical-rl;transform:rotate(180deg);height:44px;line-height:1;overflow:hidden">${s}</div>`;});
+  short.forEach((s,ri)=>{h+=`<div style="font-size:7px;color:var(--mu);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:48px">${s}</div>`;short.forEach((_,ci)=>{const bg=bc(ri,ci);const sm=sym(ri,ci);const tc=ri===ci?'':bg.includes('248,113')?'var(--dn)':bg.includes('251,191')?'var(--wn)':'var(--ac)';h+=`<div style="width:${cs}px;height:${cs}px;background:${bg};border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:7px;color:${tc}">${sm}</div>`;});});
+  h+='</div>';
+  h+=`<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px"><div style="display:flex;align-items:center;gap:4px;font-size:9px;color:var(--mu)"><div style="width:10px;height:10px;background:rgba(124,58,237,.3);border-radius:2px"></div>Compatible</div><div style="display:flex;align-items:center;gap:4px;font-size:9px;color:var(--mu)"><div style="width:10px;height:10px;background:rgba(248,113,113,.25);border-radius:2px"></div>Do not mix</div><div style="display:flex;align-items:center;gap:4px;font-size:9px;color:var(--mu)"><div style="width:10px;height:10px;background:rgba(251,191,36,.2);border-radius:2px"></div>Caution</div></div>`;
+  el.innerHTML=h;
+}
+
+// ── LEARN ─────────────────────────────────────────────────────────────────────
+function toggleLearn(hdr){const body=hdr.nextElementSibling;const isOpen=body.classList.contains('open');body.classList.toggle('open');hdr.querySelector('span:last-child').textContent=isOpen?'▾':'▴';}
+
+// ── LIBRARY ───────────────────────────────────────────────────────────────────
+function renderLib(){
+  const q=(document.getElementById('lib-search')?.value||'').toLowerCase();
+  const inUse=meds.map(m=>m.name.toLowerCase());
+  let f=LIB.filter(l=>lF==='all'||l.cat===lF);
+  if(q)f=f.filter(l=>l.name.toLowerCase().includes(q)||l.aka.toLowerCase().includes(q)||l.tags.some(t=>t.toLowerCase().includes(q)));
+  const catC={'GH Secretagogue':['rgba(126,184,247,.15)','#93c5fd'],'Healing':['rgba(134,239,172,.15)','#86efac'],'Metabolic':['rgba(253,224,71,.15)','#fde047'],'Mitochondrial':['rgba(196,181,253,.15)','#c4b5fd']};
+  document.getElementById('lib-grid').innerHTML=f.map(l=>{const iu=inUse.some(n=>l.name.toLowerCase().includes(n.split(' ')[0])||n.includes(l.name.toLowerCase().split(' ')[0]));const [cbg,ctx]=catC[l.cat]||['var(--s2)','var(--mu)'];return `<div class="lc ${iu?'used':''}" onclick="openLibDetail('${l.id}')"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:2px"><div class="lc-name">${l.name}</div>${iu?'<span style="color:var(--ac);font-size:12px">&#10003;</span>':''}</div><div class="lc-aka">${l.aka}</div><div class="lc-cat" style="background:${cbg};color:${ctx}">${l.cat}</div><div class="lc-pre">${l.summary}</div></div>`;}).join('');}
+
+function openLibDetail(id){
+  const l=LIB.find(x=>x.id===id);if(!l)return;libSel=l;
+  document.getElementById('lib-sh-name').textContent=l.name;
+  const ir=(lbl,val)=>`<div class="info-row"><span class="info-lbl">${lbl}</span><span class="info-val">${val}</span></div>`;
+  document.getElementById('lib-sh-body').innerHTML=`<div style="font-size:11px;color:var(--mu);margin-bottom:5px">${l.aka}</div><div style="font-size:12px;color:var(--tx);line-height:1.7;margin-bottom:10px">${l.summary}</div><div class="nb ac">${l.notes}</div>${l.warn?`<div class="nb" style="margin-top:8px">&#9888; ${l.warn}</div>`:''}<div class="sl" style="margin-top:14px">Dosing protocol</div>${ir('Typical',l.dosing.typical)}${ir('Range',l.dosing.range)}${ir('Frequency',l.dosing.freq)}${ir('Timing',l.dosing.timing)}${ir('Cycle',l.dosing.cycle)}<div class="sl" style="margin-top:14px">Reconstitution</div>${ir('Vial',l.recon.vial)}${ir('Diluent',l.recon.dil)}${ir('Conc.',l.recon.conc)}${ir('Expiry',l.recon.exp+' days')}${l.recon.tbl?`<table class="ut" style="margin-top:8px">${l.recon.tbl.split('\n').map(r=>`<tr><td>${r.split('=')[0]?.trim()}</td><td class="uv">${r.split('=')[1]?.trim()}</td></tr>`).join('')}</table>`:''}`;
+  document.getElementById('lib-add-btn').onclick=()=>addLib(l);
+  openSheet('sh-lib');
+}
+function addLib(l){if(!confirm(`Add ${l.name} to your protocols?`))return;openAddMed({name:l.name,dose:l.def.dose,unit:l.def.unit,freq:l.def.freq,time:l.def.time,utbl:l.recon.tbl||'',notes:l.dosing.typical+' \xb7 '+l.dosing.timing,vial:parseFloat(l.recon.vial)||10});closeSheet('sh-lib');}
+
+// ── AI SCRAPER ────────────────────────────────────────────────────────────────
+async function runScraper(){
+  const key=document.getElementById('ai-key').value.trim();
+  const txt=document.getElementById('ai-txt').value.trim();
+  if(!key){alert('Enter your Anthropic API key first.');return;}
+  if(!txt){alert('Enter some text to scan.');return;}
+  document.getElementById('ai-loading').style.display='';
+  document.getElementById('ai-results').innerHTML='';
+  const prompt=`You are a medical protocol data extractor. Extract all medication/peptide dosing from the text. Return ONLY valid JSON, no markdown:\n{"protocols":[{"name":"string","dose":number_or_null,"unit":"mcg|mg|IU|mL|units or null","frequency":"daily|5on2off|weekly|eod|twice_weekly|monthly or null","vialSizeMg":number_or_null,"unitTable":"newline-separated or null","timing":"string or null","notes":"string or null","warnings":"string or null","confidence":0.0_to_1.0}],"summary":"brief"}\n\nText:\n${txt.slice(0,6000)}`;
+  try{const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:2048,messages:[{role:'user',content:prompt}]})});const data=await res.json();const raw=(data.content||[]).map(c=>c.text||'').join('').replace(/```json|```/g,'').trim();const parsed=JSON.parse(raw);document.getElementById('ai-loading').style.display='none';const protos=parsed.protocols||[];document.getElementById('ai-results').innerHTML=`<div style="font-size:11px;color:var(--mu);margin-bottom:10px">${parsed.summary||''}</div>${protos.map(p=>`<div style="background:var(--s2);border:1px solid var(--br);border-radius:10px;padding:12px;margin-bottom:8px"><div style="font-family:var(--head);font-size:15px;font-weight:700;color:var(--tx)">${p.name}</div>${p.dose?`<div style="font-size:11px;color:var(--mu);margin-top:3px">${p.dose} ${p.unit||''} &middot; ${p.frequency||''}</div>`:''} ${p.notes?`<div style="font-size:11px;color:var(--mu);margin-top:5px;line-height:1.5">${p.notes}</div>`:''} ${p.warnings?`<div class="nb" style="margin-top:6px;font-size:10px">&#9888; ${p.warnings}</div>`:''}<div style="height:3px;border-radius:2px;background:var(--ac);width:${Math.round((p.confidence||0)*100)}%;margin-top:8px;margin-bottom:4px"></div><div style="font-size:9px;color:var(--ac);margin-bottom:8px">${Math.round((p.confidence||0)*100)}% confidence</div><button class="btn btn-p btn-sm" onclick='addScraped(${JSON.stringify(p)})'>+ Add to protocols</button></div>`).join('')}`;}catch(e){document.getElementById('ai-loading').style.display='none';document.getElementById('ai-results').innerHTML=`<div class="nb">Error: ${e.message}</div>`;}
+}
+function addScraped(p){openAddMed({name:p.name,dose:p.dose,unit:p.unit||'mcg',freq:p.frequency||'5on2off',time:'20:00',utbl:p.unitTable||'',notes:p.notes||'',vial:p.vialSizeMg||10});closeSheet('sh-scraper');}
+
+// ── SHEETS ────────────────────────────────────────────────────────────────────
+function openSheet(id){document.getElementById(id).classList.add('on');}
+function closeSheet(id){document.getElementById(id).classList.remove('on');}
+document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('on');}));
+
+// ── UTILS ─────────────────────────────────────────────────────────────────────
+function fD(d){return d.toISOString().split('T')[0];}
+function sd(d){return d.toLocaleDateString('en-US',{month:'short',day:'numeric'});}
+function uid(){return Math.random().toString(36).slice(2,8)+Date.now().toString(36);}
+
+if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});
+init();
+</script>
+</body>
+</html>

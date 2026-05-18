@@ -501,6 +501,17 @@ body{height:100%;background:var(--bg);color:var(--tx);font-family:var(--mono);di
       </div>
     </div>
 
+
+    <!-- PROTOCOL BUILDER -->
+    <div class="screen" id="sc-protocol">
+      <div class="ph">
+        <div class="ph-row"><h1>Protocol</h1><button class="btn btn-p btn-sm" onclick="openAddProtocol()">+ New</button></div>
+      </div>
+      <div class="sb" id="proto-sb">
+        <div id="proto-list"></div>
+      </div>
+    </div>
+
     <!-- LIBRARY -->
     <div class="screen" id="sc-lib">
       <div class="ph"><div class="ph-row"><h1>Library</h1><button class="ai-btn" onclick="openSheet('sh-scraper')">&#10022; AI Scan</button></div></div>
@@ -518,8 +529,9 @@ body{height:100%;background:var(--bg);color:var(--tx);font-family:var(--mono);di
   </div>
 
   <!-- TAB BAR -->
-  <div class="tabs" style="grid-template-columns:repeat(7,1fr)">
+  <div class="tabs" style="grid-template-columns:repeat(8,1fr);overflow-x:auto">
     <div class="tab on" data-sc="dashboard" onclick="switchTab(this)"><div class="tab-ic">&#8962;</div><div class="tab-lb">Home</div></div>
+    <div class="tab" data-sc="protocol" onclick="switchTab(this)"><div class="tab-ic">&#10024;</div><div class="tab-lb">Protocol</div></div>
     <div class="tab" data-sc="meds" onclick="switchTab(this)" style="position:relative"><div class="tab-ic">&#10010;</div><div class="tab-lb">Meds</div><div class="tab-badge" id="ro-badge" style="display:none">0</div></div>
     <div class="tab" data-sc="log" onclick="switchTab(this)"><div class="tab-ic">&#9776;</div><div class="tab-lb">Log</div></div>
     <div class="tab" data-sc="vials" onclick="switchTab(this)"><div class="tab-ic">&#8853;</div><div class="tab-lb">Vials</div></div>
@@ -562,18 +574,95 @@ body{height:100%;background:var(--bg);color:var(--tx);font-family:var(--mono);di
   <div class="sheet-footer"><button class="btn btn-g" style="flex:1" onclick="closeSheet('sh-log')">Cancel</button><button class="btn btn-p" style="flex:2" onclick="saveLog()">Save</button></div>
 </div></div>
 
-<div class="overlay" id="sh-vial"><div class="sheet">
+<div class="overlay" id="sh-vial"><div class="sheet" style="max-height:95vh">
   <div class="sheet-handle"></div>
   <div class="sheet-hdr"><h2>Record vial</h2><button class="sheet-close" onclick="closeSheet('sh-vial')">&#10005;</button></div>
   <div class="sheet-body">
-    <div class="fg"><label>Medication</label><select id="v-med"></select></div>
-    <div class="fg-row"><div class="fg"><label>Vial (mg)</label><input id="v-amt" type="number" step="0.1"></div><div class="fg"><label>Diluent (mL)</label><input id="v-dil" type="number" step="0.1"></div></div>
+    <!-- Blend toggle -->
+    <div style="display:flex;align-items:center;justify-content:space-between;background:var(--s1);border:1px solid var(--br);border-radius:10px;padding:12px 14px;margin-bottom:14px">
+      <div><div style="font-size:13px;font-weight:600;color:var(--tx)">Blend vial</div><div style="font-size:10px;color:var(--mu);margin-top:2px">Multiple peptides in one vial</div></div>
+      <div style="position:relative;width:44px;height:26px;cursor:pointer" onclick="toggleBlend()">
+        <div id="blend-track" style="position:absolute;inset:0;background:var(--br);border-radius:13px;transition:background .2s"></div>
+        <div id="blend-thumb" style="position:absolute;top:3px;left:3px;width:20px;height:20px;background:#fff;border-radius:50%;transition:left .2s"></div>
+      </div>
+    </div>
+    <!-- Single med (shown when not blend) -->
+    <div id="v-single-wrap">
+      <div class="fg"><label>Medication</label><select id="v-med"></select></div>
+      <div class="fg-row"><div class="fg"><label>Vial (mg)</label><input id="v-amt" type="number" step="0.1" oninput="updateBlendCalc()"></div><div class="fg"><label>Diluent (mL)</label><input id="v-dil" type="number" step="0.1" oninput="updateBlendCalc()"></div></div>
+    </div>
+    <!-- Blend components (shown when blend) -->
+    <div id="v-blend-wrap" style="display:none">
+      <div class="fg"><label>Blend name</label><input id="v-blend-name" placeholder="e.g. KLOW Blend"></div>
+      <div class="fg"><label>Diluent added (mL)</label><input id="v-dil-blend" type="number" step="0.1" value="4" oninput="updateBlendCalc()"></div>
+      <div id="v-components"></div>
+      <button class="btn btn-g btn-sm" style="margin-bottom:12px;width:100%" onclick="addBlendComponent()">+ Add peptide</button>
+      <!-- Live calc -->
+      <div id="blend-calc" style="background:var(--bg);border:1px solid var(--br);border-radius:8px;padding:12px;margin-bottom:12px;display:none">
+        <div style="font-size:9px;color:var(--mu);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Per 10 syringe units</div>
+        <div id="blend-calc-rows"></div>
+      </div>
+    </div>
+    <!-- Common fields -->
     <div class="fg"><label>Diluent type</label><select id="v-dtype"><option>BAC Water</option><option>BAC + Acetic Acid</option><option>Saline</option></select></div>
     <div class="fg-row"><div class="fg"><label>Recon date</label><input id="v-date" type="date"></div><div class="fg"><label>Expires (days)</label><input id="v-exp" type="number" value="28"></div></div>
     <div class="fg-row"><div class="fg"><label>Storage</label><input id="v-stor" placeholder="Fridge door"></div><div class="fg"><label>Lot #</label><input id="v-lot"></div></div>
     <div class="fg"><label>Supplier</label><input id="v-sup"></div>
   </div>
   <div class="sheet-footer"><button class="btn btn-g" style="flex:1" onclick="closeSheet('sh-vial')">Cancel</button><button class="btn btn-p" style="flex:2" onclick="saveVial()">Save</button></div>
+</div></div>
+
+<!-- Protocol Builder sheet -->
+<div class="overlay" id="sh-protocol"><div class="sheet" style="max-height:95vh">
+  <div class="sheet-handle"></div>
+  <div class="sheet-hdr"><h2 id="proto-sh-title">New Protocol</h2><button class="sheet-close" onclick="closeSheet('sh-protocol')">&#10005;</button></div>
+  <div class="sheet-body">
+    <div class="fg"><label>Protocol name</label><input id="pr-name" placeholder="e.g. Summer Recomp Stack"></div>
+    <div class="fg"><label>Goal</label>
+      <select id="pr-goal">
+        <option value="weight_loss">&#9878; Weight Loss</option>
+        <option value="muscle">&#128170; Muscle &amp; Recovery</option>
+        <option value="longevity">&#128300; Longevity</option>
+        <option value="performance">&#9889; Athletic Performance</option>
+        <option value="cellular">&#129514; Cellular Health</option>
+        <option value="cognitive">&#129504; Cognitive</option>
+        <option value="healing">&#129657; Healing &amp; Recovery</option>
+        <option value="skin">&#10024; Skin &amp; Aesthetics</option>
+        <option value="custom">&#127919; Custom</option>
+      </select>
+    </div>
+    <div class="fg"><label>Start date</label><input id="pr-start" type="date"></div>
+    <div class="fg"><label>Check-in frequency</label>
+      <select id="pr-checkin"><option value="weekly">Weekly</option><option value="monthly">Monthly</option></select>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;background:var(--s1);border:1px solid var(--br);border-radius:10px;padding:12px 14px;margin-bottom:14px">
+      <div><div style="font-size:13px;font-weight:600;color:var(--tx)">Dose reminders</div><div style="font-size:10px;color:var(--mu);margin-top:2px">Push notification + in-app badge</div></div>
+      <div style="position:relative;width:44px;height:26px;cursor:pointer" onclick="toggleProtoReminders()">
+        <div id="pr-remind-track" style="position:absolute;inset:0;background:var(--ac);border-radius:13px;transition:background .2s"></div>
+        <div id="pr-remind-thumb" style="position:absolute;top:3px;left:21px;width:20px;height:20px;background:#fff;border-radius:50%;transition:left .2s"></div>
+      </div>
+    </div>
+    <div class="sl">Medications in this protocol</div>
+    <div id="pr-meds-list"></div>
+    <button class="btn btn-g btn-sm" style="width:100%;margin-bottom:14px" onclick="addProtoMed()">+ Add medication</button>
+    <div class="sl">Baseline metrics</div>
+    <div id="pr-baseline-fields"></div>
+    <div class="fg"><label>Notes</label><textarea id="pr-notes" rows="2" placeholder="Goals, context, provider notes..."></textarea></div>
+  </div>
+  <div class="sheet-footer"><button class="btn btn-g" style="flex:1" onclick="closeSheet('sh-protocol')">Cancel</button><button class="btn btn-p" style="flex:2" onclick="saveProtocol()">Save protocol</button></div>
+</div></div>
+
+<!-- Check-in sheet -->
+<div class="overlay" id="sh-checkin"><div class="sheet" style="max-height:95vh">
+  <div class="sheet-handle"></div>
+  <div class="sheet-hdr"><h2>Goal Check-in</h2><button class="sheet-close" onclick="closeSheet('sh-checkin')">&#10005;</button></div>
+  <div class="sheet-body">
+    <div class="fg"><label>Protocol</label><select id="ci-proto"></select></div>
+    <div class="fg"><label>Date</label><input id="ci-date" type="date"></div>
+    <div id="ci-fields"></div>
+    <div class="fg"><label>Notes</label><textarea id="ci-notes" rows="2" placeholder="How are you feeling? Any side effects?"></textarea></div>
+  </div>
+  <div class="sheet-footer"><button class="btn btn-g" style="flex:1" onclick="closeSheet('sh-checkin')">Cancel</button><button class="btn btn-p" style="flex:2" onclick="saveCheckin()">Save check-in</button></div>
 </div></div>
 
 <div class="overlay" id="sh-lib"><div class="sheet" style="max-height:95vh">

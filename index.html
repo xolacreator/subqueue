@@ -1125,34 +1125,55 @@ function toggleBlend() {
 }
 
 function addComp() {
-  blendComps.push({ name: '', mg: 0 });
+  blendComps.push({ medId: meds[0]?.id || '', mg: 0 });
   renderComps();
 }
 
 function renderComps() {
+  const medOpts = meds.map(m => `<option value="${m.id}">${m.name}</option>`).join('');
   document.getElementById('v-comps').innerHTML = blendComps.map((c, i) => `
-    <div class="comp-row">
+    <div class="comp-row" id="comp-row-${i}">
       <div class="fg" style="flex:2"><label>Peptide ${i+1}</label>
-        <input placeholder="e.g. KPV" value="${c.name}" onchange="blendComps[${i}].name=this.value;calcBlend()">
+        <select id="comp-med-${i}" onchange="blendComps[${i}].medId=this.value;calcBlend()">
+          ${meds.map(m=>`<option value="${m.id}" ${m.id===c.medId?'selected':''}>${m.name}</option>`).join('')}
+        </select>
       </div>
-      <div class="fg" style="flex:1"><label>mg</label>
-        <input type="number" step="0.1" placeholder="10" value="${c.mg||''}" onchange="blendComps[${i}].mg=parseFloat(this.value)||0;calcBlend()">
+      <div class="fg" style="flex:1"><label>mg in vial</label>
+        <input type="number" step="0.1" placeholder="10" id="comp-mg-${i}" value="${c.mg||''}"
+          oninput="blendComps[${i}].mg=parseFloat(this.value)||0;calcBlend()">
       </div>
-      <button class="btn btn-d btn-xs" style="flex-shrink:0" onclick="blendComps.splice(${i},1);renderComps();calcBlend()">✕</button>
+      <button class="btn btn-d btn-xs" style="flex-shrink:0;margin-bottom:1px"
+        onclick="blendComps.splice(${i},1);renderComps();calcBlend()">✕</button>
     </div>`).join('');
+  calcBlend();
+}
+
+// Read live values directly from DOM to avoid stale state
+function getLiveComps() {
+  return blendComps.map((_, i) => {
+    const sel = document.getElementById('comp-med-' + i);
+    const mgEl = document.getElementById('comp-mg-' + i);
+    const medId = sel?.value || '';
+    const med = meds.find(m => m.id === medId);
+    const mg = parseFloat(mgEl?.value) || 0;
+    return { medId, name: med?.name || '', mg };
+  }).filter(c => c.medId && c.mg > 0);
 }
 
 function calcBlend() {
   if (!blendOn) return;
   const dil = parseFloat(document.getElementById('v-bdil').value) || 0;
-  const valid = blendComps.filter(c => c.name && c.mg > 0);
+  const live = getLiveComps();
   const el = document.getElementById('v-bcalc');
-  if (!dil || !valid.length) { el.style.display = 'none'; return; }
-  const rows = valid.map(c => {
+  if (!dil || !live.length) { el.style.display = 'none'; return; }
+  const rows = live.map(c => {
     const conc = c.mg / dil;
-    const per10 = conc * 0.1 * 1000; // mcg
-    const display = per10 >= 1000 ? `${(per10/1000).toFixed(2)}mg` : `${per10.toFixed(0)}mcg`;
-    return `<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--br);font-size:11px"><span style="color:var(--mu)">${c.name}</span><span style="color:var(--ac);font-family:var(--mono)">${display}</span></div>`;
+    const per10 = conc * 0.1 * 1000; // mcg per 10 units (0.1mL)
+    const display = per10 >= 1000 ? `${(per10/1000).toFixed(3)}mg` : `${per10.toFixed(1)}mcg`;
+    return `<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--br);font-size:11px">
+      <span style="color:var(--mu)">${c.name}</span>
+      <span style="color:var(--ac);font-family:var(--mono)">${display} &nbsp;·&nbsp; ${conc.toFixed(3)} mg/mL</span>
+    </div>`;
   }).join('');
   document.getElementById('v-bcalc-rows').innerHTML = rows;
   el.style.display = '';
@@ -1183,22 +1204,32 @@ function saveVial() {
   const stor = document.getElementById('v-stor').value;
   const lot = document.getElementById('v-lot').value;
   const sup = document.getElementById('v-sup').value;
+
   if (blendOn) {
     const bname = document.getElementById('v-bname').value.trim() || 'Blend Vial';
     const dil = parseFloat(document.getElementById('v-bdil').value);
-    const valid = blendComps.filter(c => c.name && c.mg > 0);
-    if (!dil || valid.length < 2) { alert('Add at least 2 peptide components and a diluent amount'); return; }
-    const totalMg = valid.reduce((s, c) => s + c.mg, 0);
+    if (!dil) { alert('Enter the amount of diluent (BAC water) added.'); return; }
+    const live = getLiveComps();
+    if (live.length < 1) { alert('Add at least one peptide component with a mg amount.'); return; }
+    const totalMg = live.reduce((s, c) => s + c.mg, 0);
     vials.push({
       id: uid(), medId: null, isBlend: true, bname,
-      components: valid.map(c => ({ name: c.name, mg: c.mg, conc: c.mg/dil, per10: (c.mg/dil)*0.1*1000 })),
+      components: live.map(c => ({
+        name: c.name,
+        medId: c.medId,
+        mg: c.mg,
+        conc: parseFloat((c.mg / dil).toFixed(4)),
+        per10: parseFloat(((c.mg / dil) * 0.1 * 1000).toFixed(2))
+      })),
       amt: totalMg, dil, dtype, date, exp, stor, lot, sup
     });
   } else {
     const medId = document.getElementById('v-med').value;
     const amt = parseFloat(document.getElementById('v-amt').value);
     const dil = parseFloat(document.getElementById('v-dil').value);
-    if (!amt || !dil) { alert('Amount and diluent required'); return; }
+    if (!medId) { alert('Select a medication.'); return; }
+    if (!amt) { alert('Enter the vial amount (mg).'); return; }
+    if (!dil) { alert('Enter the diluent amount (mL).'); return; }
     vials.push({ id: uid(), medId, isBlend: false, amt, dil, dtype, date, exp, stor, lot, sup });
   }
   saveAll(); closeSheet('sh-vial'); renderVials(); renderDash();

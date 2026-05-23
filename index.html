@@ -280,7 +280,7 @@ body{display:flex;flex-direction:column;overflow:hidden;}
     <div class="screen on" id="sc-dashboard">
       <div class="ph">
         <div class="wm">Subqueue</div>
-        <div class="ph-row"><h1 id="dash-date"></h1></div>
+        <div class="ph-row"><h1 id="dash-date"></h1><button class="btn btn-g btn-sm" onclick="openSettingsSheet()" style="flex-shrink:0">⚙ Data</button></div>
       </div>
       <div class="sb">
         <div class="stats" id="dash-stats"></div>
@@ -315,7 +315,7 @@ body{display:flex;flex-direction:column;overflow:hidden;}
       <div class="ph"><div class="ph-row"><h1>Dose Log</h1><button class="btn btn-p btn-sm" onclick="openLogDose()">+ Log</button></div></div>
       <div class="sb">
         <div class="lt-wrap"><table class="lt">
-          <thead><tr><th>Date</th><th>Medication</th><th>Dose</th><th>Status</th><th></th></tr></thead>
+          <thead><tr><th>Date</th><th>Medication</th><th>Dose</th><th>Vol</th><th>Status</th><th></th></tr></thead>
           <tbody id="log-body"></tbody>
         </table></div>
         <div id="log-empty" style="display:none;text-align:center;padding:40px 0;font-size:13px;color:var(--mu)">No doses logged yet.</div>
@@ -582,15 +582,47 @@ body{display:flex;flex-direction:column;overflow:hidden;}
 <!-- AI Scraper -->
 <div class="overlay" id="sh-scraper"><div class="sheet" style="max-height:95vh">
   <div class="sheet-handle"></div>
-  <div class="sheet-hdr"><h2>✦ AI Protocol Scan</h2><button class="sheet-close" onclick="closeSheet('sh-scraper')">✕</button></div>
+  <div class="sheet-hdr"><h2>✦ AI Tools</h2><button class="sheet-close" onclick="closeSheet('sh-scraper')">✕</button></div>
   <div class="sheet-body">
     <div class="fg"><label>Anthropic API key</label><input id="ai-key" type="password" placeholder="sk-ant-..." oninput="localStorage.setItem('sq_ai_key',this.value)"></div>
-    <div class="fg"><label>Paste protocol text or notes</label><textarea id="ai-txt" rows="6" placeholder="Paste research notes, dosing protocols, supplier info..."></textarea></div>
-    <button class="btn btn-p btn-full" onclick="runScraper()">✦ Extract protocols</button>
-    <div id="ai-loading" style="display:none;text-align:center;padding:16px;font-size:12px;color:var(--mu)">Scanning with Claude AI...</div>
-    <div id="ai-results" style="margin-top:12px"></div>
+    <div style="background:var(--bg);border:1px solid var(--br);border-radius:10px;padding:13px;margin-bottom:12px">
+      <div style="font-size:13px;font-weight:700;color:var(--tx);margin-bottom:4px">✦ Research Peptide</div>
+      <div style="font-size:11px;color:var(--mu);margin-bottom:10px;line-height:1.5">Enter a peptide name and Claude will generate a full library entry with dosing, reconstitution, and safety data.</div>
+      <div class="fg-row" style="margin-bottom:0">
+        <div class="fg" style="margin-bottom:0"><label>Peptide name</label><input id="ai-research-name" placeholder="e.g. Selank, PT-141, NAD+"></div>
+        <div style="display:flex;align-items:flex-end"><button class="btn btn-p btn-sm" onclick="researchPeptide()" style="white-space:nowrap;margin-bottom:0">Research</button></div>
+      </div>
+      <div id="ai-research-loading" style="display:none;text-align:center;padding:12px;font-size:12px;color:var(--mu)">Researching with Claude...</div>
+      <div id="ai-research-result" style="margin-top:8px"></div>
+    </div>
+    <div style="background:var(--bg);border:1px solid var(--br);border-radius:10px;padding:13px">
+      <div style="font-size:13px;font-weight:700;color:var(--tx);margin-bottom:4px">✦ Extract Protocol from Text</div>
+      <div style="font-size:11px;color:var(--mu);margin-bottom:10px;line-height:1.5">Paste research notes or supplier text and Claude will extract medication protocols.</div>
+      <div class="fg"><label>Paste protocol text or notes</label><textarea id="ai-txt" rows="5" placeholder="Paste research notes, dosing protocols, supplier info..."></textarea></div>
+      <button class="btn btn-p btn-full" onclick="runScraper()">✦ Extract protocols</button>
+      <div id="ai-loading" style="display:none;text-align:center;padding:16px;font-size:12px;color:var(--mu)">Scanning with Claude AI...</div>
+      <div id="ai-results" style="margin-top:12px"></div>
+    </div>
     <div style="margin-top:10px;font-size:10px;color:var(--mu);line-height:1.5">API key stored on-device only. Get yours at console.anthropic.com</div>
   </div>
+</div></div>
+
+<!-- Settings / Data Backup -->
+<div class="overlay" id="sh-settings"><div class="sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-hdr"><h2>⚙ Data & Backup</h2><button class="sheet-close" onclick="closeSheet('sh-settings')">✕</button></div>
+  <div class="sheet-body">
+    <div class="nb info" style="margin-bottom:14px">Your data is saved in this browser's local storage. Export a backup file regularly to prevent data loss if you clear the browser or switch devices.</div>
+    <div class="sl">Backup</div>
+    <button class="btn btn-p btn-full" style="margin-bottom:10px" onclick="exportData()">↓ Export backup (JSON)</button>
+    <button class="btn btn-g btn-full" style="margin-bottom:10px" onclick="importData()">↑ Import backup (JSON)</button>
+    <div class="sl">Stats</div>
+    <div id="settings-stats" style="font-size:12px;color:var(--mu);line-height:2"></div>
+    <div class="sl">Danger zone</div>
+    <button class="btn btn-d btn-full" onclick="resetApp()">⚠ Reset all data</button>
+    <div style="margin-top:8px;font-size:10px;color:var(--mu);line-height:1.5">This permanently deletes all medications, logs, vials, and protocols.</div>
+  </div>
+  <div class="sheet-footer"><button class="btn btn-g btn-full" onclick="closeSheet('sh-settings')">Close</button></div>
 </div></div>
 
 <script>
@@ -602,8 +634,8 @@ const LS = {
 
 // ══ STATE ═════════════════════════════════════════════════════════════════════
 let meds = [], logs = [], vials = [], titrations = [], volOv = {};
-let protocols = [], checkins = [];
-let editMedId = null, editProtoId = null;
+let protocols = [], checkins = [], userLib = [];
+let editMedId = null, editProtoId = null, editLogId = null;
 let mF = 'all', lF = 'all';
 let blendOn = false, blendComps = [];
 let remindOn = true;
@@ -714,6 +746,7 @@ function saveAll() {
   LS.set('meds', meds); LS.set('logs', logs); LS.set('vials', vials);
   LS.set('titrations', titrations); LS.set('volOv', volOv);
   LS.set('protocols', protocols); LS.set('checkins', checkins);
+  LS.set('userLib', userLib);
 }
 
 // ══ INIT ══════════════════════════════════════════════════════════════════════
@@ -731,6 +764,7 @@ function init() {
     volOv       = LS.get('volOv')     || {};
     protocols   = LS.get('protocols') || [];
     checkins    = LS.get('checkins')  || [];
+    userLib     = LS.get('userLib')   || [];
   }
   const k = localStorage.getItem('sq_ai_key');
   if (k) document.getElementById('ai-key').value = k;
@@ -779,9 +813,10 @@ function getFc(m) {
   if (!v) return null;
   const dv = dvol(m, v);
   const since = new Date(v.date);
-  const used = logs
-    .filter(l => l.medId === m.id && l.status === 'taken' && new Date(l.date) >= since)
-    .reduce((s, l) => s + (l.vol || dv || 0), 0);
+  const takenLogs = logs.filter(l => l.medId === m.id && l.status === 'taken' && new Date(l.date) >= since);
+  const used = takenLogs.reduce((s, l) => s + (l.vol || dv || 0), 0);
+  const dosesUsed = dv && dv > 0 ? takenLogs.filter(l => (l.vol || dv) > 0).length : takenLogs.length;
+  const totalDoses = dv && dv > 0 ? Math.floor(v.dil / dv) : null;
   const rem = volOv[v.id] !== undefined ? volOv[v.id] : Math.max(0, v.dil - used);
   const pct = Math.min(100, Math.max(0, rem / v.dil * 100));
   const dLeft = dv && dv > 0 ? Math.floor(rem / dv) : null;
@@ -790,7 +825,7 @@ function getFc(m) {
   const expD = dl(v);
   const lim = ds !== null ? Math.min(ds, expD) : expD;
   const thr = m.reorder || 7;
-  return { v, rem, pct, dLeft, ds, fin, expD, lim, needsReorder: lim <= thr, warnReorder: lim <= thr*2 && lim > thr, conc: v.amt/v.dil, dv };
+  return { v, rem, pct, dLeft, ds, fin, expD, lim, needsReorder: lim <= thr, warnReorder: lim <= thr*2 && lim > thr, conc: v.amt/v.dil, dv, dosesUsed, totalDoses };
 }
 
 // ══ DASHBOARD ═════════════════════════════════════════════════════════════════
@@ -876,15 +911,16 @@ function mcHTML(m) {
   let fcH = '';
   if (fc) {
     const pc = fc.pct < 20 ? ' d' : fc.pct < 40 ? ' w' : '';
+    const doseStr = fc.totalDoses != null ? `${fc.dosesUsed} / ${fc.totalDoses}` : `${fc.dosesUsed} taken`;
     fcH = `<div class="fc">
-      <div class="fc-hdr"><span class="fc-label">Forecast</span><span style="font-size:9px;color:var(--mu)">${fc.conc.toFixed(2)} mg/mL</span></div>
+      <div class="fc-hdr"><span class="fc-label">Vial Forecast</span><span style="font-size:9px;color:var(--mu)">${fc.conc.toFixed(2)} mg/mL</span></div>
       <div class="fc-grid">
+        <div class="fc-cell"><div class="fc-cl">Doses used</div><div class="fc-cv a" style="font-size:15px">${doseStr}</div></div>
         <div class="fc-cell"><div class="fc-cl">Doses left</div><div class="fc-cv ${fc.dLeft!=null&&fc.dLeft<=5?'d':fc.dLeft!=null&&fc.dLeft<=14?'w':'a'}">${fc.dLeft != null ? fc.dLeft : '—'}</div></div>
-        <div class="fc-cell"><div class="fc-cl">Est. finish</div><div class="fc-cv ${fc.ds!=null&&fc.ds<=7?'d':fc.ds!=null&&fc.ds<=14?'w':''}">${fc.fin ? sd(fc.fin) : '—'}</div></div>
         <div class="fc-cell"><div class="fc-cl">Days supply</div><div class="fc-cv ${fc.lim<=7?'d':fc.lim<=14?'w':''}">${fc.lim <= 0 ? 'Expired' : fc.lim + 'd'}</div></div>
-        <div class="fc-cell"><div class="fc-cl">Vial expiry</div><div class="fc-cv ${fc.expD<=3?'d':fc.expD<=7?'w':''}">${fc.expD}d</div></div>
+        <div class="fc-cell"><div class="fc-cl">Est. finish</div><div class="fc-cv ${fc.ds!=null&&fc.ds<=7?'d':fc.ds!=null&&fc.ds<=14?'w':''}">${fc.fin ? sd(fc.fin) : '—'}</div></div>
       </div>
-      <div class="vol-hdr"><span>Volume remaining</span><span>${fc.rem.toFixed(2)}/${fc.v.dil}mL (${Math.round(fc.pct)}%)</span></div>
+      <div class="vol-hdr"><span>Volume remaining</span><span>${fc.rem.toFixed(2)} / ${fc.v.dil}mL &nbsp;(${Math.round(fc.pct)}%)</span></div>
       <div class="vol-track"><div class="vol-fill${pc}" style="width:${fc.pct}%"></div></div>
       <div class="ov-row" style="margin-top:8px">
         <span class="ov-lbl">Override vol:</span>
@@ -894,6 +930,7 @@ function mcHTML(m) {
       </div>
       ${fc.needsReorder ? `<div class="ro-ban">⚠ Reorder now — ${fc.lim}d supply left</div>` : ''}
       ${fc.warnReorder ? `<div class="ro-ban w">↻ Order soon — ${fc.lim}d supply left</div>` : ''}
+      <div style="margin-top:8px;text-align:right"><button class="btn btn-g btn-xs" onclick="openLogFor('${m.id}')">+ Log dose</button></div>
     </div>`;
   }
   return `<div class="mc">
@@ -1012,17 +1049,21 @@ function renderLog() {
   document.getElementById('log-empty').style.display = 'none';
   document.getElementById('log-body').innerHTML = sorted.map(l => {
     const m = meds.find(x => x.id === l.medId);
+    const volStr = l.vol ? `${(l.vol*1000).toFixed(0)}µL` : (l.syr ? `${l.syr}u` : '—');
     return `<tr>
       <td style="white-space:nowrap">${l.date}<br><span style="color:var(--mu);font-size:9px">${l.time||''}</span></td>
       <td>${m?.name||'—'}<br><span style="color:var(--mu);font-size:9px">${m?.src||''}</span></td>
       <td style="font-family:var(--mono)">${l.dose} ${l.unit}</td>
-      <td><span class="sdot ${l.status}"></span>${l.status}</td>
-      <td><button class="btn btn-d btn-xs" onclick="delLog('${l.id}')">✕</button></td>
+      <td style="font-family:var(--mono);color:var(--mu)">${volStr}</td>
+      <td><span class="sdot ${l.status}"></span>${l.status}${l.notes?`<br><span style="color:var(--mu);font-size:9px">${l.notes}</span>`:''}</td>
+      <td style="white-space:nowrap"><button class="btn btn-g btn-xs" onclick="editLog('${l.id}')" style="margin-right:3px">✎</button><button class="btn btn-d btn-xs" onclick="delLog('${l.id}')">✕</button></td>
     </tr>`;
   }).join('');
 }
 
 function openLogDose() {
+  editLogId = null;
+  document.getElementById('sh-log').querySelector('h2').textContent = 'Log dose';
   document.getElementById('l-med').innerHTML = meds.map(m => `<option value="${m.id}">${m.name}</option>`).join('');
   const now = new Date();
   document.getElementById('l-date').value = fD(now);
@@ -1035,15 +1076,39 @@ function openLogDose() {
 
 function openLogFor(medId) { openLogDose(); document.getElementById('l-med').value = medId; prefill(); }
 
+function editLog(id) {
+  const l = logs.find(x => x.id === id); if (!l) return;
+  editLogId = id;
+  document.getElementById('sh-log').querySelector('h2').textContent = 'Edit dose';
+  document.getElementById('l-med').innerHTML = meds.map(m => `<option value="${m.id}">${m.name}</option>`).join('');
+  document.getElementById('l-med').value = l.medId;
+  document.getElementById('l-date').value = l.date;
+  document.getElementById('l-time').value = l.time || '';
+  document.getElementById('l-dose').value = l.dose;
+  document.getElementById('l-unit').value = l.unit || '';
+  document.getElementById('l-syr').value = l.syr || '';
+  document.getElementById('l-vol').value = l.vol || '';
+  document.getElementById('l-status').value = l.status;
+  document.getElementById('l-notes').value = l.notes || '';
+  openSheet('sh-log');
+}
+
 function prefill() {
   const m = meds.find(x => x.id === document.getElementById('l-med').value);
-  if (m) { document.getElementById('l-dose').value = m.dose; document.getElementById('l-unit').value = m.unit; }
+  if (!m) return;
+  document.getElementById('l-dose').value = m.dose;
+  document.getElementById('l-unit').value = m.unit;
+  const fc = getFc(m);
+  if (fc?.dv) {
+    document.getElementById('l-vol').value = fc.dv.toFixed(3);
+    document.getElementById('l-syr').value = Math.round(fc.dv * 100);
+  }
 }
 
 function saveLog() {
   const medId = document.getElementById('l-med').value; if (!medId) return;
   const e = {
-    id: uid(), medId,
+    id: editLogId || uid(), medId,
     date: document.getElementById('l-date').value,
     time: document.getElementById('l-time').value,
     dose: parseFloat(document.getElementById('l-dose').value) || 0,
@@ -1053,7 +1118,10 @@ function saveLog() {
     status: document.getElementById('l-status').value,
     notes: document.getElementById('l-notes').value
   };
-  logs.push(e); saveAll(); closeSheet('sh-log'); render();
+  if (editLogId) { const i = logs.findIndex(l => l.id === editLogId); if (i >= 0) logs[i] = e; }
+  else logs.push(e);
+  editLogId = null;
+  saveAll(); closeSheet('sh-log'); render();
 }
 
 function delLog(id) { logs = logs.filter(l => l.id !== id); saveAll(); renderLog(); renderDash(); }
@@ -1094,6 +1162,14 @@ function renderVials() {
     const m = meds.find(x => x.id === v.medId);
     const conc = v.amt / v.dil;
     const dv2 = m ? dvol(m, v) : null;
+    const fc2 = m ? getFc(m) : null;
+    const totalDoses2 = dv2 ? Math.floor(v.dil / dv2) : null;
+    const since2 = new Date(v.date);
+    const dosesUsed2 = m ? logs.filter(l => l.medId === m.id && l.status === 'taken' && new Date(l.date) >= since2).length : 0;
+    const dosesLeft2 = totalDoses2 != null ? Math.max(0, totalDoses2 - dosesUsed2) : null;
+    const rem2 = fc2?.rem ?? (dv2 ? Math.max(0, v.dil - dosesUsed2 * dv2) : null);
+    const pct2 = rem2 != null ? Math.min(100, Math.max(0, rem2 / v.dil * 100)) : null;
+    const pc2 = pct2 != null ? (pct2 < 20 ? ' d' : pct2 < 40 ? ' w' : '') : '';
     return `<div class="vc">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
         <div><div style="font-size:15px;font-weight:700;color:var(--tx)">${m?.name||'Unknown'}</div><div style="font-size:9px;color:var(--mu)">${v.sup||''}</div></div>
@@ -1103,10 +1179,12 @@ function renderVials() {
       <div class="vc-row"><span class="vc-lbl">Concentration</span><span class="vc-val">${conc.toFixed(3)} mg/mL</span></div>
       ${dv2 ? `<div class="vc-row"><span class="vc-lbl">Vol/dose (${m.dose}${m.unit})</span><span class="vc-val">${(dv2*1000).toFixed(1)}µL = ${dv2.toFixed(3)}mL</span></div>` : ''}
       ${dv2 ? `<div class="vc-row"><span class="vc-lbl">U-100 marks</span><span class="vc-val">${(dv2*100).toFixed(1)} units</span></div>` : ''}
+      ${totalDoses2 != null ? `<div class="vc-row"><span class="vc-lbl">Doses used / total</span><span class="vc-val" style="color:var(--ac)">${dosesUsed2} / ${totalDoses2}</span></div>` : ''}
+      ${dosesLeft2 != null ? `<div class="vc-row"><span class="vc-lbl">Doses remaining</span><span class="vc-val" style="color:${dosesLeft2<=5?'var(--dn)':dosesLeft2<=10?'var(--wn)':'var(--ac)'}">${dosesLeft2}</span></div>` : ''}
+      ${pct2 != null ? `<div style="margin:6px 0 2px"><div class="vol-hdr"><span>Volume remaining</span><span>${rem2!=null?rem2.toFixed(2):'?'} / ${v.dil}mL (${pct2!=null?Math.round(pct2):0}%)</span></div><div class="vol-track"><div class="vol-fill${pc2}" style="width:${pct2||0}%"></div></div></div>` : ''}
       <div class="vc-row"><span class="vc-lbl">Reconstituted</span><span class="vc-val">${v.date}</span></div>
       <div class="vc-row"><span class="vc-lbl">Expires</span><span class="vc-val">${expDate.toLocaleDateString()}</span></div>
       ${v.stor ? `<div class="vc-row"><span class="vc-lbl">Storage</span><span class="vc-val">${v.stor}</span></div>` : ''}
-      ${dv2 ? `<div class="vc-row"><span class="vc-lbl">Est. total doses</span><span class="vc-val" style="color:var(--ac)">${Math.floor(v.dil/dv2)}</span></div>` : ''}
       <div style="text-align:right;margin-top:10px"><button class="btn btn-d btn-sm" onclick="delVial('${v.id}')">Remove</button></div>
     </div>`;
   }).join('');
@@ -1268,6 +1346,13 @@ function renderProtocols() {
     const myMeds = (p.meds || []).map(r => meds.find(m => m.id === r.medId)?.name).filter(Boolean);
     const myCIs = checkins.filter(c => c.protoId === p.id).sort((a,b) => new Date(b.date) - new Date(a.date));
     const latest = myCIs[0];
+    const daysElapsed = p.startDate ? Math.max(0, Math.floor((Date.now() - new Date(p.startDate)) / 86400000)) : 0;
+    const protoMedObjs = (p.meds||[]).map(r => meds.find(m => m.id === r.medId)).filter(Boolean);
+    const expectedDoses = protoMedObjs.reduce((s, m) => s + (dpw(m) / 7 * daysElapsed), 0);
+    const actualDoses = protoMedObjs.reduce((s, m) => {
+      return s + logs.filter(l => l.medId === m.id && l.status === 'taken' && (!p.startDate || l.date >= p.startDate)).length;
+    }, 0);
+    const adherencePct = expectedDoses > 0 ? Math.min(100, Math.round(actualDoses / expectedDoses * 100)) : null;
     const numMs = (goal.metrics||[]).filter(m => MTYPE[m]==='num');
     const tm = numMs[0];
     const tData = myCIs.slice(0,6).reverse();
@@ -1297,6 +1382,7 @@ function renderProtocols() {
           </div>
         </div>
         ${myMeds.length ? `<div class="proto-meds">${myMeds.map(n=>`<span class="badge b-on">${n}</span>`).join('')}</div>` : ''}
+        ${adherencePct !== null ? `<div style="margin-bottom:8px"><div class="vol-hdr"><span>Adherence — ${actualDoses} doses in ${daysElapsed}d</span><span style="color:${adherencePct>=80?'var(--ac)':adherencePct>=50?'var(--wn)':'var(--dn)'}">${adherencePct}%</span></div><div class="vol-track"><div class="vol-fill${adherencePct<30?' d':adherencePct<60?' w':''}" style="width:${adherencePct}%"></div></div></div>` : ''}
         ${trendHTML}${sliderHTML}
         <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">
           <button class="btn btn-p btn-sm" onclick="openCheckin('${p.id}')">+ Check-in</button>
@@ -1545,21 +1631,24 @@ function renderMix() {
 function toggleLearn(hdr) { const b = hdr.nextElementSibling; b.classList.toggle('open'); hdr.querySelector('span:last-child').textContent = b.classList.contains('open') ? '▴' : '▾'; }
 
 // ══ LIBRARY ═══════════════════════════════════════════════════════════════════
+function allLib() { return [...LIB, ...userLib]; }
 function setLF(btn) { lF = btn.dataset.f; document.querySelectorAll('#sc-lib .fb').forEach(b => b.classList.remove('on')); btn.classList.add('on'); renderLib(); }
 
 function renderLib() {
   const q = (document.getElementById('lib-search')?.value || '').toLowerCase();
   const inUse = meds.map(m => m.name.toLowerCase());
-  let f = LIB.filter(l => lF==='all' || l.cat===lF);
+  let f = allLib().filter(l => lF==='all' || l.cat===lF);
   if (q) f = f.filter(l => l.name.toLowerCase().includes(q) || l.aka.toLowerCase().includes(q) || l.tags.some(t=>t.toLowerCase().includes(q)));
   const catC = {'GH Secretagogue':['rgba(126,184,247,.15)','#93c5fd'],'Healing':['rgba(134,239,172,.15)','#86efac'],'Metabolic':['rgba(253,224,71,.15)','#fde047'],'Mitochondrial':['rgba(196,181,253,.15)','#c4b5fd']};
+  const userLibIds = new Set(userLib.map(x => x.id));
   document.getElementById('lib-grid').innerHTML = f.map(l => {
     const iu = inUse.some(n => l.name.toLowerCase().includes(n.split(' ')[0]) || n.includes(l.name.toLowerCase().split(' ')[0]));
+    const isUser = userLibIds.has(l.id);
     const [cbg,ctx] = catC[l.cat] || ['var(--s2)','var(--mu)'];
     return `<div class="lc ${iu?'used':''}" onclick="openLibDetail('${l.id}')">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:2px">
         <div class="lc-name">${l.name}</div>
-        ${iu ? '<span style="color:var(--ac);font-size:12px">✓</span>' : ''}
+        <div style="display:flex;gap:3px;align-items:center">${isUser?'<span style="color:var(--ac);font-size:9px">✦</span>':''} ${iu ? '<span style="color:var(--ac);font-size:12px">✓</span>' : ''}</div>
       </div>
       <div class="lc-aka">${l.aka}</div>
       <div class="lc-cat" style="background:${cbg};color:${ctx}">${l.cat}</div>
@@ -1570,20 +1659,25 @@ function renderLib() {
 
 let libSel = null;
 function openLibDetail(id) {
-  const l = LIB.find(x => x.id === id); if (!l) return;
+  const l = allLib().find(x => x.id === id); if (!l) return;
   libSel = l;
   document.getElementById('lib-sh-name').textContent = l.name;
   const ir = (lbl,val) => `<div class="info-row"><span class="info-lbl">${lbl}</span><span class="info-val">${val}</span></div>`;
+  const isUser = userLib.some(x => x.id === l.id);
   document.getElementById('lib-sh-body').innerHTML = `
-    <div style="font-size:11px;color:var(--mu);margin-bottom:5px">${l.aka}</div>
+    <div style="display:flex;align-items:center;gap:7px;margin-bottom:5px">
+      <div style="font-size:11px;color:var(--mu)">${l.aka}</div>
+      ${isUser ? '<span class="badge b-on" style="font-size:8px">✦ AI Added</span>' : ''}
+    </div>
     <div style="font-size:12px;color:var(--tx);line-height:1.7;margin-bottom:10px">${l.summary}</div>
-    <div class="nb ac">${l.notes}</div>
+    ${l.notes ? `<div class="nb ac">${l.notes}</div>` : ''}
     ${l.warn ? `<div class="nb" style="margin-top:8px">⚠ ${l.warn}</div>` : ''}
     <div class="sl" style="margin-top:14px">Dosing protocol</div>
-    ${ir('Typical',l.dosing.typical)}${ir('Range',l.dosing.range)}${ir('Frequency',l.dosing.freq)}${ir('Timing',l.dosing.timing)}${ir('Cycle',l.dosing.cycle)}
+    ${ir('Typical',l.dosing?.typical||'—')}${ir('Range',l.dosing?.range||'—')}${ir('Frequency',l.dosing?.freq||'—')}${ir('Timing',l.dosing?.timing||'—')}${ir('Cycle',l.dosing?.cycle||'—')}
     <div class="sl" style="margin-top:14px">Reconstitution</div>
-    ${ir('Vial',l.recon.vial)}${ir('Diluent',l.recon.dil)}${ir('Conc.',l.recon.conc)}${ir('Expiry',l.recon.exp+' days')}
-    ${l.recon.tbl ? `<table class="ut" style="margin-top:8px">${l.recon.tbl.split('\n').map(r=>`<tr><td>${r.split('=')[0]?.trim()}</td><td class="uv">${r.split('=')[1]?.trim()}</td></tr>`).join('')}</table>` : ''}`;
+    ${ir('Vial',l.recon?.vial||'—')}${ir('Diluent',l.recon?.dil||'—')}${ir('Conc.',l.recon?.conc||'—')}${ir('Expiry',(l.recon?.exp||28)+' days')}
+    ${l.recon?.tbl ? `<table class="ut" style="margin-top:8px">${l.recon.tbl.split('\n').map(r=>`<tr><td>${r.split('=')[0]?.trim()}</td><td class="uv">${r.split('=')[1]?.trim()}</td></tr>`).join('')}</table>` : ''}
+    ${isUser ? `<button class="btn btn-d btn-sm btn-full" style="margin-top:14px" onclick="delUserLib('${l.id}');closeSheet('sh-lib')">Remove from library</button>` : ''}`;
   document.getElementById('lib-add-btn').onclick = () => addFromLib(l);
   openSheet('sh-lib');
 }
@@ -1620,6 +1714,111 @@ async function runScraper() {
 function addScraped(p) {
   openAddMed({ name: p.name, dose: p.dose, unit: p.unit||'mcg', freq: p.frequency||'5on2off', time:'20:00', utbl: p.unitTable||'', notes: p.notes||'', vial: p.vialSizeMg||10 });
   closeSheet('sh-scraper');
+}
+
+// ══ DATA BACKUP ════════════════════════════════════════════════════════════════
+function exportData() {
+  const data = { meds, logs, vials, protocols, checkins, volOv, userLib, exportedAt: new Date().toISOString() };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `subqueue-backup-${fD(new Date())}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(a.href);
+}
+
+function importData() {
+  const input = document.createElement('input');
+  input.type = 'file'; input.accept = '.json';
+  input.onchange = e => {
+    const file = e.target.files[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const d = JSON.parse(ev.target.result);
+        if (!d.meds && !d.logs) { alert('Invalid backup file — missing data.'); return; }
+        if (!confirm(`Import backup from ${d.exportedAt ? new Date(d.exportedAt).toLocaleDateString() : 'unknown date'}?\nThis replaces ALL current data.`)) return;
+        meds = d.meds || []; logs = d.logs || []; vials = d.vials || [];
+        protocols = d.protocols || []; checkins = d.checkins || [];
+        volOv = d.volOv || {}; userLib = d.userLib || [];
+        saveAll(); render(); closeSheet('sh-settings');
+        alert('Data imported successfully.');
+      } catch { alert('Invalid backup file — could not parse JSON.'); }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+function resetApp() {
+  if (!confirm('RESET: Delete all medications, logs, vials, protocols, and check-ins?\nThis cannot be undone.')) return;
+  if (!confirm('Are you absolutely sure? All your data will be lost.')) return;
+  meds = []; logs = []; vials = []; protocols = []; checkins = [];
+  volOv = {}; userLib = []; titrations = [];
+  localStorage.removeItem('sq_seed_v1');
+  saveAll(); render(); closeSheet('sh-settings');
+}
+
+function openSettingsSheet() {
+  const el = document.getElementById('settings-stats');
+  el.innerHTML = [
+    `Medications: <b style="color:var(--ac)">${meds.length}</b>`,
+    `Dose logs: <b style="color:var(--ac)">${logs.length}</b>`,
+    `Active vials: <b style="color:var(--ac)">${vials.filter(v=>dl(v)>0).length}</b>`,
+    `Protocols: <b style="color:var(--ac)">${protocols.length}</b>`,
+    `Check-ins: <b style="color:var(--ac)">${checkins.length}</b>`,
+    `Library entries: <b style="color:var(--ac)">${LIB.length} built-in + ${userLib.length} custom</b>`,
+  ].join('<br>');
+  openSheet('sh-settings');
+}
+
+// ══ AI LIBRARY RESEARCH ════════════════════════════════════════════════════════
+async function researchPeptide() {
+  const key = (document.getElementById('ai-key').value || localStorage.getItem('sq_ai_key') || '').trim();
+  const name = document.getElementById('ai-research-name').value.trim();
+  if (!key) { alert('Enter your Anthropic API key first.'); return; }
+  if (!name) { alert('Enter a peptide name to research.'); return; }
+  document.getElementById('ai-research-loading').style.display = '';
+  document.getElementById('ai-research-result').innerHTML = '';
+  const prompt = `You are a peptide pharmacology expert. Generate complete, accurate data for the peptide: "${name}". Return ONLY valid JSON with no markdown fences:\n{"id":"ul_${Date.now()}","name":"exact name","aka":"full chemical name or aliases","cat":"GH Secretagogue|Healing|Metabolic|Mitochondrial|Nootropic|Other","tags":["tag1","tag2"],"summary":"2-3 sentence mechanism and uses","dosing":{"typical":"dose range per injection","range":"full dose spectrum","freq":"injection frequency","timing":"best timing and context","cycle":"recommended cycle length"},"recon":{"vial":"typical vial size","dil":"diluent volume and type","conc":"resulting concentration","tbl":"unit conversion table, newline separated, e.g. 5 units = 250mcg\\n10 units = 500mcg","exp":28},"def":{"dose":250,"unit":"mcg","freq":"5on2off","time":"20:00"},"notes":"key clinical notes","warn":"safety warnings or contraindications"}`;
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', { method:'POST', headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01'}, body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:2048, messages:[{role:'user',content:prompt}] }) });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message);
+    const raw = (data.content||[]).map(c=>c.text||'').join('').replace(/```json|```/g,'').trim();
+    const entry = JSON.parse(raw);
+    document.getElementById('ai-research-loading').style.display = 'none';
+    document.getElementById('ai-research-result').innerHTML = `
+      <div style="background:var(--s1);border:1px solid var(--a2);border-radius:10px;padding:12px">
+        <div style="font-size:14px;font-weight:700;color:var(--tx);margin-bottom:2px">${entry.name}</div>
+        <div style="font-size:11px;color:var(--mu);margin-bottom:6px">${entry.aka}</div>
+        <div style="font-size:11px;color:var(--tx);line-height:1.6;margin-bottom:8px">${entry.summary}</div>
+        <div style="font-size:10px;color:var(--mu)"><b>Typical dose:</b> ${entry.dosing?.typical||'—'} · <b>Freq:</b> ${entry.dosing?.freq||'—'}</div>
+        ${entry.warn?`<div class="nb" style="margin-top:8px;font-size:10px">⚠ ${entry.warn}</div>`:''}
+        <button class="btn btn-p btn-sm btn-full" style="margin-top:10px" onclick='saveResearchedPeptide(${JSON.stringify(entry).replace(/'/g,"&#39;")})'>+ Add to Library</button>
+      </div>`;
+  } catch(e) {
+    document.getElementById('ai-research-loading').style.display = 'none';
+    document.getElementById('ai-research-result').innerHTML = `<div class="nb">Error: ${e.message}</div>`;
+  }
+}
+
+function saveResearchedPeptide(entry) {
+  if (allLib().some(l => l.name.toLowerCase() === entry.name.toLowerCase())) {
+    if (!confirm(`${entry.name} is already in your library. Add anyway?`)) return;
+  }
+  entry.id = 'ul_' + uid();
+  userLib.push(entry);
+  saveAll(); renderLib();
+  document.getElementById('ai-research-result').innerHTML = `<div class="nb ac">✓ ${entry.name} added to Library.</div>`;
+  document.getElementById('ai-research-name').value = '';
+}
+
+function delUserLib(id) {
+  userLib = userLib.filter(l => l.id !== id);
+  saveAll(); renderLib();
 }
 
 // ══ SHEETS ════════════════════════════════════════════════════════════════════

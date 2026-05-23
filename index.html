@@ -1689,6 +1689,26 @@ function addFromLib(l) {
 }
 
 // ══ AI SCRAPER ════════════════════════════════════════════════════════════════
+const AI_MODEL = 'claude-sonnet-4-6';
+
+function aiJsonExtract(raw) {
+  const s = raw.indexOf('{'), e = raw.lastIndexOf('}');
+  if (s === -1 || e === -1) throw new Error('No JSON object found in response');
+  return JSON.parse(raw.slice(s, e + 1));
+}
+
+async function aiPost(key, prompt) {
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01' },
+    body: JSON.stringify({ model: AI_MODEL, max_tokens: 2048, messages: [{ role: 'user', content: prompt }] })
+  });
+  const data = await res.json();
+  if (data.error) throw new Error(data.error.message);
+  return (data.content || []).map(c => c.text || '').join('');
+}
+
+let scraperResults = [];
 async function runScraper() {
   const key = document.getElementById('ai-key').value.trim();
   const txt = document.getElementById('ai-txt').value.trim();
@@ -1696,22 +1716,22 @@ async function runScraper() {
   if (!txt) { alert('Enter some text to scan.'); return; }
   document.getElementById('ai-loading').style.display = '';
   document.getElementById('ai-results').innerHTML = '';
+  scraperResults = [];
   const prompt = `You are a medical protocol data extractor. Extract all medication/peptide dosing from the text. Return ONLY valid JSON, no markdown:\n{"protocols":[{"name":"string","dose":number_or_null,"unit":"mcg|mg|IU|mL|units or null","frequency":"daily|5on2off|weekly|eod|twice_weekly|monthly or null","vialSizeMg":number_or_null,"unitTable":"newline-separated or null","timing":"string or null","notes":"string or null","warnings":"string or null","confidence":0.0_to_1.0}],"summary":"brief"}\n\nText:\n${txt.slice(0,6000)}`;
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', { method:'POST', headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01'}, body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:2048, messages:[{role:'user',content:prompt}] }) });
-    const data = await res.json();
-    const raw = (data.content||[]).map(c=>c.text||'').join('').replace(/```json|```/g,'').trim();
-    const parsed = JSON.parse(raw);
+    const raw = await aiPost(key, prompt);
+    const parsed = aiJsonExtract(raw);
     document.getElementById('ai-loading').style.display = 'none';
-    const protos = parsed.protocols||[];
-    document.getElementById('ai-results').innerHTML = `<div style="font-size:11px;color:var(--mu);margin-bottom:10px">${parsed.summary||''}</div>${protos.map(p=>`<div style="background:var(--s2);border:1px solid var(--br);border-radius:10px;padding:12px;margin-bottom:8px"><div style="font-size:14px;font-weight:700;color:var(--tx)">${p.name}</div>${p.dose?`<div style="font-size:11px;color:var(--mu);margin-top:3px">${p.dose} ${p.unit||''} · ${p.frequency||''}</div>`:''} ${p.notes?`<div style="font-size:11px;color:var(--mu);margin-top:5px;line-height:1.5">${p.notes}</div>`:''} ${p.warnings?`<div class="nb" style="margin-top:6px;font-size:10px">⚠ ${p.warnings}</div>`:''}<div style="height:3px;border-radius:2px;background:var(--ac);width:${Math.round((p.confidence||0)*100)}%;margin-top:8px;margin-bottom:4px"></div><div style="font-size:9px;color:var(--ac);margin-bottom:8px">${Math.round((p.confidence||0)*100)}% confidence</div><button class="btn btn-p btn-sm" onclick='addScraped(${JSON.stringify(p)})'>+ Add to protocols</button></div>`).join('')}`;
+    scraperResults = parsed.protocols || [];
+    document.getElementById('ai-results').innerHTML = `<div style="font-size:11px;color:var(--mu);margin-bottom:10px">${parsed.summary||''}</div>${scraperResults.map((p,i)=>`<div style="background:var(--s2);border:1px solid var(--br);border-radius:10px;padding:12px;margin-bottom:8px"><div style="font-size:14px;font-weight:700;color:var(--tx)">${p.name}</div>${p.dose?`<div style="font-size:11px;color:var(--mu);margin-top:3px">${p.dose} ${p.unit||''} · ${p.frequency||''}</div>`:''} ${p.notes?`<div style="font-size:11px;color:var(--mu);margin-top:5px;line-height:1.5">${p.notes}</div>`:''} ${p.warnings?`<div class="nb" style="margin-top:6px;font-size:10px">⚠ ${p.warnings}</div>`:''}<div style="height:3px;border-radius:2px;background:var(--ac);width:${Math.round((p.confidence||0)*100)}%;margin-top:8px;margin-bottom:4px"></div><div style="font-size:9px;color:var(--ac);margin-bottom:8px">${Math.round((p.confidence||0)*100)}% confidence</div><button class="btn btn-p btn-sm" onclick="addScraped(${i})">+ Add to protocols</button></div>`).join('')}`;
   } catch(e) {
     document.getElementById('ai-loading').style.display = 'none';
     document.getElementById('ai-results').innerHTML = `<div class="nb">Error: ${e.message}</div>`;
   }
 }
 
-function addScraped(p) {
+function addScraped(i) {
+  const p = scraperResults[i]; if (!p) return;
   openAddMed({ name: p.name, dose: p.dose, unit: p.unit||'mcg', freq: p.frequency||'5on2off', time:'20:00', utbl: p.unitTable||'', notes: p.notes||'', vial: p.vialSizeMg||10 });
   closeSheet('sh-scraper');
 }
@@ -1775,6 +1795,7 @@ function openSettingsSheet() {
 }
 
 // ══ AI LIBRARY RESEARCH ════════════════════════════════════════════════════════
+let lastResearchedEntry = null;
 async function researchPeptide() {
   const key = (document.getElementById('ai-key').value || localStorage.getItem('sq_ai_key') || '').trim();
   const name = document.getElementById('ai-research-name').value.trim();
@@ -1782,22 +1803,21 @@ async function researchPeptide() {
   if (!name) { alert('Enter a peptide name to research.'); return; }
   document.getElementById('ai-research-loading').style.display = '';
   document.getElementById('ai-research-result').innerHTML = '';
-  const prompt = `You are a peptide pharmacology expert. Generate complete, accurate data for the peptide: "${name}". Return ONLY valid JSON with no markdown fences:\n{"id":"ul_${Date.now()}","name":"exact name","aka":"full chemical name or aliases","cat":"GH Secretagogue|Healing|Metabolic|Mitochondrial|Nootropic|Other","tags":["tag1","tag2"],"summary":"2-3 sentence mechanism and uses","dosing":{"typical":"dose range per injection","range":"full dose spectrum","freq":"injection frequency","timing":"best timing and context","cycle":"recommended cycle length"},"recon":{"vial":"typical vial size","dil":"diluent volume and type","conc":"resulting concentration","tbl":"unit conversion table, newline separated, e.g. 5 units = 250mcg\\n10 units = 500mcg","exp":28},"def":{"dose":250,"unit":"mcg","freq":"5on2off","time":"20:00"},"notes":"key clinical notes","warn":"safety warnings or contraindications"}`;
+  lastResearchedEntry = null;
+  const prompt = `You are a peptide pharmacology expert. Generate complete, accurate data for the peptide: "${name}". Return ONLY valid JSON with no markdown:\n{"name":"string","aka":"string","cat":"GH Secretagogue|Healing|Metabolic|Mitochondrial|Nootropic|Other","tags":["string"],"summary":"string","dosing":{"typical":"string","range":"string","freq":"string","timing":"string","cycle":"string"},"recon":{"vial":"string","dil":"string","conc":"string","tbl":"5 units = 250mcg\\n10 units = 500mcg","exp":28},"def":{"dose":250,"unit":"mcg","freq":"5on2off","time":"20:00"},"notes":"string","warn":"string"}`;
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', { method:'POST', headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01'}, body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:2048, messages:[{role:'user',content:prompt}] }) });
-    const data = await res.json();
-    if (data.error) throw new Error(data.error.message);
-    const raw = (data.content||[]).map(c=>c.text||'').join('').replace(/```json|```/g,'').trim();
-    const entry = JSON.parse(raw);
+    const raw = await aiPost(key, prompt);
+    const entry = aiJsonExtract(raw);
+    lastResearchedEntry = entry;
     document.getElementById('ai-research-loading').style.display = 'none';
     document.getElementById('ai-research-result').innerHTML = `
       <div style="background:var(--s1);border:1px solid var(--a2);border-radius:10px;padding:12px">
         <div style="font-size:14px;font-weight:700;color:var(--tx);margin-bottom:2px">${entry.name}</div>
-        <div style="font-size:11px;color:var(--mu);margin-bottom:6px">${entry.aka}</div>
-        <div style="font-size:11px;color:var(--tx);line-height:1.6;margin-bottom:8px">${entry.summary}</div>
-        <div style="font-size:10px;color:var(--mu)"><b>Typical dose:</b> ${entry.dosing?.typical||'—'} · <b>Freq:</b> ${entry.dosing?.freq||'—'}</div>
+        <div style="font-size:11px;color:var(--mu);margin-bottom:6px">${entry.aka||''}</div>
+        <div style="font-size:11px;color:var(--tx);line-height:1.6;margin-bottom:8px">${entry.summary||''}</div>
+        <div style="font-size:10px;color:var(--mu)"><b>Typical:</b> ${entry.dosing?.typical||'—'} · <b>Freq:</b> ${entry.dosing?.freq||'—'}</div>
         ${entry.warn?`<div class="nb" style="margin-top:8px;font-size:10px">⚠ ${entry.warn}</div>`:''}
-        <button class="btn btn-p btn-sm btn-full" style="margin-top:10px" onclick='saveResearchedPeptide(${JSON.stringify(entry).replace(/'/g,"&#39;")})'>+ Add to Library</button>
+        <button class="btn btn-p btn-sm btn-full" style="margin-top:10px" onclick="saveResearchedPeptide()">+ Add to Library</button>
       </div>`;
   } catch(e) {
     document.getElementById('ai-research-loading').style.display = 'none';
@@ -1805,7 +1825,8 @@ async function researchPeptide() {
   }
 }
 
-function saveResearchedPeptide(entry) {
+function saveResearchedPeptide() {
+  const entry = lastResearchedEntry; if (!entry) return;
   if (allLib().some(l => l.name.toLowerCase() === entry.name.toLowerCase())) {
     if (!confirm(`${entry.name} is already in your library. Add anyway?`)) return;
   }
@@ -1814,6 +1835,7 @@ function saveResearchedPeptide(entry) {
   saveAll(); renderLib();
   document.getElementById('ai-research-result').innerHTML = `<div class="nb ac">✓ ${entry.name} added to Library.</div>`;
   document.getElementById('ai-research-name').value = '';
+  lastResearchedEntry = null;
 }
 
 function delUserLib(id) {

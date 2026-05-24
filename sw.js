@@ -1,4 +1,4 @@
-const CACHE = 'subqueue-v3';
+const CACHE = 'subqueue-v4';
 const ASSETS = ['./index.html', './manifest.json'];
 
 self.addEventListener('install', e => {
@@ -12,6 +12,9 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
+  // Never intercept cross-origin requests (e.g. Anthropic API calls)
+  if (!e.request.url.startsWith(self.location.origin)) return;
+
   // Network-first for HTML so updates are always picked up immediately
   if (e.request.mode === 'navigate' || e.request.url.endsWith('index.html')) {
     e.respondWith(
@@ -23,6 +26,7 @@ self.addEventListener('fetch', e => {
     );
     return;
   }
-  // Cache-first for everything else (icons, manifest)
-  e.respondWith(caches.match(e.request).then(r => r || fetch(e.request).catch(() => caches.match('./index.html'))));
+
+  // Cache-first for same-origin assets (icons, manifest)
+  e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
 });

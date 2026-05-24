@@ -1704,7 +1704,11 @@ async function aiPost(key, prompt) {
     body: JSON.stringify({ model: AI_MODEL, max_tokens: 2048, messages: [{ role: 'user', content: prompt }] })
   });
   const data = await res.json();
-  if (data.error) throw new Error(data.error.message);
+  console.log('[Subqueue AI] status:', res.status, 'response:', data);
+  if (!res.ok || data.error) {
+    const msg = data.error?.message || data.message || JSON.stringify(data);
+    throw new Error(`API ${res.status}: ${msg}`);
+  }
   return (data.content || []).map(c => c.text || '').join('');
 }
 
@@ -1820,8 +1824,9 @@ async function researchPeptide() {
         <button class="btn btn-p btn-sm btn-full" style="margin-top:10px" onclick="saveResearchedPeptide()">+ Add to Library</button>
       </div>`;
   } catch(e) {
+    console.error('[Subqueue AI research]', e);
     document.getElementById('ai-research-loading').style.display = 'none';
-    document.getElementById('ai-research-result').innerHTML = `<div class="nb">Error: ${e.message}</div>`;
+    document.getElementById('ai-research-result').innerHTML = `<div class="nb">Error: ${e.message}<br><span style="font-size:9px;opacity:.7">Check browser console (F12) for full details</span></div>`;
   }
 }
 

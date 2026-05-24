@@ -269,6 +269,18 @@ body{display:flex;flex-direction:column;overflow:hidden;}
 .empty-state h3{font-size:16px;font-weight:700;color:var(--tx);margin-bottom:6px;}
 .empty-state p{font-size:12px;color:var(--mu);line-height:1.6;margin-bottom:16px;}
 ::-webkit-scrollbar{width:0;height:0;}
+
+/* DRAW PILL */
+.draw-pill{background:rgba(167,139,250,.08);border:1px solid rgba(167,139,250,.2);border-radius:6px;padding:7px 11px;font-size:11px;font-family:var(--mono);color:var(--ac);margin:8px 0 6px;display:flex;align-items:center;justify-content:space-between;}
+.draw-pill .dp-left{display:flex;align-items:center;gap:5px;}
+.draw-pill .dp-right{font-size:9px;color:var(--mu);}
+
+/* DOSE PREVIEW IN LOG FORM */
+.dose-preview{background:rgba(167,139,250,.07);border:1px solid rgba(167,139,250,.2);border-radius:8px;padding:10px 13px;margin-bottom:10px;font-size:12px;color:var(--ac);font-family:var(--mono);display:none;line-height:1.8;}
+
+/* TOAST */
+.log-toast{position:fixed;bottom:calc(var(--safe-b) + 76px);left:50%;transform:translateX(-50%);background:var(--s1);border:1px solid var(--ac);border-radius:12px;padding:11px 16px;z-index:200;display:flex;align-items:center;gap:10px;font-size:12px;color:var(--tx);white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.5);animation:slideUp .2s ease;}
+@keyframes slideUp{from{transform:translateX(-50%) translateY(16px);opacity:0}to{transform:translateX(-50%) translateY(0);opacity:1}}
 </style>
 </head>
 <body>
@@ -481,10 +493,11 @@ body{display:flex;flex-direction:column;overflow:hidden;}
   <div class="sheet-body">
     <div class="fg"><label>Medication</label><select id="l-med" onchange="prefill()"></select></div>
     <div class="fg-row"><div class="fg"><label>Date</label><input id="l-date" type="date"></div><div class="fg"><label>Time</label><input id="l-time" type="time"></div></div>
-    <div class="fg-row"><div class="fg"><label>Dose</label><input id="l-dose" type="number" step="0.001"></div><div class="fg"><label>Unit</label><input id="l-unit"></div></div>
-    <div class="fg-row"><div class="fg"><label>Syringe units</label><input id="l-syr" type="number"></div><div class="fg"><label>Vol drawn (mL)</label><input id="l-vol" type="number" step="0.001"></div></div>
+    <div class="fg-row"><div class="fg"><label>Dose</label><input id="l-dose" type="number" step="0.001" oninput="updateLogCalc()"></div><div class="fg"><label>Unit</label><input id="l-unit" oninput="updateLogCalc()"></div></div>
+    <div id="l-preview" class="dose-preview"></div>
+    <div class="fg-row"><div class="fg"><label>Syringe units</label><input id="l-syr" type="number" placeholder="auto"></div><div class="fg"><label>Vol drawn (mL)</label><input id="l-vol" type="number" step="0.001" placeholder="auto"></div></div>
     <div class="fg"><label>Status</label><select id="l-status"><option value="taken">Taken</option><option value="skipped">Skipped</option><option value="delayed">Delayed</option></select></div>
-    <div class="fg"><label>Notes</label><input id="l-notes" placeholder="site, reaction..."></div>
+    <div class="fg"><label>Notes</label><input id="l-notes" placeholder="site, reaction, lot..."></div>
   </div>
   <div class="sheet-footer"><button class="btn btn-g" style="flex:1" onclick="closeSheet('sh-log')">Cancel</button><button class="btn btn-p" style="flex:2" onclick="saveLog()">Save</button></div>
 </div></div>
@@ -584,6 +597,12 @@ body{display:flex;flex-direction:column;overflow:hidden;}
   <div class="sheet-handle"></div>
   <div class="sheet-hdr"><h2>✦ AI Tools</h2><button class="sheet-close" onclick="closeSheet('sh-scraper')">✕</button></div>
   <div class="sheet-body">
+    <div style="background:var(--bg);border:1px solid var(--a2);border-radius:10px;padding:13px;margin-bottom:12px">
+      <div style="font-size:12px;font-weight:700;color:var(--ac);margin-bottom:6px">✦ Drive Proxy (Recommended)</div>
+      <div style="font-size:11px;color:var(--mu);line-height:1.5;margin-bottom:8px">Connect your Google Apps Script to use your own Drive docs as the knowledge base. Paste your deployed Web App URL below.</div>
+      <div class="fg" style="margin-bottom:0"><label>Apps Script URL</label><input id="ai-proxy-url" type="url" placeholder="https://script.google.com/macros/s/..." oninput="localStorage.setItem('sq_proxy_url',this.value)"></div>
+    </div>
+    <div style="font-size:9px;color:var(--mu);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">— Or use Anthropic API directly —</div>
     <div class="fg"><label>Anthropic API key</label><input id="ai-key" type="password" placeholder="sk-ant-..." oninput="localStorage.setItem('sq_ai_key',this.value)"></div>
     <div style="background:var(--bg);border:1px solid var(--br);border-radius:10px;padding:13px;margin-bottom:12px">
       <div style="font-size:13px;font-weight:700;color:var(--tx);margin-bottom:4px">✦ Research Peptide</div>
@@ -768,6 +787,8 @@ function init() {
   }
   const k = localStorage.getItem('sq_ai_key');
   if (k) document.getElementById('ai-key').value = k;
+  const pu = localStorage.getItem('sq_proxy_url');
+  if (pu) document.getElementById('ai-proxy-url').value = pu;
   render();
   if (protocols.some(p => p.remindOn)) requestNotifPerm();
 }
@@ -848,21 +869,27 @@ function renderDash() {
     te.innerHTML = today.map(m => {
       const logged = logs.find(l => l.medId === m.id && l.date === fD(now));
       const fc = getFc(m);
+      const syru = fc?.dv ? Math.round(fc.dv * 100) : null;
+      const volStr = fc?.dv ? `${(fc.dv*1000).toFixed(0)}µL` : null;
+      const drawLabel = syru ? `${syru}u · ${volStr}` : null;
+      const pc = fc ? (fc.pct < 20 ? ' d' : fc.pct < 40 ? ' w' : '') : '';
       return `<div class="tr">
         <div class="tr-top">
           <div>
             <div class="tr-name">${m.name}</div>
             <div class="tr-src">${m.src || ''}</div>
-            <div class="tr-meta">${m.dose} ${m.unit} · ${m.time || '—'}${fc?.dLeft != null ? ' · ' + fc.dLeft + ' left' : ''}</div>
           </div>
-          <div style="display:flex;gap:4px;align-items:center;flex-shrink:0">
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">
+            <span style="font-size:13px;font-family:var(--mono);color:var(--mu);font-weight:500">${m.time || ''}</span>
             ${fc?.needsReorder ? '<span class="badge b-dn">REORDER</span>' : ''}
             ${logged ? `<span class="badge ${logged.status==='taken'?'b-on':logged.status==='skipped'?'b-dn':'b-wn'}">${logged.status}</span>` : ''}
           </div>
         </div>
-        <div style="display:flex;gap:7px">
-          ${!logged ? `<button class="btn btn-p btn-sm" style="flex:1" onclick="quickLog('${m.id}')">✓ Taken</button>` : ''}
-          <button class="btn btn-g btn-sm" onclick="openLogFor('${m.id}')">+ Detail</button>
+        ${drawLabel ? `<div class="draw-pill"><div class="dp-left"><span style="font-size:14px">💉</span> Draw ${drawLabel} · <span style="color:var(--tx)">${m.dose} ${m.unit}</span></div><div class="dp-right">${fc?.dLeft != null ? fc.dLeft + ' doses left' : ''}</div></div>` : `<div style="font-size:10px;color:var(--mu);margin-bottom:6px">${m.dose} ${m.unit}${fc?.dLeft != null ? ' · ' + fc.dLeft + ' left' : ''}</div>`}
+        ${fc ? `<div class="vol-track" style="margin-bottom:8px"><div class="vol-fill${pc}" style="width:${fc.pct}%"></div></div>` : ''}
+        <div style="display:flex;gap:6px">
+          ${!logged ? `<button class="btn btn-p btn-sm" style="flex:2" onclick="quickLog('${m.id}')">✓ Taken</button><button class="btn btn-g btn-sm" onclick="skipLog('${m.id}')">Skip</button>` : `<button class="btn btn-g btn-sm" style="flex:1" onclick="editLog('${logs.find(l=>l.medId===m.id&&l.date===fD(now))?.id}')">✎ Edit log</button>`}
+          <button class="btn btn-g btn-sm" onclick="openLogFor('${m.id}')">Detail</button>
         </div>
       </div>`;
     }).join('');
@@ -1098,11 +1125,10 @@ function prefill() {
   if (!m) return;
   document.getElementById('l-dose').value = m.dose;
   document.getElementById('l-unit').value = m.unit;
-  const fc = getFc(m);
-  if (fc?.dv) {
-    document.getElementById('l-vol').value = fc.dv.toFixed(3);
-    document.getElementById('l-syr').value = Math.round(fc.dv * 100);
-  }
+  document.getElementById('l-preview').style.display = 'none';
+  document.getElementById('l-syr').value = '';
+  document.getElementById('l-vol').value = '';
+  updateLogCalc();
 }
 
 function saveLog() {
@@ -1129,8 +1155,58 @@ function delLog(id) { logs = logs.filter(l => l.id !== id); saveAll(); renderLog
 function quickLog(medId) {
   const m = meds.find(x => x.id === medId); if (!m) return;
   const now = new Date(); const fc = getFc(m);
-  logs.push({ id: uid(), medId, date: fD(now), time: now.toTimeString().slice(0,5), dose: parseFloat(m.dose), unit: m.unit, syr: null, vol: fc?.dv || null, status: 'taken', notes: '' });
-  saveAll(); render();
+  const entry = { id: uid(), medId, date: fD(now), time: now.toTimeString().slice(0,5), dose: parseFloat(m.dose), unit: m.unit, syr: fc?.dv ? Math.round(fc.dv*100) : null, vol: fc?.dv || null, status: 'taken', notes: '' };
+  logs.push(entry); saveAll(); render();
+  const drawStr = fc?.dv ? ` · ${Math.round(fc.dv*100)}u` : '';
+  showToast(`✓ ${m.name} ${m.dose}${m.unit}${drawStr} logged`, () => { logs = logs.filter(l => l.id !== entry.id); saveAll(); render(); });
+}
+
+function skipLog(medId) {
+  const m = meds.find(x => x.id === medId); if (!m) return;
+  const now = new Date();
+  const entry = { id: uid(), medId, date: fD(now), time: now.toTimeString().slice(0,5), dose: parseFloat(m.dose), unit: m.unit, syr: null, vol: null, status: 'skipped', notes: '' };
+  logs.push(entry); saveAll(); render();
+  showToast(`${m.name} skipped`, () => { logs = logs.filter(l => l.id !== entry.id); saveAll(); render(); });
+}
+
+let _toastTimer = null, _toastUndo = null;
+function showToast(msg, undoFn) {
+  document.getElementById('_toast')?.remove();
+  _toastUndo = undoFn || null;
+  const t = document.createElement('div');
+  t.id = '_toast'; t.className = 'log-toast';
+  t.innerHTML = `<span>${msg}</span>${undoFn ? '<button class="btn btn-g btn-xs" onclick="doToastUndo()">Undo</button>' : ''}`;
+  document.body.appendChild(t);
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => t.remove(), 4000);
+}
+function doToastUndo() {
+  clearTimeout(_toastTimer);
+  document.getElementById('_toast')?.remove();
+  if (_toastUndo) { _toastUndo(); _toastUndo = null; }
+}
+
+function updateLogCalc() {
+  const m = meds.find(x => x.id === document.getElementById('l-med').value);
+  const dose = parseFloat(document.getElementById('l-dose').value);
+  const unit = (document.getElementById('l-unit').value || '').trim();
+  const el = document.getElementById('l-preview');
+  if (!m || !dose || !unit) { el.style.display = 'none'; return; }
+  const v = activeVial(m);
+  if (!v) { el.style.display = 'none'; return; }
+  const conc = v.amt / v.dil;
+  let dv = null;
+  if (unit === 'mg') dv = dose / conc;
+  else if (unit === 'mcg') dv = (dose / 1000) / conc;
+  if (dv && dv > 0) {
+    const syr = Math.round(dv * 100);
+    document.getElementById('l-syr').value = syr;
+    document.getElementById('l-vol').value = dv.toFixed(3);
+    el.innerHTML = `💉 Draw ${syr} units &nbsp;·&nbsp; ${(dv*1000).toFixed(0)}µL &nbsp;·&nbsp; ${dv.toFixed(3)}mL<br><span style="font-size:10px;color:var(--mu)">${conc.toFixed(2)} mg/mL · ${v.amt}mg / ${v.dil}mL vial</span>`;
+    el.style.display = '';
+  } else {
+    el.style.display = 'none';
+  }
 }
 
 // ══ VIALS ═════════════════════════════════════════════════════════════════════
@@ -1802,22 +1878,31 @@ function openSettingsSheet() {
 // ══ AI LIBRARY RESEARCH ════════════════════════════════════════════════════════
 let lastResearchedEntry = null;
 async function researchPeptide() {
+  const proxyUrl = (document.getElementById('ai-proxy-url').value || localStorage.getItem('sq_proxy_url') || '').trim();
   const key = (document.getElementById('ai-key').value || localStorage.getItem('sq_ai_key') || '').trim();
   const name = document.getElementById('ai-research-name').value.trim();
-  if (!key) { alert('Enter your Anthropic API key first.'); return; }
+  if (!proxyUrl && !key) { alert('Enter either your Apps Script URL (recommended) or an Anthropic API key.'); return; }
   if (!name) { alert('Enter a peptide name to research.'); return; }
   document.getElementById('ai-research-loading').style.display = '';
   document.getElementById('ai-research-result').innerHTML = '';
   lastResearchedEntry = null;
-  const prompt = `You are a peptide pharmacology expert. Generate complete, accurate data for the peptide: "${name}". Return ONLY valid JSON with no markdown:\n{"name":"string","aka":"string","cat":"GH Secretagogue|Healing|Metabolic|Mitochondrial|Nootropic|Other","tags":["string"],"summary":"string","dosing":{"typical":"string","range":"string","freq":"string","timing":"string","cycle":"string"},"recon":{"vial":"string","dil":"string","conc":"string","tbl":"5 units = 250mcg\\n10 units = 500mcg","exp":28},"def":{"dose":250,"unit":"mcg","freq":"5on2off","time":"20:00"},"notes":"string","warn":"string"}`;
   try {
-    const raw = await aiPost(key, prompt);
-    const entry = aiJsonExtract(raw);
-    lastResearchedEntry = entry;
+    let raw;
+    if (proxyUrl) {
+      const res = await fetch(proxyUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ peptide: name }) });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || 'Proxy error');
+      lastResearchedEntry = data.data;
+    } else {
+      const prompt = `You are a peptide pharmacology expert. Generate complete, accurate data for the peptide: "${name}". Return ONLY valid JSON with no markdown:\n{"name":"string","aka":"string","cat":"GH Secretagogue|Healing|Metabolic|Mitochondrial|Nootropic|Other","tags":["string"],"summary":"string","dosing":{"typical":"string","range":"string","freq":"string","timing":"string","cycle":"string"},"recon":{"vial":"string","dil":"string","conc":"string","tbl":"5 units = 250mcg\\n10 units = 500mcg","exp":28},"def":{"dose":250,"unit":"mcg","freq":"5on2off","time":"20:00"},"notes":"string","warn":"string"}`;
+      raw = await aiPost(key, prompt);
+      lastResearchedEntry = aiJsonExtract(raw);
+    }
+    const entry = lastResearchedEntry;
     document.getElementById('ai-research-loading').style.display = 'none';
     document.getElementById('ai-research-result').innerHTML = `
       <div style="background:var(--s1);border:1px solid var(--a2);border-radius:10px;padding:12px">
-        <div style="font-size:14px;font-weight:700;color:var(--tx);margin-bottom:2px">${entry.name}</div>
+        <div style="font-size:14px;font-weight:700;color:var(--tx);margin-bottom:2px">${entry.name||name}</div>
         <div style="font-size:11px;color:var(--mu);margin-bottom:6px">${entry.aka||''}</div>
         <div style="font-size:11px;color:var(--tx);line-height:1.6;margin-bottom:8px">${entry.summary||''}</div>
         <div style="font-size:10px;color:var(--mu)"><b>Typical:</b> ${entry.dosing?.typical||'—'} · <b>Freq:</b> ${entry.dosing?.freq||'—'}</div>

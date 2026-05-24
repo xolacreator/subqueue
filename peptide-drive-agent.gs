@@ -5,8 +5,14 @@
 // ═══════════════════════════════════════════════════════════════
 
 // ── Config ──────────────────────────────────────────────────────
-const ANTHROPIC_API_KEY = 'sk-ant-YOUR-KEY-HERE';   // ← paste your key
-const DRIVE_FOLDER_ID   = 'YOUR_FOLDER_ID_HERE';     // ← paste folder ID from Drive URL
+// Store secrets via Script Properties (recommended — never hardcode keys):
+//   Apps Script editor → Project Settings (⚙) → Script Properties → Add:
+//     ANTHROPIC_API_KEY  =  sk-ant-...
+//     DRIVE_FOLDER_ID    =  (folder ID from Drive URL)
+//
+// Alternatively set them here directly (less secure — visible in script history):
+const ANTHROPIC_API_KEY = PropertiesService.getScriptProperties().getProperty('ANTHROPIC_API_KEY') || 'sk-ant-YOUR-KEY-HERE';
+const DRIVE_FOLDER_ID   = PropertiesService.getScriptProperties().getProperty('DRIVE_FOLDER_ID')   || 'YOUR_FOLDER_ID_HERE';
 const AI_MODEL          = 'claude-sonnet-4-6';
 const MAX_DOC_CHARS     = 40000;  // chars per document included in context
 

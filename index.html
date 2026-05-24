@@ -1703,12 +1703,13 @@ async function aiPost(key, prompt) {
     headers: { 'Content-Type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01' },
     body: JSON.stringify({ model: AI_MODEL, max_tokens: 2048, messages: [{ role: 'user', content: prompt }] })
   });
-  const data = await res.json();
-  console.log('[Subqueue AI] status:', res.status, 'response:', data);
-  if (!res.ok || data.error) {
-    const msg = data.error?.message || data.message || JSON.stringify(data);
-    throw new Error(`API ${res.status}: ${msg}`);
+  const text = await res.text();
+  console.log('[Subqueue AI] status:', res.status, 'body:', text.slice(0, 500));
+  let data;
+  try { data = JSON.parse(text); } catch(e) {
+    throw new Error(`HTTP ${res.status} — raw response: ${text.slice(0, 300)}`);
   }
+  if (!res.ok || data.error) throw new Error(`API ${res.status}: ${data.error?.message || JSON.stringify(data)}`);
   return (data.content || []).map(c => c.text || '').join('');
 }
 

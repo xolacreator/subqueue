@@ -653,7 +653,7 @@ const LS = {
 
 // ══ STATE ═════════════════════════════════════════════════════════════════════
 let meds = [], logs = [], vials = [], titrations = [], volOv = {};
-let protocols = [], checkins = [], userLib = [];
+let protocols = [], checkins = [], userLib = [], remoteLib = [];
 let editMedId = null, editProtoId = null, editLogId = null;
 let mF = 'all', lF = 'all';
 let blendOn = false, blendComps = [];
@@ -785,12 +785,25 @@ function init() {
     checkins    = LS.get('checkins')  || [];
     userLib     = LS.get('userLib')   || [];
   }
+  // Seed remoteLib from cache immediately so library renders offline
+  remoteLib = LS.get('sq_remote_lib') || [];
   const k = localStorage.getItem('sq_ai_key');
   if (k) document.getElementById('ai-key').value = k;
   const pu = localStorage.getItem('sq_proxy_url');
   if (pu) document.getElementById('ai-proxy-url').value = pu;
   render();
   if (protocols.some(p => p.remindOn)) requestNotifPerm();
+  // Fetch latest shared library in background; re-render if it changed
+  fetch('./library.json?v=' + Date.now())
+    .then(r => r.json())
+    .then(data => {
+      if (!Array.isArray(data)) return;
+      const prev = JSON.stringify(remoteLib);
+      remoteLib = data;
+      LS.set('sq_remote_lib', remoteLib);
+      if (JSON.stringify(remoteLib) !== prev) renderLib();
+    })
+    .catch(() => {}); // silently stay on cached version when offline
 }
 
 // ══ RENDER ALL ════════════════════════════════════════════════════════════════
@@ -1707,7 +1720,7 @@ function renderMix() {
 function toggleLearn(hdr) { const b = hdr.nextElementSibling; b.classList.toggle('open'); hdr.querySelector('span:last-child').textContent = b.classList.contains('open') ? '▴' : '▾'; }
 
 // ══ LIBRARY ═══════════════════════════════════════════════════════════════════
-function allLib() { return [...LIB, ...userLib]; }
+function allLib() { return [...LIB, ...remoteLib, ...userLib]; }
 function setLF(btn) { lF = btn.dataset.f; document.querySelectorAll('#sc-lib .fb').forEach(b => b.classList.remove('on')); btn.classList.add('on'); renderLib(); }
 
 function renderLib() {
@@ -1716,15 +1729,21 @@ function renderLib() {
   let f = allLib().filter(l => lF==='all' || l.cat===lF);
   if (q) f = f.filter(l => l.name.toLowerCase().includes(q) || l.aka.toLowerCase().includes(q) || l.tags.some(t=>t.toLowerCase().includes(q)));
   const catC = {'GH Secretagogue':['rgba(126,184,247,.15)','#93c5fd'],'Healing':['rgba(134,239,172,.15)','#86efac'],'Metabolic':['rgba(253,224,71,.15)','#fde047'],'Mitochondrial':['rgba(196,181,253,.15)','#c4b5fd']};
-  const userLibIds = new Set(userLib.map(x => x.id));
+  const userLibIds   = new Set(userLib.map(x => x.id));
+  const remoteLibIds = new Set(remoteLib.map(x => x.id));
   document.getElementById('lib-grid').innerHTML = f.map(l => {
     const iu = inUse.some(n => l.name.toLowerCase().includes(n.split(' ')[0]) || n.includes(l.name.toLowerCase().split(' ')[0]));
-    const isUser = userLibIds.has(l.id);
+    const isUser   = userLibIds.has(l.id);
+    const isRemote = remoteLibIds.has(l.id);
     const [cbg,ctx] = catC[l.cat] || ['var(--s2)','var(--mu)'];
     return `<div class="lc ${iu?'used':''}" onclick="openLibDetail('${l.id}')">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:2px">
         <div class="lc-name">${l.name}</div>
-        <div style="display:flex;gap:3px;align-items:center">${isUser?'<span style="color:var(--ac);font-size:9px">✦</span>':''} ${iu ? '<span style="color:var(--ac);font-size:12px">✓</span>' : ''}</div>
+        <div style="display:flex;gap:3px;align-items:center">
+          ${isRemote ? '<span title="Shared library" style="color:var(--mu);font-size:9px">☁</span>' : ''}
+          ${isUser   ? '<span title="Your addition"  style="color:var(--ac);font-size:9px">✦</span>' : ''}
+          ${iu       ? '<span style="color:var(--ac);font-size:12px">✓</span>' : ''}
+        </div>
       </div>
       <div class="lc-aka">${l.aka}</div>
       <div class="lc-cat" style="background:${cbg};color:${ctx}">${l.cat}</div>
@@ -1886,7 +1905,7 @@ function openSettingsSheet() {
     `Active vials: <b style="color:var(--ac)">${vials.filter(v=>dl(v)>0).length}</b>`,
     `Protocols: <b style="color:var(--ac)">${protocols.length}</b>`,
     `Check-ins: <b style="color:var(--ac)">${checkins.length}</b>`,
-    `Library entries: <b style="color:var(--ac)">${LIB.length} built-in + ${userLib.length} custom</b>`,
+    `Library entries: <b style="color:var(--ac)">${LIB.length} built-in · ${remoteLib.length} shared · ${userLib.length} custom</b>`,
   ].join('<br>');
   openSheet('sh-settings');
 }

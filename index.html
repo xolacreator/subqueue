@@ -1776,7 +1776,12 @@ function aiJsonExtract(raw) {
 async function aiPost(key, prompt) {
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01' },
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': key,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
     body: JSON.stringify({ model: AI_MODEL, max_tokens: 2048, messages: [{ role: 'user', content: prompt }] })
   });
   const text = await res.text();
@@ -1791,16 +1796,27 @@ async function aiPost(key, prompt) {
 
 let scraperResults = [];
 async function runScraper() {
-  const key = document.getElementById('ai-key').value.trim();
+  const proxyUrl = (document.getElementById('ai-proxy-url').value || localStorage.getItem('sq_proxy_url') || '').trim();
+  const key = (document.getElementById('ai-key').value || localStorage.getItem('sq_ai_key') || '').trim();
   const txt = document.getElementById('ai-txt').value.trim();
-  if (!key) { alert('Enter your Anthropic API key first.'); return; }
+  if (!proxyUrl && !key) { alert('Enter either your Apps Script URL (recommended) or an Anthropic API key.'); return; }
   if (!txt) { alert('Enter some text to scan.'); return; }
   document.getElementById('ai-loading').style.display = '';
   document.getElementById('ai-results').innerHTML = '';
   scraperResults = [];
   const prompt = `You are a medical protocol data extractor. Extract all medication/peptide dosing from the text. Return ONLY valid JSON, no markdown:\n{"protocols":[{"name":"string","dose":number_or_null,"unit":"mcg|mg|IU|mL|units or null","frequency":"daily|5on2off|weekly|eod|twice_weekly|monthly or null","vialSizeMg":number_or_null,"unitTable":"newline-separated or null","timing":"string or null","notes":"string or null","warnings":"string or null","confidence":0.0_to_1.0}],"summary":"brief"}\n\nText:\n${txt.slice(0,6000)}`;
   try {
-    const raw = await aiPost(key, prompt);
+    let raw;
+    if (proxyUrl) {
+      const res = await fetch(proxyUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: txt.slice(0, 6000) }) });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || 'Proxy error');
+      scraperResults = data.data?.protocols || [];
+      document.getElementById('ai-loading').style.display = 'none';
+      document.getElementById('ai-results').innerHTML = `<div style="font-size:11px;color:var(--mu);margin-bottom:10px">${data.data?.summary||''}</div>${scraperResults.map((p,i)=>`<div style="background:var(--s2);border:1px solid var(--br);border-radius:10px;padding:12px;margin-bottom:8px"><div style="font-size:14px;font-weight:700;color:var(--tx)">${p.name}</div>${p.dose?`<div style="font-size:11px;color:var(--mu);margin-top:3px">${p.dose} ${p.unit||''} · ${p.frequency||''}</div>`:''} ${p.notes?`<div style="font-size:11px;color:var(--mu);margin-top:5px;line-height:1.5">${p.notes}</div>`:''} ${p.warnings?`<div class="nb" style="margin-top:6px;font-size:10px">⚠ ${p.warnings}</div>`:''}<div style="height:3px;border-radius:2px;background:var(--ac);width:${Math.round((p.confidence||0)*100)}%;margin-top:8px;margin-bottom:4px"></div><div style="font-size:9px;color:var(--ac);margin-bottom:8px">${Math.round((p.confidence||0)*100)}% confidence</div><button class="btn btn-p btn-sm" onclick="addScraped(${i})">+ Add to protocols</button></div>`).join('')}`;
+      return;
+    }
+    raw = await aiPost(key, prompt);
     const parsed = aiJsonExtract(raw);
     document.getElementById('ai-loading').style.display = 'none';
     scraperResults = parsed.protocols || [];

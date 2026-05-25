@@ -278,6 +278,18 @@ body{display:flex;flex-direction:column;overflow:hidden;}
 /* DOSE PREVIEW IN LOG FORM */
 .dose-preview{background:rgba(167,139,250,.07);border:1px solid rgba(167,139,250,.2);border-radius:8px;padding:10px 13px;margin-bottom:10px;font-size:12px;color:var(--ac);font-family:var(--mono);display:none;line-height:1.8;}
 
+/* UPDATE BANNER */
+.upd-banner{display:none;background:linear-gradient(135deg,rgba(167,139,250,.12),rgba(96,165,250,.08));border:1px solid rgba(167,139,250,.3);border-radius:12px;padding:12px 14px;margin-bottom:12px;gap:10px;align-items:flex-start;}
+.upd-banner-body{flex:1;font-size:12px;color:var(--tx);line-height:1.5;}
+.upd-banner-body b{color:var(--ac);}
+.upd-banner-acts{display:flex;gap:6px;flex-shrink:0;}
+
+/* API GUIDE */
+.api-guide-step{display:flex;gap:10px;align-items:flex-start;padding:6px 0;}
+.api-guide-num{width:20px;height:20px;border-radius:50%;background:var(--ac);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.api-guide-txt{font-size:12px;color:var(--mu);line-height:1.5;}
+.api-guide-txt b{color:var(--tx);}
+
 /* TOAST */
 .log-toast{position:fixed;bottom:calc(var(--safe-b) + 76px);left:50%;transform:translateX(-50%);background:var(--s1);border:1px solid var(--ac);border-radius:12px;padding:11px 16px;z-index:200;display:flex;align-items:center;gap:10px;font-size:12px;color:var(--tx);white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.5);animation:slideUp .2s ease;}
 @keyframes slideUp{from{transform:translateX(-50%) translateY(16px);opacity:0}to{transform:translateX(-50%) translateY(0);opacity:1}}
@@ -370,6 +382,13 @@ body{display:flex;flex-direction:column;overflow:hidden;}
         <div class="ph-row"><h1 id="dash-date"></h1><button class="btn btn-g btn-sm" onclick="openSettingsSheet()" style="flex-shrink:0">⚙ Data</button></div>
       </div>
       <div class="sb">
+        <div class="upd-banner" id="lib-update-banner">
+          <div class="upd-banner-body" id="lib-update-body"></div>
+          <div class="upd-banner-acts">
+            <button class="btn btn-p btn-xs" onclick="dismissLibBanner(true)">View</button>
+            <button class="btn btn-g btn-xs" onclick="dismissLibBanner(false)">✕</button>
+          </div>
+        </div>
         <div class="stats" id="dash-stats"></div>
         <div class="sl">Today's schedule</div>
         <div id="dash-today"></div>
@@ -674,13 +693,78 @@ body{display:flex;flex-direction:column;overflow:hidden;}
   <div class="sheet-handle"></div>
   <div class="sheet-hdr"><h2>✦ AI Tools</h2><button class="sheet-close" onclick="closeSheet('sh-scraper')">✕</button></div>
   <div class="sheet-body">
-    <div style="background:var(--bg);border:1px solid var(--a2);border-radius:10px;padding:13px;margin-bottom:12px">
-      <div style="font-size:12px;font-weight:700;color:var(--ac);margin-bottom:6px">✦ Drive Proxy (Recommended)</div>
-      <div style="font-size:11px;color:var(--mu);line-height:1.5;margin-bottom:8px">Connect your Google Apps Script to use your own Drive docs as the knowledge base. Paste your deployed Web App URL below.</div>
-      <div class="fg" style="margin-bottom:0"><label>Apps Script URL</label><input id="ai-proxy-url" type="url" placeholder="https://script.google.com/macros/s/..." oninput="localStorage.setItem('sq_proxy_url',this.value)"></div>
+    <!-- API Key Setup -->
+    <div style="background:var(--bg);border:1px solid var(--br);border-radius:12px;margin-bottom:12px;overflow:hidden">
+      <button onclick="toggleApiGuide()" style="width:100%;display:flex;justify-content:space-between;align-items:center;padding:13px 14px;background:none;border:none;cursor:pointer;text-align:left">
+        <div>
+          <div style="font-size:13px;font-weight:700;color:var(--tx)">✦ Get your API key</div>
+          <div style="font-size:11px;color:var(--mu);margin-top:2px">Free to start · your key · stored on-device only</div>
+        </div>
+        <span id="api-guide-chevron" style="color:var(--mu);font-size:12px;flex-shrink:0;margin-left:8px">▾</span>
+      </button>
+      <div id="api-guide" style="display:none;padding:0 14px 14px;border-top:1px solid var(--br)">
+        <div style="padding-top:12px">
+          <div class="api-guide-step">
+            <div class="api-guide-num">1</div>
+            <div class="api-guide-txt">Go to <b>console.anthropic.com</b> and create a free account (or log in)</div>
+          </div>
+          <div class="api-guide-step">
+            <div class="api-guide-num">2</div>
+            <div class="api-guide-txt">Click <b>API Keys</b> in the left sidebar</div>
+          </div>
+          <div class="api-guide-step">
+            <div class="api-guide-num">3</div>
+            <div class="api-guide-txt">Click <b>Create Key</b> — copy it immediately (it won't be shown again)</div>
+          </div>
+          <div class="api-guide-step">
+            <div class="api-guide-num">4</div>
+            <div class="api-guide-txt">Add a small credit (starting at $5) under <b>Billing</b> — each AI research query costs ~$0.01–0.03</div>
+          </div>
+          <div class="api-guide-step">
+            <div class="api-guide-num">5</div>
+            <div class="api-guide-txt">Paste the key into the field below — it's saved on your device only, never shared</div>
+          </div>
+          <div class="nb info" style="margin-top:10px;font-size:11px;line-height:1.5">Your key is stored in this browser only. Subqueue never sends it anywhere except directly to Anthropic's API.</div>
+        </div>
+      </div>
     </div>
-    <div style="font-size:9px;color:var(--mu);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">— Or use Anthropic API directly —</div>
+    <!-- Direct API key -->
     <div class="fg"><label>Anthropic API key</label><input id="ai-key" type="password" placeholder="sk-ant-..." oninput="localStorage.setItem('sq_ai_key',this.value)"></div>
+    <!-- Drive proxy (advanced) -->
+    <div style="background:var(--bg);border:1px solid var(--br);border-radius:12px;margin-bottom:12px;overflow:hidden">
+      <button onclick="toggleProxyGuide()" style="width:100%;display:flex;justify-content:space-between;align-items:center;padding:13px 14px;background:none;border:none;cursor:pointer;text-align:left">
+        <div>
+          <div style="font-size:13px;font-weight:700;color:var(--tx)">☁ Connect Google Drive <span style="font-size:10px;color:var(--mu);font-weight:400">(optional)</span></div>
+          <div style="font-size:11px;color:var(--mu);margin-top:2px">Use your own Drive docs as the AI knowledge base</div>
+        </div>
+        <span id="proxy-guide-chevron" style="color:var(--mu);font-size:12px;flex-shrink:0;margin-left:8px">▾</span>
+      </button>
+      <div id="proxy-guide" style="display:none;padding:0 14px 14px;border-top:1px solid var(--br)">
+        <div style="padding-top:12px">
+          <div class="api-guide-step">
+            <div class="api-guide-num">1</div>
+            <div class="api-guide-txt">Go to <b>script.google.com</b> → New project</div>
+          </div>
+          <div class="api-guide-step">
+            <div class="api-guide-num">2</div>
+            <div class="api-guide-txt">Paste the <b>peptide-drive-agent.gs</b> code (from the app's GitHub repo)</div>
+          </div>
+          <div class="api-guide-step">
+            <div class="api-guide-num">3</div>
+            <div class="api-guide-txt">In <b>Project Settings → Script Properties</b>, add <b>ANTHROPIC_API_KEY</b> and <b>DRIVE_FOLDER_IDS</b></div>
+          </div>
+          <div class="api-guide-step">
+            <div class="api-guide-num">4</div>
+            <div class="api-guide-txt">Deploy as <b>Web App</b> → Execute as: Me → Who has access: <b>Anyone</b></div>
+          </div>
+          <div class="api-guide-step">
+            <div class="api-guide-num">5</div>
+            <div class="api-guide-txt">Copy the Web App URL and paste it below</div>
+          </div>
+          <div class="fg" style="margin-top:10px;margin-bottom:0"><label>Apps Script URL</label><input id="ai-proxy-url" type="url" placeholder="https://script.google.com/macros/s/..." oninput="localStorage.setItem('sq_proxy_url',this.value)"></div>
+        </div>
+      </div>
+    </div>
     <div style="background:var(--bg);border:1px solid var(--br);border-radius:10px;padding:13px;margin-bottom:12px">
       <div style="font-size:13px;font-weight:700;color:var(--tx);margin-bottom:4px">✦ Research Peptide</div>
       <div style="font-size:11px;color:var(--mu);margin-bottom:10px;line-height:1.5">Enter a peptide name and Claude will generate a full library entry with dosing, reconstitution, and safety data.</div>
@@ -884,8 +968,46 @@ function fetchRemoteLib() {
       remoteLib = data;
       LS.set('sq_remote_lib', remoteLib);
       if (JSON.stringify(remoteLib) !== prev) renderLib();
+      // Notify user of new entries they haven't seen yet
+      const seenIds = new Set(LS.get('sq_lib_seen') || []);
+      const newEntries = remoteLib.filter(e => !seenIds.has(e.id));
+      if (newEntries.length > 0) showLibUpdateBanner(newEntries);
     })
     .catch(() => {});
+}
+
+function showLibUpdateBanner(entries) {
+  const names = entries.slice(0, 3).map(e => e.name).join(', ') + (entries.length > 3 ? ` +${entries.length - 3} more` : '');
+  document.getElementById('lib-update-body').innerHTML =
+    `<b>✦ ${entries.length} new ${entries.length === 1 ? 'peptide' : 'peptides'} added to the library</b><br><span style="color:var(--mu)">${names}</span>`;
+  document.getElementById('lib-update-banner').style.display = 'flex';
+}
+
+function dismissLibBanner(goToLib) {
+  LS.set('sq_lib_seen', remoteLib.map(e => e.id));
+  document.getElementById('lib-update-banner').style.display = 'none';
+  if (goToLib) goTo('lib');
+}
+
+function goTo(sc) {
+  const t = document.querySelector('.tab[data-sc="' + sc + '"]');
+  if (t) switchTab(t);
+}
+
+function toggleApiGuide() {
+  const el = document.getElementById('api-guide');
+  const ch = document.getElementById('api-guide-chevron');
+  const open = el.style.display === 'none';
+  el.style.display = open ? '' : 'none';
+  ch.textContent = open ? '▴' : '▾';
+}
+
+function toggleProxyGuide() {
+  const el = document.getElementById('proxy-guide');
+  const ch = document.getElementById('proxy-guide-chevron');
+  const open = el.style.display === 'none';
+  el.style.display = open ? '' : 'none';
+  ch.textContent = open ? '▴' : '▾';
 }
 
 function init() {
@@ -978,7 +1100,10 @@ function renderDash() {
   const today = todaySched();
   const te = document.getElementById('dash-today');
   if (!today.length) {
-    te.innerHTML = '<div class="card" style="color:var(--mu);font-size:13px">No doses scheduled today.</div>';
+    const hasActive = meds.some(m => m.status === 'active');
+    te.innerHTML = hasActive
+      ? '<div class="card" style="color:var(--mu);font-size:13px;text-align:center;padding:20px">Nothing scheduled for today.</div>'
+      : `<div class="empty-state"><div class="ico">💉</div><h3>No medications yet</h3><p>Browse the Library to find a peptide with pre-filled dosing data, or add one manually from the Medications tab.</p><div style="display:flex;gap:8px;justify-content:center"><button class="btn btn-p btn-sm" onclick="goTo('lib')">Browse Library</button><button class="btn btn-g btn-sm" onclick="goTo('meds')">+ Add Manually</button></div></div>`;
   } else {
     te.innerHTML = today.map(m => {
       const logged = logs.find(l => l.medId === m.id && l.date === fD(now));
@@ -1041,7 +1166,10 @@ function renderMeds() {
   let f = meds.filter(m => m.name.toLowerCase().includes(q) || (m.src||'').toLowerCase().includes(q));
   if (mF !== 'all') f = f.filter(m => m.status === mF);
   f.sort((a,b) => ['active','off','completed','stopped'].indexOf(a.status) - ['active','off','completed','stopped'].indexOf(b.status));
-  document.getElementById('med-list').innerHTML = f.length ? f.map(m => mcHTML(m)).join('') : '<div style="text-align:center;padding:40px 0;color:var(--mu)">No medications found.</div>';
+  const emptyMsg = (meds.length === 0 && mF === 'all' && !q)
+    ? `<div class="empty-state"><div class="ico">💉</div><h3>No medications yet</h3><p>Browse the Library to add a peptide with pre-filled dosing, reconstitution, and safety data.</p><button class="btn btn-p" onclick="goTo('lib')">Browse Library →</button></div>`
+    : '<div style="text-align:center;padding:40px 0;color:var(--mu);font-size:13px">No medications found.</div>';
+  document.getElementById('med-list').innerHTML = f.length ? f.map(m => mcHTML(m)).join('') : emptyMsg;
 }
 
 function mcHTML(m) {

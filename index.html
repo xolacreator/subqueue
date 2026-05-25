@@ -281,10 +281,85 @@ body{display:flex;flex-direction:column;overflow:hidden;}
 /* TOAST */
 .log-toast{position:fixed;bottom:calc(var(--safe-b) + 76px);left:50%;transform:translateX(-50%);background:var(--s1);border:1px solid var(--ac);border-radius:12px;padding:11px 16px;z-index:200;display:flex;align-items:center;gap:10px;font-size:12px;color:var(--tx);white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.5);animation:slideUp .2s ease;}
 @keyframes slideUp{from{transform:translateX(-50%) translateY(16px);opacity:0}to{transform:translateX(-50%) translateY(0);opacity:1}}
+
+/* ONBOARDING */
+#ob-overlay{position:fixed;inset:0;z-index:400;background:var(--bg);display:none;flex-direction:column;padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0);}
+.ob-dots{display:flex;justify-content:center;gap:7px;padding:20px 0 0;}
+.ob-dot{width:7px;height:7px;border-radius:50%;background:var(--br);transition:background .3s,width .3s;flex-shrink:0;}
+.ob-dot.on{background:var(--ac);width:22px;border-radius:4px;}
+.ob-steps{flex:1;overflow:hidden;position:relative;}
+.ob-step{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 32px;opacity:0;transform:translateX(40px);transition:opacity .3s,transform .3s;pointer-events:none;}
+.ob-step.on{opacity:1;transform:translateX(0);pointer-events:auto;}
+.ob-step.back{transform:translateX(-40px);}
+.ob-icon{font-size:64px;margin-bottom:28px;line-height:1;}
+.ob-title{font-size:22px;font-weight:800;color:var(--tx);text-align:center;margin-bottom:12px;letter-spacing:-.3px;}
+.ob-sub{font-size:13px;color:var(--ac);font-weight:600;text-align:center;margin-bottom:10px;text-transform:uppercase;letter-spacing:.08em;}
+.ob-body{font-size:14px;color:var(--mu);text-align:center;line-height:1.7;max-width:320px;}
+.ob-body b{color:var(--tx);}
+.ob-nav{display:flex;flex-direction:column;gap:10px;padding:16px 24px 28px;}
+.ob-next{width:100%;padding:15px;font-size:15px;font-weight:700;background:var(--ac);color:#fff;border:none;border-radius:14px;cursor:pointer;}
+.ob-back-row{display:flex;justify-content:space-between;align-items:center;}
+.ob-back{background:none;border:none;color:var(--mu);font-size:13px;padding:4px 8px;cursor:pointer;}
+.ob-skip{background:none;border:none;color:var(--mu);font-size:13px;padding:4px 8px;cursor:pointer;}
 </style>
 </head>
 <body>
 <div class="app">
+
+<!-- ONBOARDING WIZARD -->
+<div id="ob-overlay">
+  <div class="ob-dots">
+    <span class="ob-dot" id="od0"></span>
+    <span class="ob-dot" id="od1"></span>
+    <span class="ob-dot" id="od2"></span>
+    <span class="ob-dot" id="od3"></span>
+    <span class="ob-dot" id="od4"></span>
+  </div>
+  <div class="ob-steps">
+    <!-- Step 0: Welcome -->
+    <div class="ob-step" id="obs0">
+      <div class="ob-icon">💉</div>
+      <div class="ob-title">Welcome to Subqueue</div>
+      <div class="ob-body">Your personal peptide protocol tracker. <b>Log doses, monitor vials, and research compounds</b> — all stored privately on your device. Nothing leaves your browser.</div>
+    </div>
+    <!-- Step 1: Library -->
+    <div class="ob-step" id="obs1">
+      <div class="ob-icon">📚</div>
+      <div class="ob-sub">Library</div>
+      <div class="ob-title">30+ Peptides Built In</div>
+      <div class="ob-body">Browse dosing guides, reconstitution tables, stacking notes, and safety warnings for every major research peptide. Tap any entry to <b>add it to your protocol</b> in seconds.</div>
+    </div>
+    <!-- Step 2: Protocol -->
+    <div class="ob-step" id="obs2">
+      <div class="ob-icon">🗓</div>
+      <div class="ob-sub">Dashboard</div>
+      <div class="ob-title">Your Daily Schedule</div>
+      <div class="ob-body">Add each peptide you're running with dose, frequency, and time. The dashboard shows <b>what's due today</b> with draw volumes pre-calculated so you never have to do the math.</div>
+    </div>
+    <!-- Step 3: Vials -->
+    <div class="ob-step" id="obs3">
+      <div class="ob-icon">🧪</div>
+      <div class="ob-sub">Vial Tracking</div>
+      <div class="ob-title">Never Lose Track of a Vial</div>
+      <div class="ob-body">Log each vial when you reconstitute it. The app tracks <b>doses remaining, expiry dates</b>, and tells you when to reorder — before you run out.</div>
+    </div>
+    <!-- Step 4: Ready -->
+    <div class="ob-step" id="obs4">
+      <div class="ob-icon">✦</div>
+      <div class="ob-sub">You're all set</div>
+      <div class="ob-title">Build Your Protocol</div>
+      <div class="ob-body">Start by browsing the <b>Library</b> tab or tapping <b>+ Add</b> on the Medications screen. Export a backup anytime from Settings to keep your data safe.</div>
+    </div>
+  </div>
+  <div class="ob-nav">
+    <button class="ob-next" id="ob-next-btn" onclick="nextOnboard()">Next →</button>
+    <div class="ob-back-row">
+      <button class="ob-back" id="ob-back-btn" onclick="backOnboard()" style="visibility:hidden">← Back</button>
+      <button class="ob-skip" onclick="finishOnboard()">Skip</button>
+    </div>
+  </div>
+</div>
+
   <div class="status-pad"></div>
   <div class="screens">
 
@@ -789,31 +864,18 @@ function saveAll() {
 }
 
 // ══ INIT ══════════════════════════════════════════════════════════════════════
-function init() {
-  if (!localStorage.getItem('sq_seed_v1')) {
-    meds = SM; logs = SL; vials = SV; titrations = []; volOv = {};
-    protocols = []; checkins = [];
-    saveAll();
-    localStorage.setItem('sq_seed_v1', '1');
-  } else {
-    meds        = LS.get('meds')      || SM;
-    logs        = LS.get('logs')      || [];
-    vials       = LS.get('vials')     || SV;
-    titrations  = LS.get('titrations')|| [];
-    volOv       = LS.get('volOv')     || {};
-    protocols   = LS.get('protocols') || [];
-    checkins    = LS.get('checkins')  || [];
-    userLib     = LS.get('userLib')   || [];
-  }
-  // Seed remoteLib from cache immediately so library renders offline
-  remoteLib = LS.get('sq_remote_lib') || [];
-  const k = localStorage.getItem('sq_ai_key');
-  if (k) document.getElementById('ai-key').value = k;
-  const pu = localStorage.getItem('sq_proxy_url');
-  if (pu) document.getElementById('ai-proxy-url').value = pu;
-  render();
-  if (protocols.some(p => p.remindOn)) requestNotifPerm();
-  // Fetch latest shared library in background; re-render if it changed
+function loadState() {
+  meds        = LS.get('meds')       || [];
+  logs        = LS.get('logs')       || [];
+  vials       = LS.get('vials')      || [];
+  titrations  = LS.get('titrations') || [];
+  volOv       = LS.get('volOv')      || {};
+  protocols   = LS.get('protocols')  || [];
+  checkins    = LS.get('checkins')   || [];
+  userLib     = LS.get('userLib')    || [];
+}
+
+function fetchRemoteLib() {
   fetch('./library.json?v=' + Date.now())
     .then(r => r.json())
     .then(data => {
@@ -823,7 +885,26 @@ function init() {
       LS.set('sq_remote_lib', remoteLib);
       if (JSON.stringify(remoteLib) !== prev) renderLib();
     })
-    .catch(() => {}); // silently stay on cached version when offline
+    .catch(() => {});
+}
+
+function init() {
+  remoteLib = LS.get('sq_remote_lib') || [];
+  const k = localStorage.getItem('sq_ai_key');
+  if (k) document.getElementById('ai-key').value = k;
+  const pu = localStorage.getItem('sq_proxy_url');
+  if (pu) document.getElementById('ai-proxy-url').value = pu;
+
+  if (!localStorage.getItem('sq_seed_v1')) {
+    // New user — show onboarding wizard; app renders after they finish
+    showOnboard();
+    return;
+  }
+
+  loadState();
+  render();
+  if (protocols.some(p => p.remindOn)) requestNotifPerm();
+  fetchRemoteLib();
 }
 
 // ══ RENDER ALL ════════════════════════════════════════════════════════════════
@@ -1987,6 +2068,47 @@ function saveResearchedPeptide() {
 function delUserLib(id) {
   userLib = userLib.filter(l => l.id !== id);
   saveAll(); renderLib();
+}
+
+// ══ ONBOARDING ════════════════════════════════════════════════════════════════
+const OB_TOTAL = 5;
+let obStep = 0;
+
+function showOnboard() {
+  const el = document.getElementById('ob-overlay');
+  el.style.display = 'flex';
+  renderObStep(0);
+}
+
+function renderObStep(n) {
+  document.querySelectorAll('.ob-step').forEach((s, i) => {
+    s.classList.toggle('on', i === n);
+    s.classList.toggle('back', i < n);
+  });
+  document.querySelectorAll('.ob-dot').forEach((d, i) => d.classList.toggle('on', i === n));
+  document.getElementById('ob-next-btn').textContent = n === OB_TOTAL - 1 ? 'Get Started →' : 'Next →';
+  document.getElementById('ob-back-btn').style.visibility = n === 0 ? 'hidden' : 'visible';
+  obStep = n;
+}
+
+function nextOnboard() {
+  if (obStep < OB_TOTAL - 1) { renderObStep(obStep + 1); }
+  else { finishOnboard(); }
+}
+
+function backOnboard() {
+  if (obStep > 0) renderObStep(obStep - 1);
+}
+
+function finishOnboard() {
+  localStorage.setItem('sq_seed_v1', '1');
+  meds = []; logs = []; vials = []; titrations = []; volOv = {};
+  protocols = []; checkins = []; userLib = [];
+  saveAll();
+  document.getElementById('ob-overlay').style.display = 'none';
+  render();
+  if (protocols.some(p => p.remindOn)) requestNotifPerm();
+  fetchRemoteLib();
 }
 
 // ══ SHEETS ════════════════════════════════════════════════════════════════════

@@ -265,9 +265,10 @@ body{display:flex;flex-direction:column;overflow:hidden;}
 
 /* MISC */
 .empty-state{text-align:center;padding:40px 20px;}
-.empty-state .ico{font-size:36px;margin-bottom:12px;}
+.empty-state .ico{font-size:28px;font-weight:300;color:var(--mu);margin-bottom:12px;line-height:1;letter-spacing:-.02em;}
 .empty-state h3{font-size:16px;font-weight:700;color:var(--tx);margin-bottom:6px;}
 .empty-state p{font-size:12px;color:var(--mu);line-height:1.6;margin-bottom:16px;}
+.lcat-dot{width:10px;height:10px;border-radius:50%;display:inline-block;flex-shrink:0;margin-right:4px;}
 ::-webkit-scrollbar{width:0;height:0;}
 
 /* DRAW PILL */
@@ -330,34 +331,29 @@ body{display:flex;flex-direction:column;overflow:hidden;}
   <div class="ob-steps">
     <!-- Step 0: Welcome -->
     <div class="ob-step" id="obs0">
-      <div class="ob-icon">💉</div>
       <div class="ob-title">Welcome to Subqueue</div>
       <div class="ob-body">Your personal peptide protocol tracker. <b>Log doses, monitor vials, and research compounds</b> — all stored privately on your device. Nothing leaves your browser.</div>
     </div>
     <!-- Step 1: Library -->
     <div class="ob-step" id="obs1">
-      <div class="ob-icon">📚</div>
       <div class="ob-sub">Library</div>
       <div class="ob-title">30+ Peptides Built In</div>
       <div class="ob-body">Browse dosing guides, reconstitution tables, stacking notes, and safety warnings for every major research peptide. Tap any entry to <b>add it to your protocol</b> in seconds.</div>
     </div>
     <!-- Step 2: Protocol -->
     <div class="ob-step" id="obs2">
-      <div class="ob-icon">🗓</div>
       <div class="ob-sub">Dashboard</div>
       <div class="ob-title">Your Daily Schedule</div>
       <div class="ob-body">Add each peptide you're running with dose, frequency, and time. The dashboard shows <b>what's due today</b> with draw volumes pre-calculated so you never have to do the math.</div>
     </div>
     <!-- Step 3: Vials -->
     <div class="ob-step" id="obs3">
-      <div class="ob-icon">🧪</div>
       <div class="ob-sub">Vial Tracking</div>
       <div class="ob-title">Never Lose Track of a Vial</div>
       <div class="ob-body">Log each vial when you reconstitute it. The app tracks <b>doses remaining, expiry dates</b>, and tells you when to reorder — before you run out.</div>
     </div>
     <!-- Step 4: Ready -->
     <div class="ob-step" id="obs4">
-      <div class="ob-icon">✦</div>
       <div class="ob-sub">You're all set</div>
       <div class="ob-title">Build Your Protocol</div>
       <div class="ob-body">Start by browsing the <b>Library</b> tab or tapping <b>+ Add</b> on the Medications screen. Export a backup anytime from Settings to keep your data safe.</div>
@@ -491,14 +487,14 @@ body{display:flex;flex-direction:column;overflow:hidden;}
           <div class="info-row"><span class="info-lbl">Never shake</span><span class="info-val">Swirl gently only — shaking degrades the peptide</span></div>
         </div>
         <div class="sl">Peptide types by goal</div>
-        <div class="lcat"><div class="lcat-hdr" onclick="toggleLearn(this)"><span style="font-size:20px">⚖️</span><div><div class="lcat-title">Weight Loss — GLP-1 RAs</div><div class="lcat-sub">Tirzepatide, Semaglutide</div></div><span style="margin-left:auto;color:var(--mu)">▾</span></div>
+        <div class="lcat"><div class="lcat-hdr" onclick="toggleLearn(this)"><span class="lcat-dot" style="background:#fb923c"></span><div><div class="lcat-title">Weight Loss — GLP-1 RAs</div><div class="lcat-sub">Tirzepatide, Semaglutide</div></div><span style="margin-left:auto;color:var(--mu)">▾</span></div>
           <div class="lcat-body">
             <div class="lcat-item"><div class="lcat-item-name">How they work</div><div class="lcat-item-text">Slow digestion, increase satiety, reduce appetite, and create milder glucose spikes — all reducing caloric intake.</div></div>
             <div class="lcat-item"><div class="lcat-item-name">Tirzepatide vs Semaglutide</div><div class="lcat-item-text">Both highly effective. Tirzepatide subjects lost 4–12 more lbs in a 2021 study. Semaglutide more widely accessible.</div></div>
             <div class="nb dn" style="margin-top:8px">✕ GLP-1s must always be injected alone — never mix.</div>
           </div>
         </div>
-        <div class="lcat"><div class="lcat-hdr" onclick="toggleLearn(this)"><span style="font-size:20px">💪</span><div><div class="lcat-title">Body Recomposition</div><div class="lcat-sub">GH Secretagogues — CJC, Ipamorelin, Tesamorelin</div></div><span style="margin-left:auto;color:var(--mu)">▾</span></div>
+        <div class="lcat"><div class="lcat-hdr" onclick="toggleLearn(this)"><span class="lcat-dot" style="background:#4ade80"></span><div><div class="lcat-title">Body Recomposition</div><div class="lcat-sub">GH Secretagogues — CJC, Ipamorelin, Tesamorelin</div></div><span style="margin-left:auto;color:var(--mu)">▾</span></div>
           <div class="lcat-body">
             <div class="lcat-item"><div class="lcat-item-name">How they work</div><div class="lcat-item-text">Stimulate the pituitary to release GH, which promotes muscle growth and regulates body fat via IGF-1.</div></div>
             <div class="lcat-item"><div class="lcat-item-name">Ipamorelin</div><div class="lcat-item-text">Selective GHRP — minimal cortisol/prolactin elevation. Cleanest GH secretagogue. Best before bed on empty stomach.</div></div>
@@ -506,7 +502,7 @@ body{display:flex;flex-direction:column;overflow:hidden;}
             <div class="nb ac" style="margin-top:8px">Your active: Tesamorelin, Ipamorelin, TB-500, BPC-157/TB blend, KLOW blend.</div>
           </div>
         </div>
-        <div class="lcat"><div class="lcat-hdr" onclick="toggleLearn(this)"><span style="font-size:20px">🧬</span><div><div class="lcat-title">Mitochondrial & Longevity</div><div class="lcat-sub">SS-31, MOTS-C, NAD+</div></div><span style="margin-left:auto;color:var(--mu)">▾</span></div>
+        <div class="lcat"><div class="lcat-hdr" onclick="toggleLearn(this)"><span class="lcat-dot" style="background:#c084fc"></span><div><div class="lcat-title">Mitochondrial & Longevity</div><div class="lcat-sub">SS-31, MOTS-C, NAD+</div></div><span style="margin-left:auto;color:var(--mu)">▾</span></div>
           <div class="lcat-body">
             <div class="lcat-item"><div class="lcat-item-name">SS-31</div><div class="lcat-item-text">Targets the inner mitochondrial membrane. Reduces oxidative stress, supports cardiac health. Your current active protocol.</div></div>
             <div class="lcat-item"><div class="lcat-item-name">MOTS-C</div><div class="lcat-item-text">Mimics exercise at cellular level. Improves insulin sensitivity. You ran 4 weeks — stopped due to ISR. Try smaller vials, more dilute solution if retrying.</div></div>
@@ -637,15 +633,15 @@ body{display:flex;flex-direction:column;overflow:hidden;}
     <div class="fg"><label>Protocol name</label><input id="pr-name" placeholder="e.g. Summer Recomp Stack"></div>
     <div class="fg"><label>Goal</label>
       <select id="pr-goal" onchange="renderBaselineFields()">
-        <option value="weight_loss">⚖️ Weight Loss</option>
-        <option value="muscle">💪 Muscle &amp; Recovery</option>
-        <option value="longevity">🔬 Longevity</option>
-        <option value="performance">⚡ Athletic Performance</option>
-        <option value="cellular">🧬 Cellular Health</option>
-        <option value="cognitive">🧠 Cognitive</option>
-        <option value="healing">🩹 Healing &amp; Recovery</option>
-        <option value="skin">✨ Skin &amp; Aesthetics</option>
-        <option value="custom">🎯 Custom</option>
+        <option value="weight_loss">Weight Loss</option>
+        <option value="muscle">Muscle &amp; Recovery</option>
+        <option value="longevity">Longevity</option>
+        <option value="performance">Athletic Performance</option>
+        <option value="cellular">Cellular Health</option>
+        <option value="cognitive">Cognitive</option>
+        <option value="healing">Healing &amp; Recovery</option>
+        <option value="skin">Skin &amp; Aesthetics</option>
+        <option value="custom">Custom</option>
       </select>
     </div>
     <div class="fg-row"><div class="fg"><label>Start date</label><input id="pr-start" type="date"></div><div class="fg"><label>Check-in</label><select id="pr-checkin"><option value="weekly">Weekly</option><option value="monthly">Monthly</option></select></div></div>
@@ -864,15 +860,15 @@ const SL = [
 
 // ══ GOAL DEFINITIONS ══════════════════════════════════════════════════════════
 const GOALS = {
-  weight_loss: {label:'Weight Loss',icon:'⚖️',color:'#fb923c',metrics:['weight','bodyFat','waist','energy','appetite']},
-  muscle:      {label:'Muscle & Recovery',icon:'💪',color:'#4ade80',metrics:['weight','leanMass','recovery','soreness','energy']},
-  longevity:   {label:'Longevity',icon:'🔬',color:'#a78bfa',metrics:['energy','sleep','hrv','mood']},
-  performance: {label:'Athletic Performance',icon:'⚡',color:'#facc15',metrics:['energy','recovery','endurance','sleep','soreness']},
-  cellular:    {label:'Cellular Health',icon:'🧬',color:'#c084fc',metrics:['energy','sleep','mood']},
-  cognitive:   {label:'Cognitive',icon:'🧠',color:'#60a5fa',metrics:['focus','memory','mood','anxiety','sleep']},
-  healing:     {label:'Healing',icon:'🩹',color:'#f472b6',metrics:['pain','mobility','recovery','energy']},
-  skin:        {label:'Skin & Aesthetics',icon:'✨',color:'#e879f9',metrics:['skinQuality','energy','sleep','mood']},
-  custom:      {label:'Custom',icon:'🎯',color:'#94a3b8',metrics:['energy','mood','sleep']},
+  weight_loss: {label:'Weight Loss',color:'#fb923c',metrics:['weight','bodyFat','waist','energy','appetite']},
+  muscle:      {label:'Muscle & Recovery',color:'#4ade80',metrics:['weight','leanMass','recovery','soreness','energy']},
+  longevity:   {label:'Longevity',color:'#a78bfa',metrics:['energy','sleep','hrv','mood']},
+  performance: {label:'Athletic Performance',color:'#facc15',metrics:['energy','recovery','endurance','sleep','soreness']},
+  cellular:    {label:'Cellular Health',color:'#c084fc',metrics:['energy','sleep','mood']},
+  cognitive:   {label:'Cognitive',color:'#60a5fa',metrics:['focus','memory','mood','anxiety','sleep']},
+  healing:     {label:'Healing',color:'#f472b6',metrics:['pain','mobility','recovery','energy']},
+  skin:        {label:'Skin & Aesthetics',color:'#e879f9',metrics:['skinQuality','energy','sleep','mood']},
+  custom:      {label:'Custom',color:'#94a3b8',metrics:['energy','mood','sleep']},
 };
 const MLABELS = {
   weight:'Weight (lbs)',bodyFat:'Body Fat %',waist:'Waist (in)',leanMass:'Lean Mass (lbs)',
@@ -914,10 +910,10 @@ const LIB = [
   {id:'l22',name:'Thymosin Alpha-1',aka:'TA-1 / Zadaxin',cat:'Healing',tags:['Immune','T-Cell','Antiviral'],summary:'Thymic peptide. Potent immune modulator — enhances T-cell maturation, NK cell activity, and antiviral response.',dosing:{typical:'1.6mg twice weekly',range:'0.8-3.2mg, 2× per week',freq:'Twice weekly',timing:'Subcut. Any time.',cycle:'4-12 weeks; repeat as needed'},recon:{vial:'1.6mg',dil:'1mL sterile water',conc:'1.6mg/mL',tbl:'10 units = 160mcg\n20 units = 320mcg\n100 units = 1.6mg',exp:7},def:{dose:1.6,unit:'mg',freq:'twice_weekly',time:'09:00'},notes:'FDA-approved as Zadaxin in some countries for HBV/HCV. Standard vials are 1.6mg.',warn:'Research use only in US/EU. Do not use with organ transplant immunosuppression.'},
   {id:'l23',name:'Selank',aka:'Thr-Lys-Pro-Arg-Pro-Gly-Pro',cat:'Nootropic',tags:['Anxiolytic','Focus','Nootropic'],summary:'Heptapeptide anxiolytic. Reduces anxiety without sedation. Enhances memory, focus, and BDNF expression.',dosing:{typical:'200-500mcg, 1-3×/day',range:'100-900mcg/day',freq:'Daily or as needed',timing:'Morning + midday. Intranasal.',cycle:'2-4 weeks on, 1-2 off'},recon:{vial:'5mg',dil:'5mL saline',conc:'1mg/mL',tbl:'1-2 drops per nostril = ~100-200mcg\n3-4 drops per nostril = ~300-400mcg',exp:14},def:{dose:300,unit:'mcg',freq:'daily',time:'08:00'},notes:'Intranasal preferred. Keep refrigerated. N-Acetyl Selank Amidate is more potent.',warn:'Research peptide. No known serious adverse effects. Mild serotonin modulation.'},
   {id:'l24',name:'PT-141',aka:'Bremelanotide / Vyleesi',cat:'Other',tags:['Libido','Sexual Health','Melanocortin'],summary:'Melanocortin receptor agonist. FDA-approved (Vyleesi) for hypoactive sexual desire disorder in women. Effective in men for ED.',dosing:{typical:'1-2mg, 45-90min before activity',range:'0.5-2mg',freq:'As needed — max 1× per 72hr',timing:'Subcut abdomen or thigh. 45-90min before.',cycle:'As needed'},recon:{vial:'10mg',dil:'2mL BAC Water',conc:'5mg/mL',tbl:'2 units = 100mcg\n10 units = 500mcg\n20 units = 1mg',exp:28},def:{dose:1,unit:'mg',freq:'daily',time:'19:00'},notes:'Start at 0.5mg to assess nausea. Flushing and mild BP elevation common. Do not exceed 1 use per 72 hours.',warn:'Can cause transient hypertension. Contraindicated with uncontrolled cardiac conditions. Start at 0.5mg.'},
-  {id:'l25',name:'MK-677',aka:'Ibutamoren Mesylate / Nutrobal',cat:'GH Secretagogue',tags:['GH','IGF-1','Oral','RESTRICTED'],summary:'Oral ghrelin mimetic and GH secretagogue. Significantly elevates GH and IGF-1. Non-peptide compound. FDA-restricted.',dosing:{typical:'10-25mg/day oral',range:'10-50mg/day',freq:'Daily',timing:'Before bed to blunt hunger. Oral.',cycle:'4-6 months on; equal off'},recon:{vial:'N/A — oral capsule or liquid solution',dil:'N/A',conc:'N/A',tbl:'N/A — oral dosing only',exp:365},def:{dose:25,unit:'mg',freq:'daily',time:'22:00'},notes:'Causes water retention and significant hunger. Elevates blood glucose — monitor in diabetics.',warn:'⛔ FDA RESTRICTED — clinical trials halted due to cardiac concerns at high doses. Research use only. Increases appetite significantly.'},
-  {id:'l26',name:'GHRP-2',aka:'Pralmorelin',cat:'GH Secretagogue',tags:['GH','Cortisol','RESTRICTED'],summary:'Synthetic hexapeptide GH secretagogue. Potent GH release but elevates cortisol and prolactin. FDA-restricted from compounding.',dosing:{typical:'100-300mcg, 2-3×/day',range:'50-500mcg per dose',freq:'2-3× daily (AM, post-workout, bed)',timing:'Fasted. Subcut.',cycle:'8-12 weeks'},recon:{vial:'5mg',dil:'2.5mL BAC Water',conc:'2mg/mL',tbl:'5 units = 100mcg\n10 units = 200mcg\n15 units = 300mcg',exp:28},def:{dose:200,unit:'mcg',freq:'daily',time:'22:00'},notes:'Often combined with CJC-1295 or Sermorelin. Cortisol and prolactin elevation limits long-term use.',warn:'⛔ FDA RESTRICTED — not available in compounded form in US. Cortisol and prolactin elevation with chronic use.'},
-  {id:'l27',name:'GHRP-6',aka:'Growth Hormone Releasing Peptide-6',cat:'GH Secretagogue',tags:['GH','Hunger','RESTRICTED'],summary:'First-generation GH secretagogue. Strong GH release with intense hunger and cortisol elevation as side effects. FDA-restricted.',dosing:{typical:'100-300mcg, 2-3×/day',range:'50-500mcg per dose',freq:'2-3× daily',timing:'Fasted. Subcut.',cycle:'8-12 weeks'},recon:{vial:'5mg',dil:'2.5mL BAC Water',conc:'2mg/mL',tbl:'5 units = 100mcg\n10 units = 200mcg\n15 units = 300mcg',exp:28},def:{dose:200,unit:'mcg',freq:'daily',time:'22:00'},notes:'More hunger-stimulating than GHRP-2. Historically useful for appetite support in wasting conditions.',warn:'⛔ FDA RESTRICTED — not available in compounded form in US. Extreme hunger side effect. Cortisol and prolactin elevation.'},
-  {id:'l28',name:'Kisspeptin-10',aka:'Metastin 45-54 / KP-10',cat:'Other',tags:['LH','Fertility','Hormonal','RESTRICTED'],summary:'Hypothalamic neuropeptide that triggers LH and FSH surge. Used in fertility research and hypogonadism protocols. FDA-restricted.',dosing:{typical:'0.5-1mg subcut; research: 1-10mcg/kg IV',range:'Varies by protocol',freq:'Pulsatile — 1-2× per day or per fertility protocol',timing:'Evening. Subcut.',cycle:'Short course; fertility-protocol specific'},recon:{vial:'5mg',dil:'5mL BAC Water',conc:'1mg/mL',tbl:'5 units = 50mcg\n10 units = 100mcg\n50 units = 500mcg',exp:14},def:{dose:0.5,unit:'mg',freq:'daily',time:'20:00'},notes:'Pulsatile dosing mirrors physiological LH release. Used in hypogonadism and male fertility protocols.',warn:'⛔ FDA RESTRICTED. Limited human safety data. Significant hormonal effects — use under endocrinologist supervision.'},
+  {id:'l25',name:'MK-677',aka:'Ibutamoren Mesylate / Nutrobal',cat:'GH Secretagogue',tags:['GH','IGF-1','Oral','RESTRICTED'],summary:'Oral ghrelin mimetic and GH secretagogue. Significantly elevates GH and IGF-1. Non-peptide compound. FDA-restricted.',dosing:{typical:'10-25mg/day oral',range:'10-50mg/day',freq:'Daily',timing:'Before bed to blunt hunger. Oral.',cycle:'4-6 months on; equal off'},recon:{vial:'N/A — oral capsule or liquid solution',dil:'N/A',conc:'N/A',tbl:'N/A — oral dosing only',exp:365},def:{dose:25,unit:'mg',freq:'daily',time:'22:00'},notes:'Causes water retention and significant hunger. Elevates blood glucose — monitor in diabetics.',warn:'FDA RESTRICTED — clinical trials halted due to cardiac concerns at high doses. Research use only. Increases appetite significantly.'},
+  {id:'l26',name:'GHRP-2',aka:'Pralmorelin',cat:'GH Secretagogue',tags:['GH','Cortisol','RESTRICTED'],summary:'Synthetic hexapeptide GH secretagogue. Potent GH release but elevates cortisol and prolactin. FDA-restricted from compounding.',dosing:{typical:'100-300mcg, 2-3×/day',range:'50-500mcg per dose',freq:'2-3× daily (AM, post-workout, bed)',timing:'Fasted. Subcut.',cycle:'8-12 weeks'},recon:{vial:'5mg',dil:'2.5mL BAC Water',conc:'2mg/mL',tbl:'5 units = 100mcg\n10 units = 200mcg\n15 units = 300mcg',exp:28},def:{dose:200,unit:'mcg',freq:'daily',time:'22:00'},notes:'Often combined with CJC-1295 or Sermorelin. Cortisol and prolactin elevation limits long-term use.',warn:'FDA RESTRICTED — not available in compounded form in US. Cortisol and prolactin elevation with chronic use.'},
+  {id:'l27',name:'GHRP-6',aka:'Growth Hormone Releasing Peptide-6',cat:'GH Secretagogue',tags:['GH','Hunger','RESTRICTED'],summary:'First-generation GH secretagogue. Strong GH release with intense hunger and cortisol elevation as side effects. FDA-restricted.',dosing:{typical:'100-300mcg, 2-3×/day',range:'50-500mcg per dose',freq:'2-3× daily',timing:'Fasted. Subcut.',cycle:'8-12 weeks'},recon:{vial:'5mg',dil:'2.5mL BAC Water',conc:'2mg/mL',tbl:'5 units = 100mcg\n10 units = 200mcg\n15 units = 300mcg',exp:28},def:{dose:200,unit:'mcg',freq:'daily',time:'22:00'},notes:'More hunger-stimulating than GHRP-2. Historically useful for appetite support in wasting conditions.',warn:'FDA RESTRICTED — not available in compounded form in US. Extreme hunger side effect. Cortisol and prolactin elevation.'},
+  {id:'l28',name:'Kisspeptin-10',aka:'Metastin 45-54 / KP-10',cat:'Other',tags:['LH','Fertility','Hormonal','RESTRICTED'],summary:'Hypothalamic neuropeptide that triggers LH and FSH surge. Used in fertility research and hypogonadism protocols. FDA-restricted.',dosing:{typical:'0.5-1mg subcut; research: 1-10mcg/kg IV',range:'Varies by protocol',freq:'Pulsatile — 1-2× per day or per fertility protocol',timing:'Evening. Subcut.',cycle:'Short course; fertility-protocol specific'},recon:{vial:'5mg',dil:'5mL BAC Water',conc:'1mg/mL',tbl:'5 units = 50mcg\n10 units = 100mcg\n50 units = 500mcg',exp:14},def:{dose:0.5,unit:'mg',freq:'daily',time:'20:00'},notes:'Pulsatile dosing mirrors physiological LH release. Used in hypogonadism and male fertility protocols.',warn:'FDA RESTRICTED. Limited human safety data. Significant hormonal effects — use under endocrinologist supervision.'},
   {id:'l29',name:'NAD+',aka:'Nicotinamide Adenine Dinucleotide',cat:'Mitochondrial',tags:['Mitochondrial','Longevity','DNA Repair','Energy'],summary:'Master coenzyme in cellular energy metabolism and DNA repair. Declines with age. IV or subcut bypasses GI degradation for full bioavailability.',dosing:{typical:'250-500mg subcut/day or 500-1000mg IV',range:'100-2000mg depending on route',freq:'Daily subcut or 1-3× per week IV',timing:'Morning. Subcut or slow IV infusion.',cycle:'Continuous or 10-day loading course'},recon:{vial:'500mg lyophilized',dil:'5mL sterile water',conc:'100mg/mL',tbl:'10 units = 100mg\n25 units = 250mg\n50 units = 500mg',exp:28},def:{dose:250,unit:'mg',freq:'daily',time:'08:00'},notes:'IV infusion causes flushing, chest tightness, nausea at fast rates. Subcut avoids these. NMN and NR are oral precursor alternatives.',warn:'IV infusion must be slow (1-2hr minimum). Rapid infusion causes severe flushing and chest pressure.'},
   {id:'l30',name:'Glutathione',aka:'GSH / Gamma-glutamylcysteinylglycine',cat:'Healing',tags:['Antioxidant','Liver','Detox','Skin'],summary:'Master endogenous antioxidant tripeptide. IV or subcut restores depleted GSH and supports liver, skin, and immune function.',dosing:{typical:'200-800mg IV push or 600-1200mg slow IV',range:'100-2400mg',freq:'1-3× per week or daily',timing:'Any time. IV push or slow infusion.',cycle:'Continuous or 4-week course'},recon:{vial:'600mg',dil:'5mL sterile water',conc:'120mg/mL',tbl:'5 units = 60mg\n25 units = 300mg\n50 units = 600mg',exp:7},def:{dose:600,unit:'mg',freq:'twice_weekly',time:'10:00'},notes:'Oral glutathione has poor bioavailability — IV, subcut, or liposomal preferred. Short stability after reconstitution — use within 24hr.',warn:'Reduce infusion rate if flushing occurs. Do not mix with vitamin C in same syringe (oxidation). Use within 24hr of reconstitution.'},
 ];
@@ -1103,7 +1099,7 @@ function renderDash() {
     const hasActive = meds.some(m => m.status === 'active');
     te.innerHTML = hasActive
       ? '<div class="card" style="color:var(--mu);font-size:13px;text-align:center;padding:20px">Nothing scheduled for today.</div>'
-      : `<div class="empty-state"><div class="ico">💉</div><h3>No medications yet</h3><p>Browse the Library to find a peptide with pre-filled dosing data, or add one manually from the Medications tab.</p><div style="display:flex;gap:8px;justify-content:center"><button class="btn btn-p btn-sm" onclick="goTo('lib')">Browse Library</button><button class="btn btn-g btn-sm" onclick="goTo('meds')">+ Add Manually</button></div></div>`;
+      : `<div class="empty-state"><div class="ico">+</div><h3>No medications yet</h3><p>Browse the Library to find a peptide with pre-filled dosing data, or add one manually from the Medications tab.</p><div style="display:flex;gap:8px;justify-content:center"><button class="btn btn-p btn-sm" onclick="goTo('lib')">Browse Library</button><button class="btn btn-g btn-sm" onclick="goTo('meds')">+ Add Manually</button></div></div>`;
   } else {
     te.innerHTML = today.map(m => {
       const logged = logs.find(l => l.medId === m.id && l.date === fD(now));
@@ -1124,7 +1120,7 @@ function renderDash() {
             ${logged ? `<span class="badge ${logged.status==='taken'?'b-on':logged.status==='skipped'?'b-dn':'b-wn'}">${logged.status}</span>` : ''}
           </div>
         </div>
-        ${drawLabel ? `<div class="draw-pill"><div class="dp-left"><span style="font-size:14px">💉</span> Draw ${drawLabel} · <span style="color:var(--tx)">${m.dose} ${m.unit}</span></div><div class="dp-right">${fc?.dLeft != null ? fc.dLeft + ' doses left' : ''}</div></div>` : `<div style="font-size:10px;color:var(--mu);margin-bottom:6px">${m.dose} ${m.unit}${fc?.dLeft != null ? ' · ' + fc.dLeft + ' left' : ''}</div>`}
+        ${drawLabel ? `<div class="draw-pill"><div class="dp-left">Draw ${drawLabel} · <span style="color:var(--tx)">${m.dose} ${m.unit}</span></div><div class="dp-right">${fc?.dLeft != null ? fc.dLeft + ' doses left' : ''}</div></div>` : `<div style="font-size:10px;color:var(--mu);margin-bottom:6px">${m.dose} ${m.unit}${fc?.dLeft != null ? ' · ' + fc.dLeft + ' left' : ''}</div>`}
         ${fc ? `<div class="vol-track" style="margin-bottom:8px"><div class="vol-fill${pc}" style="width:${fc.pct}%"></div></div>` : ''}
         <div style="display:flex;gap:6px">
           ${!logged ? `<button class="btn btn-p btn-sm" style="flex:2" onclick="quickLog('${m.id}')">✓ Taken</button><button class="btn btn-g btn-sm" onclick="skipLog('${m.id}')">Skip</button>` : `<button class="btn btn-g btn-sm" style="flex:1" onclick="editLog('${logs.find(l=>l.medId===m.id&&l.date===fD(now))?.id}')">✎ Edit log</button>`}
@@ -1167,7 +1163,7 @@ function renderMeds() {
   if (mF !== 'all') f = f.filter(m => m.status === mF);
   f.sort((a,b) => ['active','off','completed','stopped'].indexOf(a.status) - ['active','off','completed','stopped'].indexOf(b.status));
   const emptyMsg = (meds.length === 0 && mF === 'all' && !q)
-    ? `<div class="empty-state"><div class="ico">💉</div><h3>No medications yet</h3><p>Browse the Library to add a peptide with pre-filled dosing, reconstitution, and safety data.</p><button class="btn btn-p" onclick="goTo('lib')">Browse Library →</button></div>`
+    ? `<div class="empty-state"><div class="ico">+</div><h3>No medications yet</h3><p>Browse the Library to add a peptide with pre-filled dosing, reconstitution, and safety data.</p><button class="btn btn-p" onclick="goTo('lib')">Browse Library →</button></div>`
     : '<div style="text-align:center;padding:40px 0;color:var(--mu);font-size:13px">No medications found.</div>';
   document.getElementById('med-list').innerHTML = f.length ? f.map(m => mcHTML(m)).join('') : emptyMsg;
 }
@@ -1444,7 +1440,7 @@ function updateLogCalc() {
     const syr = Math.round(dv * 100);
     document.getElementById('l-syr').value = syr;
     document.getElementById('l-vol').value = dv.toFixed(3);
-    el.innerHTML = `💉 Draw ${syr} units &nbsp;·&nbsp; ${(dv*1000).toFixed(0)}µL &nbsp;·&nbsp; ${dv.toFixed(3)}mL<br><span style="font-size:10px;color:var(--mu)">${conc.toFixed(2)} mg/mL · ${v.amt}mg / ${v.dil}mL vial</span>`;
+    el.innerHTML = `Draw ${syr} units &nbsp;·&nbsp; ${(dv*1000).toFixed(0)}µL &nbsp;·&nbsp; ${dv.toFixed(3)}mL<br><span style="font-size:10px;color:var(--mu)">${conc.toFixed(2)} mg/mL · ${v.amt}mg / ${v.dil}mL vial</span>`;
     el.style.display = '';
   } else {
     el.style.display = 'none';
@@ -1656,7 +1652,7 @@ function calcR() {
 function renderProtocols() {
   const el = document.getElementById('proto-sb');
   if (!protocols.length) {
-    el.innerHTML = `<div class="empty-state"><div class="ico">🎯</div><h3>No protocols yet</h3><p>Create a protocol to set goals, schedule peptides, get reminders, and track your progress over time.</p><button class="btn btn-p" onclick="openAddProtocol()">+ Create First Protocol</button></div>`;
+    el.innerHTML = `<div class="empty-state"><div class="ico">◎</div><h3>No protocols yet</h3><p>Create a protocol to set goals, schedule peptides, get reminders, and track your progress over time.</p><button class="btn btn-p" onclick="openAddProtocol()">+ Create First Protocol</button></div>`;
     return;
   }
   el.innerHTML = `<div style="display:flex;justify-content:flex-end;margin-bottom:10px"><button class="btn btn-p btn-sm" onclick="openAddProtocol()">+ New</button></div>` + protocols.map(p => {
@@ -1691,12 +1687,12 @@ function renderProtocols() {
       <div class="proto-body">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:4px">
           <div>
-            <div style="display:flex;align-items:center;gap:6px"><span style="font-size:18px">${p.goalIcon||'🎯'}</span><div class="proto-name">${p.name}</div></div>
+            <div style="display:flex;align-items:center;gap:8px"><span style="width:8px;height:8px;border-radius:50%;background:${p.goalColor||'var(--ac)'};display:inline-block;flex-shrink:0"></span><div class="proto-name">${p.name}</div></div>
             <div class="proto-goal">${p.goalLabel} · Started ${p.startDate}</div>
           </div>
           <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
             <span class="badge ${p.status==='active'?'b-on':'b-mu'}">${p.status}</span>
-            ${p.remindOn ? '<span style="font-size:9px;color:var(--ac)">🔔 reminders on</span>' : ''}
+            ${p.remindOn ? '<span style="font-size:9px;color:var(--ac)">Reminders on</span>' : ''}
           </div>
         </div>
         ${myMeds.length ? `<div class="proto-meds">${myMeds.map(n=>`<span class="badge b-on">${n}</span>`).join('')}</div>` : ''}
@@ -1705,7 +1701,7 @@ function renderProtocols() {
         <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">
           <button class="btn btn-p btn-sm" onclick="openCheckin('${p.id}')">+ Check-in</button>
           <button class="btn btn-g btn-sm" onclick="editProto('${p.id}')">Edit</button>
-          ${p.remindOn ? `<button class="btn btn-g btn-sm" onclick="fireReminders('${p.id}')">🔔 Test</button>` : ''}
+          ${p.remindOn ? `<button class="btn btn-g btn-sm" onclick="fireReminders('${p.id}')">Test Reminders</button>` : ''}
           <button class="btn btn-d btn-sm" onclick="delProto('${p.id}')">Delete</button>
         </div>
         ${myCIs.length ? `<div style="font-size:10px;color:var(--mu);margin-top:8px">${myCIs.length} check-in${myCIs.length!==1?'s':''} · Last: ${myCIs[0].date}</div>` : ''}

@@ -587,7 +587,7 @@ body{display:flex;flex-direction:column;overflow:hidden;}
     <div class="fg-row"><div class="fg"><label>Date</label><input id="l-date" type="date"></div><div class="fg"><label>Time</label><input id="l-time" type="time"></div></div>
     <div class="fg-row"><div class="fg"><label>Dose</label><input id="l-dose" type="number" step="0.001" oninput="updateLogCalc()"></div><div class="fg"><label>Unit</label><input id="l-unit" oninput="updateLogCalc()"></div></div>
     <div id="l-preview" class="dose-preview"></div>
-    <div class="fg-row"><div class="fg"><label>Syringe units</label><input id="l-syr" type="number" placeholder="auto"></div><div class="fg"><label>Vol drawn (mL)</label><input id="l-vol" type="number" step="0.001" placeholder="auto"></div></div>
+    <div class="fg-row"><div class="fg"><label>Syringe units</label><input id="l-syr" type="number" placeholder="auto" oninput="calcDoseFromUnits()"></div><div class="fg"><label>Vol drawn (mL)</label><input id="l-vol" type="number" step="0.001" placeholder="auto" oninput="calcDoseFromVol()"></div></div>
     <div class="fg"><label>Status</label><select id="l-status"><option value="taken">Taken</option><option value="skipped">Skipped</option><option value="delayed">Delayed</option></select></div>
     <div class="fg"><label>Notes</label><input id="l-notes" placeholder="site, reaction, lot..."></div>
   </div>
@@ -604,8 +604,9 @@ body{display:flex;flex-direction:column;overflow:hidden;}
       <div class="toggle-track" onclick="toggleBlend()"><div class="toggle-bg" id="blend-bg"></div><div class="toggle-thumb" id="blend-thumb"></div></div>
     </div>
     <div id="v-single">
-      <div class="fg"><label>Medication</label><select id="v-med"></select></div>
-      <div class="fg-row"><div class="fg"><label>Vial (mg)</label><input id="v-amt" type="number" step="0.1" oninput="calcBlend()"></div><div class="fg"><label>Diluent (mL)</label><input id="v-dil" type="number" step="0.1" oninput="calcBlend()"></div></div>
+      <div class="fg"><label>Medication</label><select id="v-med" onchange="prefillVialFromMed()"></select></div>
+      <div class="fg-row"><div class="fg"><label>Vial (mg)</label><input id="v-amt" type="number" step="0.1" oninput="calcSingleVial()"></div><div class="fg"><label>Diluent (mL)</label><input id="v-dil" type="number" step="0.1" oninput="calcSingleVial()"></div></div>
+      <div id="v-single-calc" style="display:none;background:var(--bg);border:1px solid var(--br);border-radius:8px;padding:10px;margin-bottom:10px;font-size:11px;font-family:var(--mono);color:var(--ac);line-height:1.8;white-space:pre-line"></div>
     </div>
     <div id="v-blend" style="display:none">
       <div class="fg"><label>Blend name</label><input id="v-bname" placeholder="e.g. KLOW Blend"></div>
@@ -1447,6 +1448,46 @@ function updateLogCalc() {
   }
 }
 
+function calcDoseFromUnits() {
+  const syr = parseFloat(document.getElementById('l-syr').value);
+  if (!syr || syr <= 0) return;
+  const m = meds.find(x => x.id === document.getElementById('l-med').value);
+  if (!m) return;
+  const v = activeVial(m);
+  if (!v) return;
+  const conc = v.amt / v.dil;
+  const vol = syr / 100;
+  const doseMg = conc * vol;
+  const unit = (m.unit && m.unit !== 'units' && m.unit !== 'mL') ? m.unit : (doseMg < 1 ? 'mcg' : 'mg');
+  const dose = unit === 'mcg' ? +(doseMg * 1000).toFixed(1) : +doseMg.toFixed(3);
+  document.getElementById('l-dose').value = dose;
+  document.getElementById('l-unit').value = unit;
+  document.getElementById('l-vol').value = vol.toFixed(3);
+  const el = document.getElementById('l-preview');
+  el.innerHTML = `Draw ${syr} units &nbsp;·&nbsp; ${(vol*1000).toFixed(0)}µL &nbsp;·&nbsp; ${vol.toFixed(3)}mL<br><span style="font-size:10px;color:var(--mu)">${conc.toFixed(2)} mg/mL · ${v.amt}mg / ${v.dil}mL vial</span>`;
+  el.style.display = '';
+}
+
+function calcDoseFromVol() {
+  const vol = parseFloat(document.getElementById('l-vol').value);
+  if (!vol || vol <= 0) return;
+  const m = meds.find(x => x.id === document.getElementById('l-med').value);
+  if (!m) return;
+  const v = activeVial(m);
+  if (!v) return;
+  const conc = v.amt / v.dil;
+  const doseMg = conc * vol;
+  const unit = (m.unit && m.unit !== 'units' && m.unit !== 'mL') ? m.unit : (doseMg < 1 ? 'mcg' : 'mg');
+  const dose = unit === 'mcg' ? +(doseMg * 1000).toFixed(1) : +doseMg.toFixed(3);
+  const syr = Math.round(vol * 100);
+  document.getElementById('l-dose').value = dose;
+  document.getElementById('l-unit').value = unit;
+  document.getElementById('l-syr').value = syr;
+  const el = document.getElementById('l-preview');
+  el.innerHTML = `Draw ${syr} units &nbsp;·&nbsp; ${(vol*1000).toFixed(0)}µL &nbsp;·&nbsp; ${vol.toFixed(3)}mL<br><span style="font-size:10px;color:var(--mu)">${conc.toFixed(2)} mg/mL · ${v.amt}mg / ${v.dil}mL vial</span>`;
+  el.style.display = '';
+}
+
 // ══ VIALS ═════════════════════════════════════════════════════════════════════
 function renderVials() {
   const el = document.getElementById('vial-list');
@@ -1571,6 +1612,48 @@ function calcBlend() {
   el.style.display = '';
 }
 
+function prefillVialFromMed() {
+  const medId = document.getElementById('v-med').value;
+  const m = meds.find(x => x.id === medId);
+  if (!m) { calcSingleVial(); return; }
+  if (m.vial) document.getElementById('v-amt').value = m.vial;
+  const lib = allLib().find(l => l.name.toLowerCase() === m.name.toLowerCase());
+  if (lib?.recon) {
+    const dilMatch = (lib.recon.dil || '').match(/(\d+\.?\d*)\s*mL/i);
+    if (dilMatch) document.getElementById('v-dil').value = dilMatch[1];
+    const dilStr = (lib.recon.dil || '').toLowerCase();
+    const dtype = document.getElementById('v-dtype');
+    if (dilStr.includes('acetic')) dtype.value = 'BAC + Acetic Acid';
+    else if (dilStr.includes('saline')) dtype.value = 'Saline';
+    else if (dilStr.includes('bac')) dtype.value = 'BAC Water';
+    if (lib.recon.exp) document.getElementById('v-exp').value = lib.recon.exp;
+  }
+  calcSingleVial();
+}
+
+function calcSingleVial() {
+  const amt = parseFloat(document.getElementById('v-amt').value);
+  const dil = parseFloat(document.getElementById('v-dil').value);
+  const el = document.getElementById('v-single-calc');
+  if (!el) return;
+  if (!amt || !dil) { el.style.display = 'none'; return; }
+  const conc = amt / dil;
+  const m = meds.find(x => x.id === document.getElementById('v-med').value);
+  const lines = [`${conc.toFixed(3)} mg/mL`];
+  if (m?.dose && m?.unit && m.unit !== 'units' && m.unit !== 'mL') {
+    const doseMg = m.unit === 'mcg' ? m.dose / 1000 : parseFloat(m.dose);
+    if (doseMg > 0) {
+      const vol = doseMg / conc;
+      const syr = Math.round(vol * 100);
+      const totalDoses = Math.floor(dil / vol);
+      lines.push(`${m.dose}${m.unit} dose → ${syr}u · ${(vol * 1000).toFixed(0)}µL`);
+      lines.push(`~${totalDoses} doses per vial`);
+    }
+  }
+  el.innerHTML = lines.join('\n');
+  el.style.display = '';
+}
+
 function openAddVial() {
   blendOn = false; blendComps = [];
   document.getElementById('blend-bg').classList.remove('on');
@@ -1584,10 +1667,11 @@ function openAddVial() {
   document.getElementById('v-bdil').value = '4';
   document.getElementById('v-date').value = fD(new Date());
   document.getElementById('v-exp').value = 28;
+  prefillVialFromMed();
   openSheet('sh-vial');
 }
 
-function openVialFor(medId) { openAddVial(); document.getElementById('v-med').value = medId; }
+function openVialFor(medId) { openAddVial(); document.getElementById('v-med').value = medId; prefillVialFromMed(); }
 
 function saveVial() {
   const date = document.getElementById('v-date').value;

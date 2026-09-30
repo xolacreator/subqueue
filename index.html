@@ -295,6 +295,30 @@ body{display:flex;flex-direction:column;overflow:hidden;}
 .log-toast{position:fixed;bottom:calc(var(--safe-b) + 76px);left:50%;transform:translateX(-50%);background:var(--s1);border:1px solid var(--ac);border-radius:12px;padding:11px 16px;z-index:200;display:flex;align-items:center;gap:10px;font-size:12px;color:var(--tx);white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.5);animation:slideUp .2s ease;}
 @keyframes slideUp{from{transform:translateX(-50%) translateY(16px);opacity:0}to{transform:translateX(-50%) translateY(0);opacity:1}}
 
+/* SUB-NAV */
+.sub-nav{display:flex;gap:5px;padding:8px 14px 0;background:var(--bg);flex-shrink:0;}
+.sub-btn{flex:1;text-align:center;font-size:11px;font-weight:600;padding:8px 4px;border-radius:8px;border:1px solid var(--br);background:var(--bg);color:var(--mu);cursor:pointer;white-space:nowrap;}
+.sub-btn.on{background:var(--ac);border-color:var(--ac);color:#0d0a1a;}
+
+/* MORE SCREEN */
+.more-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+.more-btn{background:var(--s1);border:1px solid var(--br);border-radius:14px;padding:18px 12px;text-align:center;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;}
+.more-btn:active{opacity:.7;}
+.more-btn-ic{font-size:22px;color:var(--ac);line-height:1;}
+.more-btn-lb{font-size:11px;color:var(--tx);font-weight:600;}
+
+/* STEP-2 PROMPT */
+.step2-banner{position:fixed;bottom:calc(var(--safe-b) + 80px);left:14px;right:14px;background:var(--s1);border:1px solid var(--a2);border-radius:14px;padding:14px 14px;z-index:180;display:none;align-items:center;gap:10px;box-shadow:0 4px 24px rgba(0,0,0,.6);animation:slideUp .25s ease;}
+.step2-banner.on{display:flex;}
+.step2-banner-txt{flex:1;font-size:12px;color:var(--tx);line-height:1.5;}
+.step2-banner-txt b{color:var(--ac);}
+
+/* COMPACT VIAL CARD */
+.vc-compact{background:rgba(124,58,237,.05);border:1px solid var(--a2);border-radius:10px;padding:11px;margin-bottom:8px;}
+.vc-compact-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
+.vc-compact-name{font-size:13px;font-weight:700;color:var(--tx);}
+.vc-compact-meta{font-size:10px;color:var(--mu);}
+
 /* ONBOARDING */
 #ob-overlay{position:fixed;inset:0;z-index:400;background:var(--bg);display:none;flex-direction:column;padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0);}
 .ob-dots{display:flex;justify-content:center;gap:7px;padding:20px 0 0;}
@@ -355,8 +379,8 @@ body{display:flex;flex-direction:column;overflow:hidden;}
     <!-- Step 4: Ready -->
     <div class="ob-step" id="obs4">
       <div class="ob-sub">You're all set</div>
-      <div class="ob-title">Build Your Protocol</div>
-      <div class="ob-body">Start by browsing the <b>Library</b> tab or tapping <b>+ Add</b> on the Medications screen. Export a backup anytime from Settings to keep your data safe.</div>
+      <div class="ob-title">Build Your Stack</div>
+      <div class="ob-body">Start by browsing the <b>Library</b> tab or tapping <b>+ Add</b> on the Stack screen. When you add a compound, you'll be prompted to set up its vial too. Export a backup anytime from the <b>More</b> tab.</div>
     </div>
   </div>
   <div class="ob-nav">
@@ -399,9 +423,9 @@ body{display:flex;flex-direction:column;overflow:hidden;}
       <div class="sb" id="proto-sb"></div>
     </div>
 
-    <!-- MEDICATIONS -->
+    <!-- STACK (Medications + Vial status) -->
     <div class="screen" id="sc-meds">
-      <div class="ph"><div class="ph-row"><h1>Medications</h1><button class="btn btn-p btn-sm" onclick="openAddMed()">+ Add</button></div></div>
+      <div class="ph"><div class="ph-row"><h1>Stack</h1><button class="btn btn-p btn-sm" onclick="openAddMed()">+ Add</button></div></div>
       <div class="search-wrap"><input class="search-inp" id="med-search" placeholder="Search..." oninput="renderMeds()"></div>
       <div class="filter-wrap"><div class="filters">
         <button class="fb on" data-f="all" onclick="setMF(this)">All</button>
@@ -526,34 +550,132 @@ body{display:flex;flex-direction:column;overflow:hidden;}
       </div>
     </div>
 
-    <!-- LIBRARY -->
+    <!-- LIBRARY (Compounds / Mix Guide / Learn) -->
     <div class="screen" id="sc-lib">
       <div class="ph"><div class="ph-row"><h1>Library</h1><button class="ai-btn" onclick="openSheet('sh-scraper')">✦ AI Scan</button></div></div>
-      <div class="search-wrap"><input class="search-inp" id="lib-search" placeholder="Search compounds..." oninput="renderLib()"></div>
-      <div class="filter-wrap"><div class="filters">
-        <button class="fb on" data-f="all" onclick="setLF(this)">All</button>
-        <button class="fb" data-f="GH Secretagogue" onclick="setLF(this)">GH</button>
-        <button class="fb" data-f="Healing" onclick="setLF(this)">Healing</button>
-        <button class="fb" data-f="Metabolic" onclick="setLF(this)">Metabolic</button>
-        <button class="fb" data-f="Mitochondrial" onclick="setLF(this)">Mito</button>
-        <button class="fb" data-f="Nootropic" onclick="setLF(this)">Nootropic</button>
-        <button class="fb" data-f="Other" onclick="setLF(this)">Other</button>
-      </div></div>
-      <div class="sb"><div class="lib-grid" id="lib-grid"></div></div>
+      <div class="sub-nav" id="lib-sub-nav">
+        <button class="sub-btn on" data-sect="compounds" onclick="setLibSection(this)">Compounds</button>
+        <button class="sub-btn" data-sect="mix" onclick="setLibSection(this)">Mix Guide</button>
+        <button class="sub-btn" data-sect="learn" onclick="setLibSection(this)">Learn</button>
+      </div>
+      <!-- Compounds section -->
+      <div id="lib-sect-compounds" style="flex:1;display:flex;flex-direction:column;overflow:hidden">
+        <div class="search-wrap"><input class="search-inp" id="lib-search" placeholder="Search compounds..." oninput="renderLib()"></div>
+        <div class="filter-wrap"><div class="filters">
+          <button class="fb on" data-f="all" onclick="setLF(this)">All</button>
+          <button class="fb" data-f="GH Secretagogue" onclick="setLF(this)">GH</button>
+          <button class="fb" data-f="Healing" onclick="setLF(this)">Healing</button>
+          <button class="fb" data-f="Metabolic" onclick="setLF(this)">Metabolic</button>
+          <button class="fb" data-f="Mitochondrial" onclick="setLF(this)">Mito</button>
+          <button class="fb" data-f="Nootropic" onclick="setLF(this)">Nootropic</button>
+          <button class="fb" data-f="Other" onclick="setLF(this)">Other</button>
+        </div></div>
+        <div class="sb"><div class="lib-grid" id="lib-grid"></div></div>
+      </div>
+      <!-- Mix Guide section -->
+      <div id="lib-sect-mix" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+        <div class="sb">
+          <div style="font-size:10px;color:var(--mu);margin-bottom:10px">Source: Extension Health Peptide Mixing Guide 2025</div>
+          <div class="sl" style="margin-top:0">Your active stack check</div>
+          <div id="mix-check-lib"></div>
+          <div class="sl">Compatibility matrix</div>
+          <div class="card" style="overflow-x:auto"><div id="mix-matrix-lib" style="min-width:480px"></div></div>
+          <div class="sl">Key rules</div>
+          <div class="card">
+            <div class="mix-rule"><span class="mix-icon" style="color:var(--dn)">✕</span><div><div class="mix-title">GLP-1s must always be injected alone</div><div class="mix-desc">Tirzepatide, Semaglutide, Retatrutide — never mixed with anything.</div></div></div>
+            <div class="mix-rule"><span class="mix-icon" style="color:var(--mu)">●</span><div><div class="mix-title">Mitochondrial peptides: only with each other</div><div class="mix-desc">NAD+, MOTS-C, SS-31 can be combined together but not with other categories.</div></div></div>
+            <div class="mix-rule"><span class="mix-icon" style="color:var(--ac)">✓</span><div><div class="mix-title">Performance & healing peptides stack well</div><div class="mix-desc">BPC-157, TB-500, CJC+Ipa, Tesamorelin, GHK-Cu generally compatible.</div></div></div>
+            <div class="mix-rule"><span class="mix-icon" style="color:var(--wn)">⚠</span><div><div class="mix-title">Always inject separately first</div><div class="mix-desc">Test each peptide individually before mixing.</div></div></div>
+          </div>
+          <div class="nb" style="margin-bottom:8px">⚠ Always consult your provider before combining peptides.</div>
+        </div>
+      </div>
+      <!-- Learn section -->
+      <div id="lib-sect-learn" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+        <div class="sb">
+          <div style="font-size:10px;color:var(--mu);margin-bottom:10px">Source: Beginner's Guide to Peptide Therapy (Jan 2026)</div>
+          <div class="learn-hero">
+            <div style="font-size:17px;font-weight:800;color:var(--tx);margin-bottom:6px">What are peptides?</div>
+            <div style="font-size:12px;color:var(--mu);line-height:1.7">Peptides are strings of amino acids — the building blocks of proteins. The body produces them naturally (endogenous), but they can also be administered externally (exogenous) to support specific biological functions.</div>
+            <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:5px">
+              <span class="badge b-on">20 amino acids</span><span class="badge b-on">Thousands of sequences</span><span class="badge b-on">Diverse applications</span>
+            </div>
+          </div>
+          <div class="card">
+            <div style="font-size:14px;font-weight:700;color:var(--tx);margin-bottom:10px">Routes of Administration</div>
+            <div class="info-row"><span class="info-lbl">Method</span><span class="info-val">Subcutaneous injection (most common)</span></div>
+            <div class="info-row"><span class="info-lbl">Why injectable?</span><span class="info-val">Peptides degrade in the gut. Oral bioavailability as low as 1–2%</span></div>
+            <div class="info-row"><span class="info-lbl">Storage</span><span class="info-val">Fridge at ~4°C / 39°F. Up to 28 days once reconstituted</span></div>
+            <div class="info-row"><span class="info-lbl">Never shake</span><span class="info-val">Swirl gently only — shaking degrades the peptide</span></div>
+          </div>
+          <div class="sl">Peptide types by goal</div>
+          <div class="lcat"><div class="lcat-hdr" onclick="toggleLearn(this)"><span class="lcat-dot" style="background:#fb923c"></span><div><div class="lcat-title">Weight Loss — GLP-1 RAs</div><div class="lcat-sub">Tirzepatide, Semaglutide</div></div><span style="margin-left:auto;color:var(--mu)">▾</span></div>
+            <div class="lcat-body">
+              <div class="lcat-item"><div class="lcat-item-name">How they work</div><div class="lcat-item-text">Slow digestion, increase satiety, reduce appetite, and create milder glucose spikes — all reducing caloric intake.</div></div>
+              <div class="lcat-item"><div class="lcat-item-name">Tirzepatide vs Semaglutide</div><div class="lcat-item-text">Both highly effective. Tirzepatide subjects lost 4–12 more lbs in a 2021 study. Semaglutide more widely accessible.</div></div>
+              <div class="nb dn" style="margin-top:8px">✕ GLP-1s must always be injected alone — never mix.</div>
+            </div>
+          </div>
+          <div class="lcat"><div class="lcat-hdr" onclick="toggleLearn(this)"><span class="lcat-dot" style="background:#4ade80"></span><div><div class="lcat-title">Body Recomposition</div><div class="lcat-sub">GH Secretagogues — CJC, Ipamorelin, Tesamorelin</div></div><span style="margin-left:auto;color:var(--mu)">▾</span></div>
+            <div class="lcat-body">
+              <div class="lcat-item"><div class="lcat-item-name">How they work</div><div class="lcat-item-text">Stimulate the pituitary to release GH, which promotes muscle growth and regulates body fat via IGF-1.</div></div>
+              <div class="lcat-item"><div class="lcat-item-name">Ipamorelin</div><div class="lcat-item-text">Selective GHRP — minimal cortisol/prolactin elevation. Cleanest GH secretagogue. Best before bed on empty stomach.</div></div>
+              <div class="lcat-item"><div class="lcat-item-name">Tesamorelin</div><div class="lcat-item-text">FDA-approved for HIV lipodystrophy. Used off-label for abdominal fat loss and lean mass. Stack with Ipamorelin.</div></div>
+            </div>
+          </div>
+          <div class="lcat"><div class="lcat-hdr" onclick="toggleLearn(this)"><span class="lcat-dot" style="background:#c084fc"></span><div><div class="lcat-title">Mitochondrial & Longevity</div><div class="lcat-sub">SS-31, MOTS-C, NAD+</div></div><span style="margin-left:auto;color:var(--mu)">▾</span></div>
+            <div class="lcat-body">
+              <div class="lcat-item"><div class="lcat-item-name">SS-31</div><div class="lcat-item-text">Targets the inner mitochondrial membrane. Reduces oxidative stress, supports cardiac health.</div></div>
+              <div class="lcat-item"><div class="lcat-item-name">MOTS-C</div><div class="lcat-item-text">Mimics exercise at cellular level. Improves insulin sensitivity. ISR common — use smaller vials, more dilute solution if retrying.</div></div>
+              <div class="lcat-item"><div class="lcat-item-name">Mixing rule</div><div class="lcat-item-text">SS-31, MOTS-C, NAD+ can be mixed with each other but not with other peptide categories.</div></div>
+            </div>
+          </div>
+          <div class="sl">Safety</div>
+          <div class="card">
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="background:var(--bg);border:1px solid var(--br);border-radius:8px;padding:11px"><div style="font-size:12px;font-weight:700;color:var(--wn);margin-bottom:4px">Immunogenicity</div><div style="font-size:11px;color:var(--mu);line-height:1.6">Synthetic peptides can trigger immune responses. ISR (injection site reactions) are the most common mild form.</div></div>
+              <div style="background:var(--bg);border:1px solid var(--br);border-radius:8px;padding:11px"><div style="font-size:12px;font-weight:700;color:var(--wn);margin-bottom:4px">GH Secretagogues + Cancer</div><div style="font-size:11px;color:var(--mu);line-height:1.6">Tesamorelin, CJC-1295, Ipamorelin are contraindicated for anyone with active cancer or cancer history.</div></div>
+            </div>
+          </div>
+          <div class="sl">Legal status (US)</div>
+          <div class="card">
+            <div style="font-size:11px;color:var(--mu);line-height:1.7;margin-bottom:10px">Governed by Section 503A of the Federal Food, Drug, and Cosmetic Act. Many peptides are in a legal gray area — not prohibited, but not on the FDA's 503A bulks list.</div>
+            <div style="display:flex;flex-wrap:wrap;gap:4px">
+              <span class="badge b-wn">BPC-157</span><span class="badge b-wn">CJC-1295</span><span class="badge b-wn">Ipamorelin</span><span class="badge b-wn">MOTS-C</span><span class="badge b-wn">GHK-Cu</span><span class="badge b-wn">TB-500</span><span class="badge b-wn">TA1</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MORE (Protocols + Vials hub) -->
+    <div class="screen" id="sc-more">
+      <div class="ph">
+        <div class="ph-row"><h1>More</h1><button class="btn btn-g btn-sm" onclick="openSettingsSheet()" style="flex-shrink:0">⚙ Data</button></div>
+      </div>
+      <div class="sb">
+        <div class="more-grid">
+          <div class="more-btn" onclick="openAddProtocol()"><div class="more-btn-ic">✦</div><div class="more-btn-lb">New Protocol</div></div>
+          <div class="more-btn" onclick="openAddVial()"><div class="more-btn-ic">⊕</div><div class="more-btn-lb">Add Vial</div></div>
+          <div class="more-btn" onclick="openSheet('sh-scraper')"><div class="more-btn-ic">◉</div><div class="more-btn-lb">AI Tools</div></div>
+          <div class="more-btn" onclick="openSettingsSheet()"><div class="more-btn-ic">⚙</div><div class="more-btn-lb">Data & Backup</div></div>
+        </div>
+        <div class="sl" style="margin-top:0">Protocols</div>
+        <div id="more-proto-sb"></div>
+        <div class="sl">Vials</div>
+        <div id="more-vial-list"></div>
+      </div>
     </div>
 
   </div>
 
   <!-- TAB BAR -->
   <div class="tabs">
-    <div class="tab on"  data-sc="dashboard" onclick="switchTab(this)"><div class="tab-ic">⌂</div><div class="tab-lb">Home</div></div>
-    <div class="tab" data-sc="protocol" onclick="switchTab(this)"><div class="tab-ic">✦</div><div class="tab-lb">Protocol</div></div>
-    <div class="tab" data-sc="meds" onclick="switchTab(this)" style="position:relative"><div class="tab-ic">✚</div><div class="tab-lb">Meds</div><div class="tab-badge" id="ro-badge" style="display:none">0</div></div>
+    <div class="tab on" data-sc="dashboard" onclick="switchTab(this)"><div class="tab-ic">⌂</div><div class="tab-lb">Home</div></div>
+    <div class="tab" data-sc="meds" onclick="switchTab(this)" style="position:relative"><div class="tab-ic">◎</div><div class="tab-lb">Stack</div><div class="tab-badge" id="ro-badge" style="display:none">0</div></div>
     <div class="tab" data-sc="log" onclick="switchTab(this)"><div class="tab-ic">≡</div><div class="tab-lb">Log</div></div>
-    <div class="tab" data-sc="vials" onclick="switchTab(this)"><div class="tab-ic">⊕</div><div class="tab-lb">Vials</div></div>
-    <div class="tab" data-sc="mix" onclick="switchTab(this)"><div class="tab-ic">⚗</div><div class="tab-lb">Mix</div></div>
-    <div class="tab" data-sc="learn" onclick="switchTab(this)"><div class="tab-ic">●</div><div class="tab-lb">Learn</div></div>
     <div class="tab" data-sc="lib" onclick="switchTab(this)"><div class="tab-ic">☰</div><div class="tab-lb">Library</div></div>
+    <div class="tab" data-sc="more" onclick="switchTab(this)"><div class="tab-ic">···</div><div class="tab-lb">More</div></div>
   </div>
 </div>
 
@@ -784,6 +906,13 @@ body{display:flex;flex-direction:column;overflow:hidden;}
   </div>
 </div></div>
 
+<!-- Step 2: Vial Setup Prompt -->
+<div class="step2-banner" id="step2-banner">
+  <div class="step2-banner-txt"><b id="step2-med-name"></b> added.<br>Got a vial ready to set up?</div>
+  <button class="btn btn-p btn-sm" id="step2-vial-btn">Set up vial</button>
+  <button class="btn btn-g btn-sm" onclick="closeStep2Banner()">Later</button>
+</div>
+
 <!-- Settings / Data Backup -->
 <div class="overlay" id="sh-settings"><div class="sheet">
   <div class="sheet-handle"></div>
@@ -990,8 +1119,16 @@ function dismissLibBanner(goToLib) {
 }
 
 function goTo(sc) {
-  const t = document.querySelector('.tab[data-sc="' + sc + '"]');
-  if (t) switchTab(t);
+  // Map legacy screen names to new tab names
+  const alias = { protocol: 'more', vials: 'more', mix: 'lib', learn: 'lib' };
+  const target = alias[sc] || sc;
+  const t = document.querySelector('.tab[data-sc="' + target + '"]');
+  if (t) {
+    switchTab(t);
+    // If going to mix/learn, activate that sub-section in Library
+    if (sc === 'mix') { const b = document.querySelector('[data-sect="mix"]'); if (b) setLibSection(b); }
+    if (sc === 'learn') { const b = document.querySelector('[data-sect="learn"]'); if (b) setLibSection(b); }
+  }
 }
 
 function toggleApiGuide() {
@@ -1032,6 +1169,7 @@ function init() {
 // ══ RENDER ALL ════════════════════════════════════════════════════════════════
 function render() {
   renderDash(); renderMeds(); renderLog(); renderVials(); renderLib();
+  if (document.getElementById('sc-more')?.classList.contains('on')) renderMore();
   const ro = meds.filter(m => m.status === 'active' && getFc(m)?.needsReorder);
   const b = document.getElementById('ro-badge');
   b.textContent = ro.length;
@@ -1044,8 +1182,12 @@ function switchTab(el) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('on'));
   el.classList.add('on');
   document.getElementById('sc-' + el.dataset.sc).classList.add('on');
-  if (el.dataset.sc === 'mix') renderMix();
-  if (el.dataset.sc === 'protocol') renderProtocols();
+  if (el.dataset.sc === 'more') renderMore();
+  if (el.dataset.sc === 'lib') {
+    // Re-render active lib section
+    const activeSect = document.querySelector('#lib-sub-nav .sub-btn.on')?.dataset.sect || 'compounds';
+    if (activeSect === 'mix') renderMixInLib();
+  }
 }
 
 // ══ FORECAST ══════════════════════════════════════════════════════════════════
@@ -1109,7 +1251,7 @@ function renderDash() {
     const hasActive = meds.some(m => m.status === 'active');
     te.innerHTML = hasActive
       ? '<div class="card" style="color:var(--mu);font-size:13px;text-align:center;padding:20px">Nothing scheduled for today.</div>'
-      : `<div class="empty-state"><div class="ico">+</div><h3>No medications yet</h3><p>Browse the Library to find a peptide with pre-filled dosing data, or add one manually from the Medications tab.</p><div style="display:flex;gap:8px;justify-content:center"><button class="btn btn-p btn-sm" onclick="goTo('lib')">Browse Library</button><button class="btn btn-g btn-sm" onclick="goTo('meds')">+ Add Manually</button></div></div>`;
+      : `<div class="empty-state"><div class="ico">+</div><h3>No compounds yet</h3><p>Browse the Library to find a peptide with pre-filled dosing data, or add one manually from the Stack tab.</p><div style="display:flex;gap:8px;justify-content:center"><button class="btn btn-p btn-sm" onclick="goTo('lib')">Browse Library</button><button class="btn btn-g btn-sm" onclick="goTo('meds')">+ Add Manually</button></div></div>`;
   } else {
     te.innerHTML = today.map(m => {
       const logged = logs.find(l => l.medId === m.id && l.date === fD(now));
@@ -1175,7 +1317,7 @@ function renderMeds() {
   if (mF !== 'all') f = f.filter(m => m.status === mF);
   f.sort((a,b) => ['active','off','completed','stopped'].indexOf(a.status) - ['active','off','completed','stopped'].indexOf(b.status));
   const emptyMsg = (meds.length === 0 && mF === 'all' && !q)
-    ? `<div class="empty-state"><div class="ico">+</div><h3>No medications yet</h3><p>Browse the Library to add a peptide with pre-filled dosing, reconstitution, and safety data.</p><button class="btn btn-p" onclick="goTo('lib')">Browse Library →</button></div>`
+    ? `<div class="empty-state"><div class="ico">+</div><h3>Your stack is empty</h3><p>Browse the Library to add a peptide with pre-filled dosing, reconstitution, and safety data.</p><button class="btn btn-p" onclick="goTo('lib')">Browse Library →</button></div>`
     : '<div style="text-align:center;padding:40px 0;color:var(--mu);font-size:13px">No medications found.</div>';
   document.getElementById('med-list').innerHTML = f.length ? f.map(m => mcHTML(m)).join('') : emptyMsg;
 }
@@ -1253,7 +1395,7 @@ function openAddMed(def = null) {
   ['m-name','m-src','m-notes','m-start','m-utbl'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('m-dose').value = '';
   document.getElementById('m-unit').value = 'mcg';
-  document.getElementById('m-freq').value = '5on2off';
+  document.getElementById('m-freq').value = 'custom';
   document.getElementById('m-time').value = '20:00';
   document.getElementById('m-con').value = 0;
   document.getElementById('m-coff').value = 0;
@@ -1265,7 +1407,17 @@ function openAddMed(def = null) {
     if (def.name) document.getElementById('m-name').value = def.name;
     if (def.dose) document.getElementById('m-dose').value = def.dose;
     if (def.unit) document.getElementById('m-unit').value = def.unit;
-    if (def.freq) document.getElementById('m-freq').value = def.freq;
+    if (def.freq) {
+      // Migrate legacy freq values to the day-picker model
+      const legacyFreqMap = { '5on2off': 'custom', 'weekly': 'custom', 'twice_weekly': 'custom' };
+      const legacyDefDays = { '5on2off': ['Mon','Tue','Wed','Thu','Fri'], 'weekly': ['Sun'], 'twice_weekly': ['Mon','Thu'] };
+      const migratedFreq = legacyFreqMap[def.freq] || def.freq;
+      document.getElementById('m-freq').value = migratedFreq;
+      if (legacyDefDays[def.freq]) {
+        const defDays = def.days || legacyDefDays[def.freq];
+        document.querySelectorAll('.dt').forEach(d => d.classList.toggle('on', defDays.includes(d.dataset.day)));
+      }
+    }
     if (def.time) document.getElementById('m-time').value = def.time;
     if (def.utbl) document.getElementById('m-utbl').value = def.utbl;
     if (def.notes) document.getElementById('m-notes').value = def.notes;
@@ -1322,14 +1474,144 @@ function saveMed() {
     utbl: document.getElementById('m-utbl').value,
     notes: document.getElementById('m-notes').value
   };
+  const isNew = !editMedId;
   if (editMedId) { const i = meds.findIndex(m => m.id === editMedId); meds[i] = med; }
   else meds.push(med);
   saveAll(); closeSheet('sh-med'); render();
+  if (isNew) offerVialSetup(med);
 }
 
 function delMed(id) { if (!confirm('Delete this medication?')) return; meds = meds.filter(m => m.id !== id); saveAll(); render(); }
 function toggleDays() { const f = document.getElementById('m-freq').value; document.getElementById('days-pick').style.display = f === 'custom' ? '' : 'none'; }
 function toggleDay(el) { el.classList.toggle('on'); }
+
+// ── Option A: Step-2 vial setup prompt ────────────────────────────────────────
+let _step2Timer = null;
+function offerVialSetup(med) {
+  // Only prompt if no active vial exists for this med already
+  if (activeVial(med)) return;
+  const banner = document.getElementById('step2-banner');
+  document.getElementById('step2-med-name').textContent = med.name;
+  document.getElementById('step2-vial-btn').onclick = () => { closeStep2Banner(); openVialFor(med.id); };
+  banner.classList.add('on');
+  clearTimeout(_step2Timer);
+  _step2Timer = setTimeout(closeStep2Banner, 10000);
+}
+function closeStep2Banner() {
+  clearTimeout(_step2Timer);
+  document.getElementById('step2-banner').classList.remove('on');
+}
+
+// ── More screen ────────────────────────────────────────────────────────────────
+function renderMore() {
+  // Protocols section
+  const pEl = document.getElementById('more-proto-sb');
+  if (!pEl) return;
+  if (!protocols.length) {
+    pEl.innerHTML = `<div class="empty-state" style="padding:20px"><div class="ico" style="font-size:20px;margin-bottom:8px">✦</div><h3 style="font-size:14px">No protocols yet</h3><p style="font-size:11px;margin-bottom:12px">Group your compounds into a protocol to set goals and track progress.</p><button class="btn btn-p btn-sm btn-full" onclick="openAddProtocol()">+ Create Protocol</button></div>`;
+  } else {
+    pEl.innerHTML = protocols.map(p => {
+      const goal = GOALS[p.goalKey] || GOALS.custom;
+      const myMeds = (p.meds || []).map(r => meds.find(m => m.id === r.medId)?.name).filter(Boolean);
+      const daysElapsed = p.startDate ? Math.max(0, Math.floor((Date.now() - new Date(p.startDate)) / 86400000)) : 0;
+      const protoMedObjs = (p.meds||[]).map(r => meds.find(m => m.id === r.medId)).filter(Boolean);
+      const expectedDoses = protoMedObjs.reduce((s, m) => s + (dpw(m) / 7 * daysElapsed), 0);
+      const actualDoses = protoMedObjs.reduce((s, m) => s + logs.filter(l => l.medId === m.id && l.status === 'taken' && (!p.startDate || l.date >= p.startDate)).length, 0);
+      const adherencePct = expectedDoses > 0 ? Math.min(100, Math.round(actualDoses / expectedDoses * 100)) : null;
+      return `<div class="card" style="margin-bottom:10px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+          <span style="width:8px;height:8px;border-radius:50%;background:${p.goalColor||'var(--ac)'};flex-shrink:0;display:inline-block"></span>
+          <div style="font-size:14px;font-weight:700;color:var(--tx);flex:1">${p.name}</div>
+          <span class="badge ${p.status==='active'?'b-on':'b-mu'}">${p.status}</span>
+        </div>
+        <div style="font-size:11px;color:var(--mu);margin-bottom:8px">${goal.label} · Started ${p.startDate||'—'}</div>
+        ${myMeds.length ? `<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px">${myMeds.map(n=>`<span class="badge b-on">${n}</span>`).join('')}</div>` : ''}
+        ${adherencePct !== null ? `<div><div class="vol-hdr"><span>Adherence</span><span style="color:${adherencePct>=80?'var(--ac)':adherencePct>=50?'var(--wn)':'var(--dn)'}">${adherencePct}%</span></div><div class="vol-track"><div class="vol-fill${adherencePct<30?' d':adherencePct<60?' w':''}" style="width:${adherencePct}%"></div></div></div>` : ''}
+        <div style="display:flex;gap:6px;margin-top:10px">
+          <button class="btn btn-p btn-sm" onclick="openCheckin('${p.id}')">+ Check-in</button>
+          <button class="btn btn-g btn-sm" onclick="editProto('${p.id}')">Edit</button>
+          <button class="btn btn-d btn-sm" onclick="delProto('${p.id}')">Delete</button>
+        </div>
+      </div>`;
+    }).join('') + `<button class="btn btn-g btn-sm btn-full" onclick="openAddProtocol()">+ New Protocol</button>`;
+  }
+  // Vials section
+  const vEl = document.getElementById('more-vial-list');
+  if (!vEl) return;
+  const sorted = [...vials].sort((a, b) => dl(b) - dl(a));
+  if (!sorted.length) {
+    vEl.innerHTML = `<div style="text-align:center;padding:16px 0;color:var(--mu);font-size:12px">No vials recorded. <button class="btn btn-g btn-xs" onclick="openAddVial()" style="margin-left:6px">+ Add Vial</button></div>`;
+    return;
+  }
+  vEl.innerHTML = sorted.slice(0, 6).map(v => {
+    const d = dl(v);
+    const m = meds.find(x => x.id === v.medId);
+    const name = v.isBlend ? (v.bname || 'Blend') : (m?.name || 'Unknown');
+    const fc = m ? getFc(m) : null;
+    const pct = fc ? fc.pct : 100;
+    const pc = pct < 20 ? ' d' : pct < 40 ? ' w' : '';
+    return `<div class="vc-compact">
+      <div class="vc-compact-hdr">
+        <div class="vc-compact-name">${name}</div>
+        <span class="badge ${d<=0?'b-dn':d<=7?'b-wn':'b-on'}">${d<=0?'Expired':d+'d left'}</span>
+      </div>
+      <div class="vc-compact-meta">${v.amt}mg / ${v.dil}mL · ${(v.amt/v.dil).toFixed(2)} mg/mL${fc?.dLeft!=null?' · '+fc.dLeft+' doses left':''}</div>
+      ${fc ? `<div class="vol-track" style="margin-top:6px"><div class="vol-fill${pc}" style="width:${pct}%"></div></div>` : ''}
+    </div>`;
+  }).join('') + (sorted.length > 6 ? `<div style="font-size:11px;color:var(--mu);text-align:center;margin-top:4px">${sorted.length - 6} more vials</div>` : '') +
+  `<button class="btn btn-g btn-sm btn-full" style="margin-top:8px" onclick="openAddVial()">+ Add Vial</button>`;
+}
+
+// ── Library sub-nav ────────────────────────────────────────────────────────────
+function setLibSection(btn) {
+  const sect = btn.dataset.sect;
+  document.querySelectorAll('#lib-sub-nav .sub-btn').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  document.getElementById('lib-sect-compounds').style.display = sect === 'compounds' ? 'flex' : 'none';
+  document.getElementById('lib-sect-compounds').style.flexDirection = 'column';
+  document.getElementById('lib-sect-compounds').style.flex = '1';
+  const mixEl = document.getElementById('lib-sect-mix');
+  const learnEl = document.getElementById('lib-sect-learn');
+  mixEl.style.display = sect === 'mix' ? 'flex' : 'none';
+  learnEl.style.display = sect === 'learn' ? 'flex' : 'none';
+  if (sect === 'mix') renderMixInLib();
+}
+
+function renderMixInLib() {
+  const active = meds.filter(m => m.status === 'active');
+  const ck = document.getElementById('mix-check-lib');
+  if (!ck) return;
+  function findKey(name) { return MP.find(p => name.toLowerCase().includes(p.toLowerCase().split('+')[0].trim().replace('-','')) || p.toLowerCase().includes(name.toLowerCase().split(' ')[0].replace('-',''))); }
+  const matched = active.map(m => ({ med: m, key: findKey(m.name) })).filter(x => x.key);
+  if (matched.length < 2) { ck.innerHTML = '<div class="card" style="color:var(--mu);font-size:12px">Need 2+ recognized peptides in your active stack to check compatibility.</div>'; }
+  else {
+    let h = '';
+    for (let i = 0; i < matched.length; i++) for (let j = i+1; j < matched.length; j++) {
+      const a = matched[i], b = matched[j];
+      const c = MC[a.key]?.[b.key] || 'caution';
+      const ic = c==='yes'?'✓':c==='no'?'✕':'⚠';
+      const col = c==='yes'?'var(--ac)':c==='no'?'var(--dn)':'var(--wn)';
+      const lbl = c==='yes'?'Compatible':c==='no'?'Do NOT mix':'Use caution';
+      h += `<div style="display:flex;align-items:center;justify-content:space-between;padding:11px 13px;background:var(--s1);border:1px solid var(--br);border-radius:10px;margin-bottom:8px;gap:10px"><div style="font-size:12px;color:var(--tx)">${a.med.name} + ${b.med.name}</div><div style="display:flex;align-items:center;gap:5px;flex-shrink:0"><span style="color:${col};font-size:16px">${ic}</span><span style="font-size:10px;color:${col};font-weight:700">${lbl}</span></div></div>`;
+    }
+    ck.innerHTML = h;
+  }
+  // Matrix
+  const el = document.getElementById('mix-matrix-lib');
+  if (!el) return;
+  const short=['GLP-1','Serm','CJC','Tesam','BPC','TB','B+T','GHK','TA1','VIP','Epit','Pin','Sel','Mel','NAD','MOTS','SS31'];
+  const full=[['Tirzepatide','Semaglutide','Retatrutide'],['Sermorelin'],['CJC+Ipa'],['Tesamorelin'],['BPC-157'],['TB-500'],['BPC+TB'],['GHK-Cu'],['TA1'],['VIP'],['Epitalon'],['Pinealon'],['Selank'],['Mel-2'],['NAD+'],['MOTS-C'],['SS-31']];
+  function bc(ri,ci) { if(ri===ci)return'var(--br)'; for(const a of full[ri])for(const b of full[ci]){const c=MC[a]?.[b];if(c==='no')return'rgba(248,113,113,.25)';if(c==='caution')return'rgba(251,191,36,.2)';}return'rgba(124,58,237,.3)'; }
+  function sym(ri,ci) { if(ri===ci)return''; for(const a of full[ri])for(const b of full[ci]){const c=MC[a]?.[b];if(c==='no')return'✕';if(c==='caution')return'~';}return'✓'; }
+  const cs=20;
+  let h=`<div style="display:grid;grid-template-columns:48px ${short.map(()=>cs+'px').join(' ')};gap:2px;align-items:center">`;
+  h+='<div></div>';
+  short.forEach(s=>{h+=`<div style="font-size:6px;color:var(--mu);text-align:center;writing-mode:vertical-rl;transform:rotate(180deg);height:44px;line-height:1;overflow:hidden">${s}</div>`;});
+  short.forEach((s,ri)=>{h+=`<div style="font-size:7px;color:var(--mu);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:48px">${s}</div>`;short.forEach((_,ci)=>{const bg=bc(ri,ci);const sm=sym(ri,ci);const tc=ri===ci?'':bg.includes('248,113')?'var(--dn)':bg.includes('251,191')?'var(--wn)':'var(--ac)';h+=`<div style="width:${cs}px;height:${cs}px;background:${bg};border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:7px;color:${tc}">${sm}</div>`;});});
+  h+='</div>';
+  h+=`<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px"><div style="display:flex;align-items:center;gap:4px;font-size:9px;color:var(--mu)"><div style="width:10px;height:10px;background:rgba(124,58,237,.3);border-radius:2px"></div>Compatible</div><div style="display:flex;align-items:center;gap:4px;font-size:9px;color:var(--mu)"><div style="width:10px;height:10px;background:rgba(248,113,113,.25);border-radius:2px"></div>Do not mix</div><div style="display:flex;align-items:center;gap:4px;font-size:9px;color:var(--mu)"><div style="width:10px;height:10px;background:rgba(251,191,36,.2);border-radius:2px"></div>Caution</div></div>`;
+  el.innerHTML = h;
+}
 
 // ══ LOG ═══════════════════════════════════════════════════════════════════════
 function renderLog() {
